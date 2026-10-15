@@ -1,0 +1,34 @@
+[
+  {
+    "Path": "C:\\Work\\COLA_COLA\\Assets\\Scenes\\SampleScene.unity",
+    "Unchanged": true
+  },
+  {
+    "Path": "C:\\Work\\COLA_COLA\\ProjectSettings\\URPProjectSettings.asset",
+    "Unchanged": true
+  },
+  {
+    "Path": "C:\\Work\\COLA_COLA\\ProjectSettings\\QualitySettings.asset",
+    "Unchanged": true
+  },
+  {
+    "Path": "C:\\Work\\COLA_COLA\\ProjectSettings\\EditorSettings.asset",
+    "Unchanged": true
+  },
+  {
+    "Path": "C:\\Work\\COLA_COLA\\Assets\\Settings\\PC_RPAsset.asset",
+    "Unchanged": true
+  },
+  {
+    "Path": "C:\\Work\\COLA_COLA\\Assets\\Settings\\PC_Renderer.asset",
+    "Unchanged": true
+  },
+  {
+    "Path": "C:\\Work\\COLA_COLA\\Assets\\Settings\\DefaultVolumeProfile.asset",
+    "Unchanged": true
+  },
+  {
+    "Path": "C:\\Work\\COLA_COLA\\Assets\\Settings\\SampleSceneProfile.asset",
+    "Unchanged": true
+  }
+]

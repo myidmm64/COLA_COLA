@@ -1,0 +1,35 @@
+# Blender MTL File: '2.blend'
+# Material Count: 3
+
+newmtl dark_wood2
+Ns 96.078431
+Ka 1.000000 1.000000 1.000000
+Kd 0.617207 0.287441 0.090842
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 1
+map_Kd ../../Textures/House plant/PUSHILIN_house_plant.png
+
+newmtl pine_tree
+Ns 96.078431
+Ka 1.000000 1.000000 1.000000
+Kd 0.181164 0.238398 0.020289
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 1
+map_Kd ../../Textures/House plant/PUSHILIN_house_plant.png
+
+newmtl soil
+Ns 96.078431
+Ka 1.000000 1.000000 1.000000
+Kd 0.061246 0.035601 0.017642
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 1
+map_Kd ../../Textures/House plant/PUSHILIN_house_plant.png

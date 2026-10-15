@@ -1,0 +1,42 @@
+[
+  {
+    "Path": "C:\\Work\\COLA_COLA\\Assets\\Scenes\\SampleScene.unity",
+    "Hash": "023937ABF8AB56D7A05A20E98B9580EDF55C47B284A6A3E47539D2A07E6B2F7A"
+  },
+  {
+    "Path": "C:\\Work\\COLA_COLA\\ProjectSettings\\URPProjectSettings.asset",
+    "Hash": "C317FE22B9488785C0611F0642429922E5D324430D929BFFB41648130F30C218"
+  },
+  {
+    "Path": "C:\\Work\\COLA_COLA\\ProjectSettings\\QualitySettings.asset",
+    "Hash": "600BEE1DD55CC67DBDFDCF320395635175C0E762760A8504CCEAA080A18A4EBA"
+  },
+  {
+    "Path": "C:\\Work\\COLA_COLA\\ProjectSettings\\EditorSettings.asset",
+    "Hash": "BBEDCF93C32BCA12EABA9ED61189AB13F064217E9F2984A66772719FA73C56B5"
+  },
+  {
+    "Path": "C:\\Work\\COLA_COLA\\Assets\\Settings\\PC_RPAsset.asset",
+    "Hash": "65B657B87062616FCA959AECBB64B4B01DFD3B0051AC1119FB65BE615539DF96"
+  },
+  {
+    "Path": "C:\\Work\\COLA_COLA\\Assets\\Settings\\PC_Renderer.asset",
+    "Hash": "3D0B01D8DED3327263B6690BE128A3DE58D17C514943AE42FE743A3E084A9C79"
+  },
+  {
+    "Path": "C:\\Work\\COLA_COLA\\Assets\\Settings\\DefaultVolumeProfile.asset",
+    "Hash": "6698BFACFAD479ACFD9766D00ABA81AB52527D3B15C8B133D03ED7A2401499D6"
+  },
+  {
+    "Path": "C:\\Work\\COLA_COLA\\Assets\\Settings\\SampleSceneProfile.asset",
+    "Hash": "A8677D4BAC051D24CAA11CD622E39F968155EE277BFCE132274F1DE225692FE9"
+  },
+  {
+    "Path": "C:\\Work\\COLA_COLA\\Assets\\_COLA_COLA\\Animations\\Idle\\Boss_SeatedIdle.anim",
+    "Hash": "122FB9BC187578DFCD5502482D1B35572D0F4E9A562684B9552133BF4026DFF9"
+  },
+  {
+    "Path": "C:\\Work\\COLA_COLA\\Assets\\_COLA_COLA\\Animations\\Idle\\PlayerArms_TableIdle.anim",
+    "Hash": "C968679E47E59ADC221F4B05680412294F73B8C58489F9AA7AFB7B9C03F50443"
+  }
+]

@@ -1,0 +1,11 @@
+임포트 완료
+7개 에셋 묶음 / 모델 및 프리팹 96개 / 게임용 텍스처 151장
+
+Models: 원본 모델
+Textures: 이미지
+Materials: URP 재질
+Prefabs: 배치용 에셋
+Docs: 원본 안내 및 라이선스
+
+콜라병: Pressure BlendShape 3개, Cap_Pivot 및 Burst_Origin 확인.
+Staff_02의 staff_04_baixo.jpg는 원본에서 누락되어 기본 색상을 사용합니다.

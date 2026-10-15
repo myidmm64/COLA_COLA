@@ -1,0 +1,15 @@
+PASS: gauge and all three numbered keys face the player's camera in the horizontal plane.
+PASS: console center, mounting height and gauge/console spacing retained.
+PASS: 222 unrelated transforms retained their world pose.
+Console pivot: (-0.7400, 0.9000, -0.1900)
+Camera position: (0.0000, 1.3200, -1.4000)
+Yaw before / after / applied delta (degrees): -31.44872 / -31.44872 / 0.00000
+Console front dot camera direction: 1.00000
+Gauge front dot camera direction: 1.00000
+Front convention: local -Z; horizontal orientation only, with existing top slope retained.
+PASS: key 1 approach near PLACEHOLDER_ReleaseValve, prop top below key surface by 0.05798 m.
+PASS: key 2 approach near PLACEHOLDER_ReleaseValve, prop top below key surface by 0.05798 m.
+PASS: key 2 approach near PLACEHOLDER_ColdPack, prop top below key surface by 0.04798 m.
+PASS: key 3 approach near PLACEHOLDER_ColdPack, prop top below key surface by 0.04798 m.
+PASS: key 3 approach near PLACEHOLDER_PizzaCoupon_Player, prop top below key surface by 0.06798 m.
+Nearby props were not moved. Conservative approach warnings: 0.

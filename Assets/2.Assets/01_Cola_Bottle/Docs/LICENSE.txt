@@ -1,0 +1,13 @@
+PSX COLA BOTTLE — CC0 1.0 Universal
+
+The newly created model and texture in this package are dedicated under CC0 1.0.
+To the extent any copyright or related rights are held in these new files, those
+rights are waived under CC0 1.0, with its fallback terms where a waiver is not possible.
+
+You may use, modify and share these files, including in commercial games.
+No attribution is required for this package.
+CC0 terms: https://creativecommons.org/publicdomain/zero/1.0/
+
+This dedication covers only the model and texture newly generated for this package.
+The reference websites and their asset packs remain subject to their own terms.
+No files from those reference packs are distributed here. No real beverage brand is depicted.

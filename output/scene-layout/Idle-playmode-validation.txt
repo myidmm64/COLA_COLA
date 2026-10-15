@@ -1,0 +1,9 @@
+PASS: Boss_ExistingRig_SeatedBlockPose: active Idle, normalizedTime=1.024, loop=True.
+PASS: PlayerArms_ExistingRig_TablePose: active Idle, normalizedTime=1.024, loop=True.
+PASS: Animator starts at the exact scene-authored seated/arm pose; no T-pose reset.
+PASS: both controllers entered their default Idle automatically before any explicit Animator.Play call.
+PASS: character placement roots stayed fixed throughout real Play mode.
+PASS: resting wrist contact drift <= 0.0005 mm; minimum sampled hand surface Y=0.83300, tabletop Y=.83000.
+Maximum observed local joint motion: boss=3.597 degrees, arms=2.801 degrees.
+Runtime capture: 150 frames over 31.01 seconds, Unity 6000.6.4f1.
+No root motion, input, shake action, boss AI or gameplay rules added.
