@@ -18,8 +18,12 @@ namespace ColaCola.Presentation
         public Transform bottle, cap;
         public Collider bottleCollider;
         public ColaShakeAnimator shakeAnimator;
+        public bool automaticBossTurns = true;
+        [Min(0)] public float bossThinkSeconds = .65f;
         private BottlePressureModel model;
         private System.Random random;
+        private System.Random bossChoiceRandom;
+        private int sessionVersion;
         private readonly Vector3[] buttonRest = new Vector3[3];
         private Vector3 bottleRestPosition, bottleRestScale, capRestPosition;
         private Quaternion bottleRestRotation;
@@ -29,6 +33,8 @@ namespace ColaCola.Presentation
         public bool IsBusy => busy || (shakeAnimator && shakeAnimator.IsPlaying);
         public BottlePressureModel Model => model;
         public ShakeResult LastResult { get; private set; }
+        public bool LastActionWasBoss { get; private set; }
+        public bool IsBossTurn { get; private set; }
         public event Action<ShakeResult> ShakeResolved;
 
         private void OnEnable()
@@ -63,12 +69,16 @@ namespace ColaCola.Presentation
         public void ResetSession(int? seed = null)
         {
             if (!HasBindings) return;
+            sessionVersion++;
             if (shakeAnimator) shakeAnimator.CancelAndRestore();
             StopAllCoroutines();
             busy = false;
             if (!captured) CaptureRestPose();
             RestorePoses();
             random = seed.HasValue ? new System.Random(seed.Value) : new System.Random();
+            bossChoiceRandom = seed.HasValue ? new System.Random(seed.Value ^ 0x43A1) : new System.Random();
+            IsBossTurn = false;
+            LastActionWasBoss = false;
             model = new BottlePressureModel(20, settings.probabilityExponent);
             CommittedActionCount = 0;
             BottleNumber = 0;
@@ -78,6 +88,11 @@ namespace ColaCola.Presentation
         public void BeginBottle(int limit, int pressure = 0)
         {
             if (IsBusy) return;
+            SetBottle(limit, pressure);
+        }
+
+        private void SetBottle(int limit, int pressure = 0)
+        {
             if (random == null) random = new System.Random();
             if (model == null) model = new BottlePressureModel(limit, settings ? settings.probabilityExponent : 2, pressure);
             else model.BeginBottle(limit, pressure);
@@ -93,7 +108,7 @@ namespace ColaCola.Presentation
             int limit = random.Next(minimum, maximum + 1);
             if (maximum > minimum && BottleNumber > 0 && limit == model.Limit)
                 limit = minimum + (limit - minimum + 1) % (maximum - minimum + 1);
-            BeginBottle(limit);
+            SetBottle(limit);
         }
 
         public bool SelectStrength(int strength)
@@ -106,13 +121,20 @@ namespace ColaCola.Presentation
         public bool ConfirmShake()
         {
             if (!HasBindings || !Application.IsPlaying(gameObject) || !isActiveAndEnabled || IsBusy || model == null) return false;
-            if (!model.TryCommit(() => random.NextDouble(), out var result)) return false;
+            if (!CommitSelected(false, out var result)) return false;
             busy = true;
+            StartCoroutine(ResolveSequence(result, sessionVersion));
+            return true;
+        }
+
+        private bool CommitSelected(bool boss, out ShakeResult result)
+        {
+            if (!model.TryCommit(() => random.NextDouble(), out result)) return false;
             CommittedActionCount++;
             LastResult = result;
+            LastActionWasBoss = boss;
             ReleaseButtons();
             gauge.Show(model.Pressure, model.Limit, null, result.Prediction.BurstProbability);
-            StartCoroutine(ResolveAnimation(result));
             return true;
         }
 
@@ -150,14 +172,44 @@ namespace ColaCola.Presentation
                 strengthButtons[i].localPosition = buttonRest[i] - Vector3.up * (model.SelectedStrength == i + 1 ? .012f : 0);
         }
 
-        private IEnumerator ResolveAnimation(ShakeResult result)
+        private bool IsCurrent(int version) => version == sessionVersion && isActiveAndEnabled;
+
+        private IEnumerator ResolveSequence(ShakeResult result, int version)
+        {
+            yield return ResolveAnimation(result, false, version);
+            if (!IsCurrent(version)) yield break;
+            if (automaticBossTurns)
+            {
+                IsBossTurn = true;
+                yield return new WaitForSecondsRealtime(Mathf.Max(0, bossThinkSeconds));
+                if (!IsCurrent(version)) yield break;
+                int strength = bossChoiceRandom.Next(1, 4);
+                if (model.SelectStrength(strength) && CommitSelected(true, out var bossResult))
+                    yield return ResolveAnimation(bossResult, true, version);
+                if (!IsCurrent(version)) yield break;
+            }
+            busy = false;
+            IsBossTurn = false;
+            RefreshView();
+        }
+
+        private IEnumerator ResolveAnimation(ShakeResult result, bool boss, int version)
         {
             float duration;
             float started;
-            if (shakeAnimator && shakeAnimator.isActiveAndEnabled && shakeAnimator.CanPlay(false, result.Prediction.Strength))
+            if (shakeAnimator && shakeAnimator.isActiveAndEnabled && shakeAnimator.CanPlay(boss, result.Prediction.Strength))
             {
                 // The character clip owns its full reach, shake and set-down duration.
-                yield return shakeAnimator.PlayShake(false, result.Prediction.Strength);
+                yield return shakeAnimator.PlayShake(boss, result.Prediction.Strength);
+                if (!IsCurrent(version)) yield break;
+                if (!shakeAnimator.LastPlaybackCompleted)
+                {
+                    sessionVersion++;
+                    busy = false;
+                    IsBossTurn = false;
+                    RestorePoses();
+                    yield break;
+                }
             }
             else
             {
@@ -173,6 +225,7 @@ namespace ColaCola.Presentation
                     yield return null;
                 }
             }
+            if (!IsCurrent(version)) yield break;
             RestorePoses();
             if (result.Burst)
             {
@@ -187,7 +240,6 @@ namespace ColaCola.Presentation
                 }
             }
             RestorePoses();
-            busy = false;
             if (result.Burst) BeginNextBottle();
             else RefreshView();
             ShakeResolved?.Invoke(result);
@@ -214,9 +266,11 @@ namespace ColaCola.Presentation
 
         private void OnDisable()
         {
+            sessionVersion++;
             if (shakeAnimator) shakeAnimator.CancelAndRestore();
             StopAllCoroutines();
             busy = false;
+            IsBossTurn = false;
             RestorePoses();
             if (gauge && model != null) gauge.Show(model.Pressure, model.Limit, null, null, true);
         }

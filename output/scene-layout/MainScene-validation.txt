@@ -1,6 +1,6 @@
 PASS: Saved MainScene reopened in Unity 6000.6.4f1
 PASS: one MainCamera and one AudioListener
-PASS: 178 renderers with material/shader references
+PASS: 177 renderers with material/shader references
 PASS: no missing scripts
 PASS: six authored test item models per participant, twelve instances, no remaining item Cube placeholders
 PASS: custom PressureGauge model and NeedlePivot replace the gauge Cube

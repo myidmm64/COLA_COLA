@@ -215,6 +215,8 @@ namespace ColaCola.Editor
                 var interaction = UnityEngine.Object.FindFirstObjectByType<ShakeSelectionInteraction>();
                 if (!SessionState.GetBool(Running + ".Initialized", false))
                 {
+                    // Isolate the pressure rules here; full player -> boss playback is verified separately.
+                    interaction.automaticBossTurns = false;
                     SessionState.SetBool(Running + ".Initialized", true);
                     phase = 0;
                     resolvedEvents = 0;

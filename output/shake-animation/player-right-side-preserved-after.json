@@ -1,0 +1,307 @@
+[
+  {
+    "path": ".\\Assets\\_COLA_COLA\\Animations\\Idle\\Boss_SeatedIdle_SupportedReference.json",
+    "hash": "47DAE664A8EFF806850E396465FEAF205699ACD4DE70C84D57A9EFE31DDE2DC0",
+    "unchanged": true
+  },
+  {
+    "path": ".\\Assets\\_COLA_COLA\\Animations\\Idle\\Boss_SeatedIdle_SupportedReference.json.meta",
+    "hash": "AEA33C63706BE14426A78DBAAB15BADD90060E617A166E4BFEC29539A98D5EE7",
+    "unchanged": true
+  },
+  {
+    "path": ".\\Assets\\_COLA_COLA\\Animations\\Idle\\Boss_SeatedIdle.anim",
+    "hash": "122FB9BC187578DFCD5502482D1B35572D0F4E9A562684B9552133BF4026DFF9",
+    "unchanged": true
+  },
+  {
+    "path": ".\\Assets\\_COLA_COLA\\Animations\\Idle\\Boss_SeatedIdle.anim.meta",
+    "hash": "6DB0BFE3D3A62B5DE0383A4DC624A6A7784C5DCDA26287F75800C33A9081E401",
+    "unchanged": true
+  },
+  {
+    "path": ".\\Assets\\_COLA_COLA\\Animations\\Idle\\Boss_SeatedIdle.controller",
+    "hash": "475AB68A6A77C7F49510F227756B68AC0FC430BE723423C5D008507F50DF30BE",
+    "unchanged": true
+  },
+  {
+    "path": ".\\Assets\\_COLA_COLA\\Animations\\Idle\\Boss_SeatedIdle.controller.meta",
+    "hash": "08227DF5590A4EAE274751952D1DCB0B36376E8527138780D28B359A3EC92FF7",
+    "unchanged": true
+  },
+  {
+    "path": ".\\Assets\\_COLA_COLA\\Animations\\Idle\\PlayerArms_TableIdle_SupportedReference.json",
+    "hash": "599205F113A8135284BB8343B4BDD3C0061C2DCF7BE871EAD96B523357F032FB",
+    "unchanged": true
+  },
+  {
+    "path": ".\\Assets\\_COLA_COLA\\Animations\\Idle\\PlayerArms_TableIdle_SupportedReference.json.meta",
+    "hash": "231FF4C8AA350B81EC19E637E33B081302A8CE64013A4963EC4A618DB9824A92",
+    "unchanged": true
+  },
+  {
+    "path": ".\\Assets\\_COLA_COLA\\Animations\\Idle\\PlayerArms_TableIdle.anim",
+    "hash": "C968679E47E59ADC221F4B05680412294F73B8C58489F9AA7AFB7B9C03F50443",
+    "unchanged": true
+  },
+  {
+    "path": ".\\Assets\\_COLA_COLA\\Animations\\Idle\\PlayerArms_TableIdle.anim.meta",
+    "hash": "E4FD835484437FD6AC772644FFB574EDDBA41B1F1E95B464B117DCB1EC5A60B1",
+    "unchanged": true
+  },
+  {
+    "path": ".\\Assets\\_COLA_COLA\\Animations\\Idle\\PlayerArms_TableIdle.controller",
+    "hash": "79A50256BD1C40A1DE59548E5C2FD87581880D8DF69EB049AE03F484D39CBE0E",
+    "unchanged": true
+  },
+  {
+    "path": ".\\Assets\\_COLA_COLA\\Animations\\Idle\\PlayerArms_TableIdle.controller.meta",
+    "hash": "169CA66BEA98FD031EB0F268D4CBB61ADBA44515384C54BE79F81007CF440E37",
+    "unchanged": true
+  },
+  {
+    "path": "Assets/_COLA_COLA/Art/PostProcessing/PizzeriaHorror.asset",
+    "hash": "BB824A6795D07DFEE94DC43DE75D72981118E6F24C8EB16AAB2ABF27666C2FA1",
+    "unchanged": true
+  },
+  {
+    "path": "Assets/_COLA_COLA/Art/Prefabs/PressureGauge.prefab",
+    "hash": "7A050D5AF26A3B26E3295EC1BC8CEC047AFF82C7FBFDC7379EFCB701C788E7EA",
+    "unchanged": true
+  },
+  {
+    "path": "Assets/_COLA_COLA/Art/Prefabs/ShakeConsole.prefab",
+    "hash": "FA8B90AEA362B03805E4007610088188E7524596EAAC1D4ED22195996D866FF2",
+    "unchanged": true
+  },
+  {
+    "path": "Assets/_COLA_COLA/Art/Prefabs/StatusTerminal.prefab",
+    "hash": "DBA062FBF20CC6F6C27BA8A02CC31F6D4B9B6F576E51919230C32DE4BE81D77A",
+    "unchanged": true
+  },
+  {
+    "path": "Assets/_COLA_COLA/Data/PressureInteractionSettings.asset",
+    "hash": "64B2EB4FA734884534DF7D5129ACC30C09CAE41BC9717E0FD65E192C0E467724",
+    "unchanged": true
+  },
+  {
+    "path": "Assets/Scenes/SampleScene.unity",
+    "hash": "023937ABF8AB56D7A05A20E98B9580EDF55C47B284A6A3E47539D2A07E6B2F7A",
+    "unchanged": true
+  },
+  {
+    "path": "C:\\Work\\COLA_COLA\\Assets\\_COLA_COLA\\Art\\Prefabs\\TestItems\\InventoryServingTray.prefab",
+    "hash": "4B16443E5242F07FABFCE86C7A81783DFED7432E6655D164C18257A89506E08C",
+    "unchanged": true
+  },
+  {
+    "path": "C:\\Work\\COLA_COLA\\Assets\\_COLA_COLA\\Art\\Prefabs\\TestItems\\TestItem01_ReleaseValve.prefab",
+    "hash": "CA95CDC588C2017C6917004B1C7718887DB61CE9FC05FA7BE260448627248B3F",
+    "unchanged": true
+  },
+  {
+    "path": "C:\\Work\\COLA_COLA\\Assets\\_COLA_COLA\\Art\\Prefabs\\TestItems\\TestItem02_ColdPack.prefab",
+    "hash": "F2C06330E797BDDD17397B45754A53282E5AF7676C57E7D43630080D9A3CF072",
+    "unchanged": true
+  },
+  {
+    "path": "C:\\Work\\COLA_COLA\\Assets\\_COLA_COLA\\Art\\Prefabs\\TestItems\\TestItem03_FoldedCoupon.prefab",
+    "hash": "643C8F8B2851DFB4C235ACE0BAE124681A2CE748F231D2E149089BE028778E95",
+    "unchanged": true
+  },
+  {
+    "path": "C:\\Work\\COLA_COLA\\Assets\\_COLA_COLA\\Art\\Prefabs\\TestItems\\TestItem04_WrappedCandy.prefab",
+    "hash": "585795A5C2B268CD087BDE699E8A5741123E5D57E997C9BE4EA52823B34685FF",
+    "unchanged": true
+  },
+  {
+    "path": "C:\\Work\\COLA_COLA\\Assets\\_COLA_COLA\\Art\\Prefabs\\TestItems\\TestItem05_ExpansionCap.prefab",
+    "hash": "7F70CCC20944524429E3896A2F620D13F6F89533DB1328D1985B5B5D68DDA1E0",
+    "unchanged": true
+  },
+  {
+    "path": "C:\\Work\\COLA_COLA\\Assets\\_COLA_COLA\\Art\\Prefabs\\TestItems\\TestItem06_AdditiveBottle.prefab",
+    "hash": "A2CAB7DD53BD5E969EF9DB3394CE3D6F46ED853794977A3CE17251776823516E",
+    "unchanged": true
+  },
+  {
+    "path": "Packages/manifest.json",
+    "hash": "53DF42DBB3B90B25479E96CE19A71719468DCA62D0E2DDB2AA337DDDDB5C7E61",
+    "unchanged": true
+  },
+  {
+    "path": "Packages/packages-lock.json",
+    "hash": "22D19FBA419721F83560ADDDA7CF7EBB912D59841542F8BA007A2D4ACF47E064",
+    "unchanged": true
+  },
+  {
+    "path": "ProjectSettings/EditorBuildSettings.asset",
+    "hash": "2D4419DE181ECAA5699F61D5DA96E5F28851B5B4BC8DE98C8598ADDA382A27C9",
+    "unchanged": true
+  },
+  {
+    "path": "ProjectSettings/EditorSettings.asset",
+    "hash": "BBEDCF93C32BCA12EABA9ED61189AB13F064217E9F2984A66772719FA73C56B5",
+    "unchanged": true
+  },
+  {
+    "path": "ProjectSettings/ProjectSettings.asset",
+    "hash": "13A7A3180074D85868E8E8DC5DB0F01745F2511B98FFC31A2556CAB9636141D0",
+    "unchanged": true
+  },
+  {
+    "path": "ProjectSettings/QualitySettings.asset",
+    "hash": "600BEE1DD55CC67DBDFDCF320395635175C0E762760A8504CCEAA080A18A4EBA",
+    "unchanged": true
+  },
+  {
+    "path": "ProjectSettings/URPProjectSettings.asset",
+    "hash": "C317FE22B9488785C0611F0642429922E5D324430D929BFFB41648130F30C218",
+    "unchanged": true
+  },
+  {
+    "path": "C:\\Work\\COLA_COLA\\Assets\\2.Assets\\02_Player_Arms\\Models\\Player_Arms.fbx",
+    "hash": "60B4CF215C0553E53198AA26592DA7CD50E665E98223E26A471A0F1ED6FC9E66",
+    "unchanged": true
+  },
+  {
+    "path": "C:\\Work\\COLA_COLA\\Assets\\2.Assets\\02_Player_Arms\\Models\\Player_Arms.fbx.meta",
+    "hash": "3AA61235346A89BCC3613702C7932FF9DAD64C489C753AD7DA7F4079DBF40911",
+    "unchanged": true
+  },
+  {
+    "path": "C:\\Work\\COLA_COLA\\Assets\\2.Assets\\02_Player_Arms\\Prefabs\\Player_Arms_fbx.prefab",
+    "hash": "EF7BFE25C3FE40C5461DFEEB221B05869F72A8B1210E27D2C595AB787CB069FC",
+    "unchanged": true
+  },
+  {
+    "path": "C:\\Work\\COLA_COLA\\Assets\\2.Assets\\02_Player_Arms\\Prefabs\\Player_Arms_fbx.prefab.meta",
+    "hash": "C81D5540FD3EAE2BE8315FF8837AD296D496C73CFBA28D4B40A025A4D82E6DF1",
+    "unchanged": true
+  },
+  {
+    "path": "C:\\Work\\COLA_COLA\\Assets\\2.Assets\\02_Player_Arms\\Textures\\PlayerArms.png",
+    "hash": "FC0D483CED0621D223DE53436047FEC9F7A6433DF465C9E4F84AFE874729CA85",
+    "unchanged": true
+  },
+  {
+    "path": "C:\\Work\\COLA_COLA\\Assets\\2.Assets\\02_Player_Arms\\Textures\\PlayerArms.png.meta",
+    "hash": "9B5EBB6CAB0AD4388C531A1B24F9EED6E87F533D849768BD67A3EC9058438D1F",
+    "unchanged": true
+  },
+  {
+    "path": "C:\\Work\\COLA_COLA\\Assets\\2.Assets\\03_Simple_Character_PSX\\Models\\simple-character-psx.fbx",
+    "hash": "A6465301B36F2FAACEF25C448079519E93AD27977ACA8A89C84CA8CE2ABC16BA",
+    "unchanged": true
+  },
+  {
+    "path": "C:\\Work\\COLA_COLA\\Assets\\2.Assets\\03_Simple_Character_PSX\\Models\\simple-character-psx.fbx.meta",
+    "hash": "1A7D01C9CA3DAB0DBDD51CCE1A23E8B834E499D893EF5B32D44945698C4D468B",
+    "unchanged": true
+  },
+  {
+    "path": "C:\\Work\\COLA_COLA\\Assets\\2.Assets\\03_Simple_Character_PSX\\Prefabs\\simple-character-psx_fbx.prefab",
+    "hash": "CB4231898D455BFB28E7A4B3F6DA7E5EA8479E2B29404C0182DAD0A257CDBD8F",
+    "unchanged": true
+  },
+  {
+    "path": "C:\\Work\\COLA_COLA\\Assets\\2.Assets\\03_Simple_Character_PSX\\Prefabs\\simple-character-psx_fbx.prefab.meta",
+    "hash": "301FDF75B5F45B9E29D1362D96FC5D68E2565140764215CEEC27A0342F6556A2",
+    "unchanged": true
+  },
+  {
+    "path": "C:\\Work\\COLA_COLA\\Assets\\2.Assets\\03_Simple_Character_PSX\\Textures\\character_256.png",
+    "hash": "5216C33E86FA217BF156F24CAB3BFAD448DFC240FACA10DB74A04E6678DD77C2",
+    "unchanged": true
+  },
+  {
+    "path": "C:\\Work\\COLA_COLA\\Assets\\2.Assets\\03_Simple_Character_PSX\\Textures\\character_256.png.meta",
+    "hash": "90BA1A44BB58A5992061F2393CF935B3A3C5C2614D727E46A5C2EC7904A0BCB0",
+    "unchanged": true
+  },
+  {
+    "path": "C:\\Work\\COLA_COLA\\Assets\\2.Assets\\03_Simple_Character_PSX\\Textures\\Embedded\\simple-character-psx_fbx\\character_256.png",
+    "hash": "5216C33E86FA217BF156F24CAB3BFAD448DFC240FACA10DB74A04E6678DD77C2",
+    "unchanged": true
+  },
+  {
+    "path": "C:\\Work\\COLA_COLA\\Assets\\2.Assets\\03_Simple_Character_PSX\\Textures\\Embedded\\simple-character-psx_fbx\\character_256.png.meta",
+    "hash": "AE244674779192465CDB937D32702D7F226CA3FD927509394B54AB003AD5C9ED",
+    "unchanged": true
+  },
+  {
+    "path": "C:\\Work\\COLA_COLA\\Assets\\_COLA_COLA\\Animations\\Shake\\Boss_BottleMotion_1.anim",
+    "hash": "AF3D402136456D624E2D664E0F6FBC9A82EF575AB2E840B57BA6D7AD1B093DB4",
+    "unchanged": true
+  },
+  {
+    "path": "C:\\Work\\COLA_COLA\\Assets\\_COLA_COLA\\Animations\\Shake\\Boss_BottleMotion_1.anim.meta",
+    "hash": "C939E58418546364CA7F39914DCA008BB2CCDBFBC515D3D8D6052252B080D3FE",
+    "unchanged": true
+  },
+  {
+    "path": "C:\\Work\\COLA_COLA\\Assets\\_COLA_COLA\\Animations\\Shake\\Boss_BottleMotion_2.anim",
+    "hash": "B108F229F2B5B0BD5A51446C0B74DB685485865BC51A9986580184C37D473E0A",
+    "unchanged": true
+  },
+  {
+    "path": "C:\\Work\\COLA_COLA\\Assets\\_COLA_COLA\\Animations\\Shake\\Boss_BottleMotion_2.anim.meta",
+    "hash": "6EB81CFA43EF5B1848FED10A1F4877D88717D71DD424AA3575A428E4D9BE241C",
+    "unchanged": true
+  },
+  {
+    "path": "C:\\Work\\COLA_COLA\\Assets\\_COLA_COLA\\Animations\\Shake\\Boss_BottleMotion_3.anim",
+    "hash": "ADF305C6D4D8C0F215DE4714AC968FF65A1F94E26F8D757451A77F11DEE23394",
+    "unchanged": true
+  },
+  {
+    "path": "C:\\Work\\COLA_COLA\\Assets\\_COLA_COLA\\Animations\\Shake\\Boss_BottleMotion_3.anim.meta",
+    "hash": "2BCA5C9C11E7AD1E8564041D19A8E0105850ADD0F8C08928A4C1C50B25760CB5",
+    "unchanged": true
+  },
+  {
+    "path": "C:\\Work\\COLA_COLA\\Assets\\_COLA_COLA\\Animations\\Shake\\Boss_ColaShake_1.anim",
+    "hash": "5F96E74E1C6E3EF88711A491F48E5DC6D9F6B8D4D459FA9B2A02687B01F75C7A",
+    "unchanged": true
+  },
+  {
+    "path": "C:\\Work\\COLA_COLA\\Assets\\_COLA_COLA\\Animations\\Shake\\Boss_ColaShake_1.anim.meta",
+    "hash": "B5AC7A00F5BE0F8CCB685B73FC427D7FD5B32F22CBBA699E40D873237A5ECA94",
+    "unchanged": true
+  },
+  {
+    "path": "C:\\Work\\COLA_COLA\\Assets\\_COLA_COLA\\Animations\\Shake\\Boss_ColaShake_2.anim",
+    "hash": "D2D8E477406AE6B76790B0D1B6DDA05A5C17D86605BA9AC63720795D4C392C3F",
+    "unchanged": true
+  },
+  {
+    "path": "C:\\Work\\COLA_COLA\\Assets\\_COLA_COLA\\Animations\\Shake\\Boss_ColaShake_2.anim.meta",
+    "hash": "70036D8A1A42FCDB8134E44F2C6620603678E421A702B4EAE1485A76851E384C",
+    "unchanged": true
+  },
+  {
+    "path": "C:\\Work\\COLA_COLA\\Assets\\_COLA_COLA\\Animations\\Shake\\Boss_ColaShake_3.anim",
+    "hash": "26B7C61A42CCD2F1FF5405228EA312F5BD0EDD218734106D5D2FD7B9CE530A31",
+    "unchanged": true
+  },
+  {
+    "path": "C:\\Work\\COLA_COLA\\Assets\\_COLA_COLA\\Animations\\Shake\\Boss_ColaShake_3.anim.meta",
+    "hash": "347FC81A3B295C98FB8A1F994BA68055FD6C6703E9B3288D5F2473F2E11A0C61",
+    "unchanged": true
+  },
+  {
+    "path": "Assets/Scenes/MainScene.unity",
+    "hash": "D2DDF02958D24060F351B55A669F9A97AC59C4AEF39C21C93854CA929FCBAC37",
+    "unchanged": true
+  },
+  {
+    "path": "Assets/_COLA_COLA/Scripts/Presentation/ColaShakeAnimator.cs",
+    "hash": "9BA87C49D5A48714CFC943B6E2471035A6CC28A77EA36B120E97A47A54A5FAB7",
+    "unchanged": true
+  },
+  {
+    "path": "Assets/_COLA_COLA/Scripts/Presentation/ShakeSelectionInteraction.cs",
+    "hash": "76374719A59039A6E9189A66B82A4E778E567CE00AE0E4C7081074CAC0043CF3",
+    "unchanged": true
+  }
+]

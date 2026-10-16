@@ -1,28 +1,40 @@
 using System;
 using System.Collections;
 using UnityEngine;
+using UnityEngine.Animations;
+using UnityEngine.Playables;
 
 namespace ColaCola.Presentation
 {
-    /// <summary>Plays a baked hand-and-bottle performance without replacing either seated Idle controller.</summary>
+    /// <summary>Plays each actor's own rig and attaches the held bottle to that actor's hand.</summary>
     [DisallowMultipleComponent, DefaultExecutionOrder(1000)]
     public sealed class ColaShakeAnimator : MonoBehaviour
     {
         public Animator playerAnimator, bossAnimator;
+        public Transform playerHand, bossHand;
+        public const float GripStartTime = 1.15f;
+        public const float GripEndTime = 3.35f;
         public AnimationClip[] playerClips = new AnimationClip[3];
         public AnimationClip[] bossClips = new AnimationClip[3];
         public AnimationClip[] playerBottleClips = new AnimationClip[3];
         public AnimationClip[] bossBottleClips = new AnimationClip[3];
         public Transform bottle;
         [Min(0)] public float idleBlendSeconds = .2f;
+        [Tooltip("In the Unity Editor, automatically repeat the player's hand animation when entering Play.")]
+        public bool previewPlayerOnPlay;
+        [Range(1, 3)] public int playPreviewStrength = 2;
 
         public bool IsPlaying => playback != null;
         public bool LastPlaybackCompleted { get; private set; }
         public bool PlayingBoss => playback != null && playback.boss;
         public float PlaybackTime => playback != null ? playback.elapsed : 0;
+        public Transform ActiveHand => playback != null ? playback.hand : null;
+        public bool BottleHeld => playback != null && playback.elapsed >= GripStartTime && playback.elapsed <= GripEndTime;
+        public bool UsesAnimatorGraph => playback != null && playback.graph.IsValid();
 
         private Playback playback;
         private int playbackVersion;
+        private Coroutine playerPreviewLoop;
 
         private struct LocalPose
         {
@@ -50,22 +62,30 @@ namespace ColaCola.Presentation
             public bool boss, animatorEnabled;
             public Animator animator;
             public AnimationClip actorClip, bottleClip, idleClip;
-            public Transform bottleTransform, bottleParent, actorRootParent;
+            public Transform hand, bottleTransform, bottleParent, actorRootParent;
+            public Vector3 bottlePositionInHand;
+            public Quaternion bottleRotationInHand;
             public Transform[] bones;
-            public LocalPose[] rest, idle;
+            public LocalPose[] rest;
             public LocalPose actorRootRest, bottleRest;
             public float elapsed, duration, normalizedTime, idleSpeed;
             public int stateHash;
+            public PlayableGraph graph;
+            public AnimationClipPlayable actorPlayable, idlePlayable;
+            public AnimationMixerPlayable mixer;
         }
 
         public bool CanPlay(bool boss, int strength)
         {
             if (strength < 1 || strength > 3 || !bottle) return false;
             var actor = boss ? bossAnimator : playerAnimator;
+            var otherActor = boss ? playerAnimator : bossAnimator;
+            var hand = boss ? bossHand : playerHand;
             var clips = boss ? bossClips : playerClips;
             var bottleClips = boss ? bossBottleClips : playerBottleClips;
             int index = strength - 1;
-            return actor && clips != null && clips.Length > index && clips[index] && clips[index].length > 0 &&
+            return actor && actor != otherActor && hand && hand.IsChildOf(actor.transform) &&
+                clips != null && clips.Length > index && clips[index] && clips[index].length > 0 &&
                 bottleClips != null && bottleClips.Length > index && bottleClips[index] && bottleClips[index].length > 0;
         }
 
@@ -91,6 +111,7 @@ namespace ColaCola.Presentation
         private void BeginPlayback(bool boss, int strength)
         {
             var animator = boss ? bossAnimator : playerAnimator;
+            if (animator.isActiveAndEnabled && !animator.isInitialized) animator.Update(0);
             var state = animator.runtimeAnimatorController ? animator.GetCurrentAnimatorStateInfo(0) : default;
             var infos = animator.runtimeAnimatorController ? animator.GetCurrentAnimatorClipInfo(0) : Array.Empty<AnimatorClipInfo>();
             AnimationClip idleClip = null;
@@ -110,6 +131,7 @@ namespace ColaCola.Presentation
             {
                 boss = boss,
                 animator = animator,
+                hand = boss ? bossHand : playerHand,
                 animatorEnabled = animator.enabled,
                 actorClip = (boss ? bossClips : playerClips)[strength - 1],
                 bottleClip = (boss ? bossBottleClips : playerBottleClips)[strength - 1],
@@ -122,22 +144,73 @@ namespace ColaCola.Presentation
                 idleSpeed = animator.enabled ? animator.speed * state.speed * state.speedMultiplier : 0,
                 bones = bones,
                 rest = new LocalPose[bones.Length],
-                idle = new LocalPose[bones.Length],
                 actorRootRest = new LocalPose(animator.transform),
                 bottleRest = new LocalPose(bottle)
             };
             pose.duration = Mathf.Max(pose.actorClip.length, pose.bottleClip.length);
             for (int i = 0; i < bones.Length; i++) pose.rest[i] = new LocalPose(bones[i]);
-            animator.enabled = false;
+            animator.enabled = true;
             playback = pose;
+            CreateActorGraph(pose);
+            CaptureHandGrip(pose);
             SamplePlayback(pose);
+        }
+
+        private static void CaptureHandGrip(Playback pose)
+        {
+            // Capture against the authored contact pose rather than the current Idle phase.
+            // The offset belongs to this rig; the other actor's bones never participate.
+            EvaluateActor(pose, GripStartTime, 1);
+            pose.bottleClip.SampleAnimation(pose.bottleTransform.gameObject, GripStartTime);
+            pose.bottlePositionInHand = pose.hand.InverseTransformPoint(pose.bottleTransform.position);
+            pose.bottleRotationInHand = Quaternion.Inverse(pose.hand.rotation) * pose.bottleTransform.rotation;
+            EvaluateActor(pose, 0, 0);
+            pose.bottleRest.Apply(pose.bottleTransform);
+        }
+
+        private static void CreateActorGraph(Playback pose)
+        {
+            pose.graph = PlayableGraph.Create("COLA_COLA_" + (pose.boss ? "Boss" : "Player") + "_HandPlayback");
+            pose.graph.SetTimeUpdateMode(DirectorUpdateMode.Manual);
+            pose.mixer = AnimationMixerPlayable.Create(pose.graph, 2);
+            pose.actorPlayable = AnimationClipPlayable.Create(pose.graph, pose.actorClip);
+            pose.actorPlayable.SetApplyFootIK(false);
+            pose.actorPlayable.SetSpeed(0);
+            pose.graph.Connect(pose.actorPlayable, 0, pose.mixer, 1);
+            if (pose.idleClip)
+            {
+                pose.idlePlayable = AnimationClipPlayable.Create(pose.graph, pose.idleClip);
+                pose.idlePlayable.SetApplyFootIK(false);
+                pose.idlePlayable.SetSpeed(0);
+                pose.graph.Connect(pose.idlePlayable, 0, pose.mixer, 0);
+            }
+            var output = AnimationPlayableOutput.Create(pose.graph, "Original character hand", pose.animator);
+            output.SetSourcePlayable(pose.mixer);
+            pose.graph.Play();
+        }
+
+        private static void EvaluateActor(Playback pose, float time, float blend)
+        {
+            if (pose.idlePlayable.IsValid())
+            {
+                float idleTime = pose.normalizedTime * pose.idleClip.length + time * pose.idleSpeed;
+                pose.idlePlayable.SetTime(Mathf.Repeat(idleTime, pose.idleClip.length));
+            }
+            else blend = 1;
+            pose.actorPlayable.SetTime(Mathf.Min(time, pose.actorClip.length));
+            pose.mixer.SetInputWeight(0, 1 - blend);
+            pose.mixer.SetInputWeight(1, blend);
+            pose.graph.Evaluate(0);
+            for (int i = 0; i < pose.bones.Length; i++)
+                if (pose.bones[i]) pose.bones[i].localScale = pose.rest[i].scale;
+            pose.actorRootRest.Apply(pose.animator.transform);
         }
 
         private void LateUpdate()
         {
             var pose = playback;
             if (pose == null) return;
-            if (!pose.animator || !pose.bottleTransform)
+            if (!pose.animator || !pose.hand || !pose.bottleTransform)
             {
                 CancelAndRestore();
                 return;
@@ -161,35 +234,15 @@ namespace ColaCola.Presentation
 
         private void SamplePlayback(Playback pose)
         {
-            SampleIdle(pose);
-            for (int i = 0; i < pose.bones.Length; i++)
-                if (pose.bones[i]) pose.idle[i] = new LocalPose(pose.bones[i]);
-            pose.actorClip.SampleAnimation(pose.animator.gameObject, Mathf.Min(pose.elapsed, pose.actorClip.length));
             float blend = idleBlendSeconds <= 0 ? 1 : Mathf.Min(
                 Mathf.SmoothStep(0, 1, pose.elapsed / idleBlendSeconds),
                 Mathf.SmoothStep(0, 1, (pose.duration - pose.elapsed) / idleBlendSeconds));
-            for (int i = 0; i < pose.bones.Length; i++)
-            {
-                var node = pose.bones[i];
-                if (!node) continue;
-                node.localPosition = Vector3.LerpUnclamped(pose.idle[i].position, node.localPosition, blend);
-                node.localRotation = Quaternion.SlerpUnclamped(pose.idle[i].rotation, node.localRotation, blend);
-                node.localScale = Vector3.LerpUnclamped(pose.idle[i].scale, node.localScale, blend);
-            }
-            // Even a mistakenly authored actor-root curve must not move the seated rig or change its imported scale.
-            pose.actorRootRest.Apply(pose.animator.transform);
+            EvaluateActor(pose, pose.elapsed, blend);
             pose.bottleClip.SampleAnimation(pose.bottleTransform.gameObject, Mathf.Min(pose.elapsed, pose.bottleClip.length));
             pose.bottleTransform.localScale = pose.bottleRest.scale;
-        }
-
-        private static void SampleIdle(Playback pose)
-        {
-            for (int i = 0; i < pose.bones.Length; i++) pose.rest[i].Apply(pose.bones[i]);
-            if (pose.animator && pose.animatorEnabled && pose.idleClip)
-            {
-                float time = pose.normalizedTime * pose.idleClip.length + pose.elapsed * pose.idleSpeed;
-                pose.idleClip.SampleAnimation(pose.animator.gameObject, Mathf.Repeat(time, pose.idleClip.length));
-            }
+            if (pose.elapsed >= GripStartTime && pose.elapsed <= GripEndTime)
+                pose.bottleTransform.SetPositionAndRotation(pose.hand.TransformPoint(pose.bottlePositionInHand),
+                    pose.hand.rotation * pose.bottleRotationInHand);
         }
 
         public void CancelAndRestore()
@@ -204,21 +257,23 @@ namespace ColaCola.Presentation
         {
             // Clear first: callers can cancel twice, or reset the interaction from a completion callback.
             if (playback == pose) playback = null;
+            if (pose.graph.IsValid()) pose.graph.Destroy();
             if (pose.bottleTransform && pose.bottleTransform.parent != pose.bottleParent)
                 pose.bottleTransform.SetParent(pose.bottleParent, false);
             pose.bottleRest.Apply(pose.bottleTransform);
             if (!pose.animator) return;
             if (pose.animator.transform.parent != pose.actorRootParent)
                 pose.animator.transform.SetParent(pose.actorRootParent, false);
-            SampleIdle(pose);
+            for (int i = 0; i < pose.bones.Length; i++) pose.rest[i].Apply(pose.bones[i]);
             pose.actorRootRest.Apply(pose.animator.transform);
-            if (pose.animator.runtimeAnimatorController && pose.stateHash != 0)
+            pose.animator.enabled = pose.animatorEnabled;
+            if (pose.animatorEnabled && pose.animator.runtimeAnimatorController && pose.stateHash != 0)
             {
+                pose.animator.Rebind();
                 float normalized = pose.normalizedTime;
                 if (pose.idleClip) normalized += pose.elapsed * pose.idleSpeed / pose.idleClip.length;
                 pose.animator.Play(pose.stateHash, 0, normalized);
             }
-            pose.animator.enabled = pose.animatorEnabled;
             if (pose.animatorEnabled && pose.animator.gameObject.activeInHierarchy)
                 pose.animator.Update(0);
             pose.actorRootRest.Apply(pose.animator.transform);
@@ -226,6 +281,35 @@ namespace ColaCola.Presentation
 
         [ContextMenu("Preview Player Shake (Play Mode)")]
         public void PreviewPlayerShake() => Preview(false);
+
+        public void BeginPlayerPlayPreview()
+        {
+            if (!Application.IsPlaying(gameObject) || !isActiveAndEnabled || !previewPlayerOnPlay) return;
+            StopPlayerPlayPreview();
+            playerPreviewLoop = StartCoroutine(RepeatPlayerPreview());
+        }
+
+        private IEnumerator RepeatPlayerPreview()
+        {
+            yield return new WaitForSecondsRealtime(.75f);
+            while (previewPlayerOnPlay && isActiveAndEnabled)
+            {
+                var interaction = FindAnyObjectByType<ShakeSelectionInteraction>();
+                if (!interaction || !interaction.IsBusy)
+                    yield return PlayShake(false, Mathf.Clamp(playPreviewStrength, 1, 3));
+                yield return new WaitForSecondsRealtime(1);
+            }
+            playerPreviewLoop = null;
+        }
+
+        [ContextMenu("Stop Player Play Preview")]
+        public void StopPlayerPlayPreview()
+        {
+            if (playerPreviewLoop == null) return;
+            StopCoroutine(playerPreviewLoop);
+            playerPreviewLoop = null;
+            CancelAndRestore();
+        }
 
         [ContextMenu("Preview Boss Shake (Play Mode)")]
         public void PreviewBossShake() => Preview(true);
@@ -238,7 +322,7 @@ namespace ColaCola.Presentation
             StartCoroutine(PlayShake(boss, 2));
         }
 
-        private void OnDisable() => CancelAndRestore();
+        private void OnDisable() { StopPlayerPlayPreview(); CancelAndRestore(); }
         private void OnDestroy() => CancelAndRestore();
     }
 }

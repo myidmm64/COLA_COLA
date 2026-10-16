@@ -19,13 +19,13 @@
 - 실제 배치값: `output/scene-layout/MainScene-layout.txt`
 - 엔진 재열기 검증 기록: `output/scene-layout/MainScene-validation.txt`
 
-이 씬은 보스와의 1대1 구도를 위한 모델 배치·대기 애니메이션·실물 체력/토큰 단말기를 포함한다. 기존 우측 HUD 구상은 좌측 탁상 단말기로 대체했다. 두 사람의 체력·토큰 표시 API와 피드백, 강도 선택·압력/폭발 확률 미리보기·중앙 콜라 클릭 확정을 구현했다. 저장된 3/3 체력과 12·15토큰은 외형 확인용 예시다. 실제 보스 턴·피해·토큰 지급·아이템·상점 연결은 별도 구현 범위다.
+이 씬은 보스와의 1대1 구도를 위한 모델 배치·대기 애니메이션·실물 체력/토큰 단말기를 포함한다. 기존 우측 HUD 구상은 좌측 탁상 단말기로 대체했다. 두 사람의 체력·토큰 표시 API와 피드백, 강도 선택·압력/폭발 확률 미리보기·중앙 콜라 클릭 확정과 기본 교대 행동을 구현했다. 저장된 3/3 체력과 12·15토큰은 외형 확인용 예시다. 보스 전술·피해·토큰 지급·아이템·상점 연결은 별도 구현 범위다.
 
 ## 열어서 확인하기
 
-Unity의 `COLA_COLA > Open Main Scene` 메뉴로 열 수 있다. Game 뷰는 **16:9**로 확인한다. Play를 누르면 플레이어 팔과 보스의 Idle이 자동으로 반복된다. 빌드 설정의 첫 번째 활성 씬은 MainScene이며 기존 SampleScene도 보존한다.
+Unity의 `COLA_COLA > Open Main Scene` 메뉴로 열 수 있다. Game 뷰는 **16:9**로 확인한다. 현재는 Play를 누르면 약 0.75초 뒤 원본 FPS 오른손으로 병의 오른쪽을 잡고 흔드는 확인용 동작이 반복된다. 보스는 기존 Idle을 유지한다. 일반 입력으로 플레이하려면 `08_Devices/ColaShakeAnimation`의 `Preview Player On Play`를 끈다. 빌드 설정의 첫 번째 활성 씬은 MainScene이며 기존 SampleScene도 보존한다.
 
-플레이어는 강도 1·2·3 선택 후 콜라를 클릭하면 오른손으로 잡아 들어 흔들고 내려놓는 동작을 재생한다. 보스의 같은 동작은 Play 모드의 `COLA_COLA > Preview Boss Cola Shake (Play Mode)`로 확인한다. 각 강도별 클립과 재생·취소 API는 `Docs/Art/ColaShakeAnimations.md`를 따른다. 보스 미리보기는 압력·턴 규칙을 진행하지 않는다.
+플레이어는 강도 1·2·3 선택 후 콜라를 클릭하면 기존 FPS 모델의 오른손으로 잡아 흔들고 내려놓는다. 이후 0.65초 뒤 보스가 자기 손으로 자동 응답하며, 완료 후 다시 플레이어가 선택한다. 보스 강도는 임시 무작위 1~3이며 압력 판정은 각자 한 번 수행한다. 동작만 볼 때는 Play 모드의 `COLA_COLA > Preview Boss Cola Shake (Play Mode)`를 사용할 수 있다. 이 별도 미리보기는 압력·턴 규칙을 진행하지 않는다. 구조는 `Docs/Art/ColaShakeAnimations.md`를 따른다.
 
 카메라는 테이블 앞에 앉은 1인칭 구도다. 위치 `(0, 1.32, -1.40)`, 회전 `(11, 0, 0)`, 수직 FOV `50`, Near Clip `0.035`를 사용한다. Cinemachine `CM_SeatedDuel`과 Main Camera의 Brain이 이 구도를 유지한다. Main Camera에 HDR와 URP 후처리를 켜고, 씬 전용 Global Volume으로 화면 효과를 적용한다.
 
@@ -109,4 +109,6 @@ Unity 6000.6.4f1을 사용한다. 저장본의 카메라·AudioListener·재질�
 
 최신 화면은 압력계를 18% 축소하고 다이얼·테두리와 국소 조명의 시선 균형을 조정한 `output/gauge-focus/MainScene-Focus.png`다. `output/scene-layout/MainScene-preview.png`도 갱신했다. 압력계 받침 접촉점·다른 Transform 369개·보호 파일 32개를 보존했고 기존 버튼·콜라 입력을 실제 Play에서 재검증했다. 화면 경계 면적은 기존의 65.2%다.
 
-플레이어·보스의 강도별 콜라 흔들기를 추가했다. 오른손으로 병을 잡고 들어 흔든 뒤 내려놓으며 기존 Idle로 돌아온다. 캐릭터와 병의 클립 총 12개를 저장하고 플레이어는 기존 콜라 클릭, 보스는 Play 모드 미리보기에 연결했다. 원본 팔 소매 끝을 카메라 뒤까지 이어주는 보조 메시도 배치했다. 실제 Play에서 양쪽 재생·입력 잠금·중간 취소·Idle 복귀와 기존 압력 입력을 검증했고 보호 파일 32개는 모두 동일했다. 자세한 내용은 `Docs/Art/ColaShakeAnimations.md`, 움직이는 화면과 검증은 `output/shake-animation`을 따른다.
+플레이어·보스의 강도별 콜라 흔들기는 캐릭터와 병의 클립 총 12개로 구성된다. 추가했던 소매 보조 메시를 제거하고 원래 FPS 팔 모델을 사용한다. 보스는 일반 플레이의 다음 차례에 자동으로 흔들도록 연결했다. 자세한 내용은 `Docs/Art/ColaShakeAnimations.md`, 실제 연속 재생은 `output/shake-animation/Duel-OriginalFPS-LiveBoss.webp`와 최신 Play 검증을 따른다.
+
+플레이어의 `Wrist.R`와 보스의 `hand.R`를 명시적으로 연결했다. 병은 잡은 손의 위치·회전을 따라가고 기다리는 상대의 양손은 테이블에 둔 Idle을 유지한다. 원본 FBX 스킨 메시의 실제 정점 이동과 자동 보스 응답까지 확인하며, 검증 시 원본 모델·프리팹·텍스처도 해시로 비교한다.

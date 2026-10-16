@@ -1,0 +1,14 @@
+{
+  "file": "Duel-OriginalFPS-LiveBoss.webp",
+  "source": "actual Unity Play mode, original FPS hands and automatic boss turn",
+  "source_frames": 74,
+  "encoded_frames": 74,
+  "size": [
+    900,
+    506
+  ],
+  "captured_seconds": 9.776605,
+  "encoded_duration_ms": 10477,
+  "bytes": 2199432,
+  "timing_source": "duel-live-frame-times.txt"
+}

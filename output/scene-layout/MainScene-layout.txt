@@ -60,10 +60,9 @@ StatusTerminal: position=(-1.050, 0.833, 0.450) rotation=(0.00, 330.42, 0.00) sc
 PressureGauge: position=(-0.360, 1.152, -0.023) rotation=(0.00, 345.34, 0.00) scale=(0.820, 0.820, 0.820)
 ShakeSelection: position=(0.000, 0.000, 0.000) rotation=(0.00, 0.00, 0.00) scale=(1.000, 1.000, 1.000)
 ColaShakeAnimation: position=(0.000, 0.000, 0.000) rotation=(0.00, 0.00, 0.00) scale=(1.000, 1.000, 1.000)
-PlayerSleeveContinuation: position=(0.000, 0.000, 0.000) rotation=(0.00, 0.00, 0.00) scale=(1.000, 1.000, 1.000)
 KitchenStrip_Housing: position=(-0.350, 2.220, 5.055) rotation=(0.00, 0.00, 0.00) scale=(1.150, 0.095, 0.045)
 KitchenStrip_Glow: position=(-0.350, 2.220, 5.025) rotation=(0.00, 0.00, 0.00) scale=(1.020, 0.026, 0.018)
 EmergencyLamp_Housing: position=(2.800, 1.950, 5.050) rotation=(0.00, 0.00, 0.00) scale=(0.150, 0.210, 0.070)
 EmergencyLamp_Glow: position=(2.800, 1.950, 5.005) rotation=(0.00, 0.00, 0.00) scale=(0.095, 0.130, 0.035)
 Horror_GlobalVolume: position=(0.000, 0.000, 0.000) rotation=(0.00, 0.00, 0.00) scale=(1.000, 1.000, 1.000)
-Scope: 3D staging, Idles, horror effects, sample health/token terminal, pressure forecast and player click-to-confirm cola shaking with hand animation. Boss shake clips have a Play-mode preview. Boss AI, health damage, token awards and shop flow are not implemented.
+Scope: 3D staging, Idles, horror effects, sample health/token terminal, pressure forecast and a basic player-to-boss turn loop using the original FPS/boss hand models. Boss strength selection is provisional random choice. Boss tactics, health damage, token awards and shop flow are not implemented.

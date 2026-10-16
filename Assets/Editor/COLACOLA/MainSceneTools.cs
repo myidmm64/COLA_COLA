@@ -391,7 +391,7 @@ namespace ColaCola.Editor
                 if (t.name.StartsWith("PLACEHOLDER_") || t.name.StartsWith("TestItem0") ||
                     t.name == "PlayerInventory" || t.name == "BossInventory" || t.parent && t.parent.name.StartsWith("0"))
                     report.AppendLine($"{t.name}: position={t.position:F3} rotation={t.eulerAngles:F2} scale={t.lossyScale:F3}");
-            report.AppendLine("Scope: 3D staging, Idles, horror effects, sample health/token terminal, pressure forecast and player click-to-confirm cola shaking with hand animation. Boss shake clips have a Play-mode preview. Boss AI, health damage, token awards and shop flow are not implemented.");
+            report.AppendLine("Scope: 3D staging, Idles, horror effects, sample health/token terminal, pressure forecast and a basic player-to-boss turn loop using the original FPS/boss hand models. Boss strength selection is provisional random choice. Boss tactics, health damage, token awards and shop flow are not implemented.");
             File.WriteAllText(Output + "/MainScene-layout.txt", report.ToString());
         }
 

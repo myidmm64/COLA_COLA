@@ -1,2 +1,2 @@
 PASS: 405 existing transforms, root scales, seated poses, camera, cola, devices, inventories and lighting preserved.
-Only a playback component and six actor/bottle clip pairs are added. Original Idle clips/controllers and imported FBX assets are unchanged.
+Updated own-hand bindings and six actor/bottle clip pairs. Original Idle clips/controllers and imported FBX assets are unchanged.

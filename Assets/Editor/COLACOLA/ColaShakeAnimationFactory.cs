@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using UnityEditor;
 using UnityEngine;
+using ColaCola.Presentation;
 
 namespace ColaCola.Editor
 {
@@ -13,8 +14,8 @@ namespace ColaCola.Editor
     {
         public const string Folder = "Assets/_COLA_COLA/Animations/Shake";
         public const float Duration = 4.4f;
-        public const float GripStart = 1.15f;
-        public const float GripEnd = 3.35f;
+        public const float GripStart = ColaShakeAnimator.GripStartTime;
+        public const float GripEnd = ColaShakeAnimator.GripEndTime;
         private const int Samples = 132;
         private const float GripHeight = .165f;
         private const float FingerRadius = .084f;
@@ -31,6 +32,8 @@ namespace ColaCola.Editor
         {
             public Transform upper, elbow, wrist;
             public Vector3 position, pole;
+            public Vector3 elbowRestLocal;
+            public float upperLength, lowerLength;
             public Quaternion rotation;
             public Arm(Transform root, string side, bool boss)
             {
@@ -38,6 +41,17 @@ namespace ColaCola.Editor
                 elbow = Bone(root, (boss ? "forearm." : "LowArm.") + side);
                 wrist = Bone(root, (boss ? "hand." : "Wrist.") + side);
                 position = wrist.position; rotation = wrist.rotation; pole = elbow.position;
+                elbowRestLocal = elbow.localPosition;
+                upperLength = Vector3.Distance(upper.position, elbow.position);
+                lowerLength = Vector3.Distance(elbow.position, wrist.position);
+            }
+            public void FitFirstPersonReach(Vector3 target, float reach)
+            {
+                // The stock FPS model has a deliberately short upper arm. Keep its open shoulder
+                // at the original offscreen position and extend that existing bone, leaving the
+                // forearm, wrist, hand mesh and finger proportions unchanged. No geometry is added.
+                float length = Mathf.Max(upperLength, Vector3.Distance(upper.position, target) - lowerLength * (1 - .2f * reach));
+                elbow.localPosition = elbowRestLocal * (length / upperLength);
             }
             public void Solve(Vector3 target, Vector3 bend, Quaternion orientation, string context)
             {
@@ -76,6 +90,15 @@ namespace ColaCola.Editor
         public static string ActorClipPath(bool boss, int strength) => Folder + "/" + (boss ? "Boss" : "Player") + "_ColaShake_" + strength + ".anim";
         public static string BottleClipPath(bool boss, int strength) => Folder + "/" + (boss ? "Boss" : "Player") + "_BottleMotion_" + strength + ".anim";
 
+        public static void BuildPlayerOnly(GameObject sceneRoot)
+        {
+            var report = new StringBuilder("Player-only right-side grip revision; boss clips and scene placement are not rebuilt.\n");
+            BuildActor(Find(sceneRoot.transform, CharacterIdleFactory.ArmsName),
+                Find(sceneRoot.transform, "HeroCola_ExistingModel"), false, report);
+            AssetDatabase.SaveAssets();
+            File.WriteAllText("output/shake-animation/Player-RightSide-authoring.txt", report.ToString());
+        }
+
         private static void BuildActor(Transform actor, Transform bottle, bool boss, StringBuilder report)
         {
             var nodes = actor.GetComponentsInChildren<Transform>(true).Where(t => t != actor).ToArray();
@@ -95,10 +118,10 @@ namespace ColaCola.Editor
             var gripOrientation = Quaternion.LookRotation(boss ? Vector3.back : Vector3.forward, boss ? Vector3.left : Vector3.right)
                 * Quaternion.Inverse(Quaternion.LookRotation(fingerForward, backNormal)) * right.rotation;
             var palmAdvance = Vector3.Distance(right.wrist.position, middle.position) * (boss ? .65f : .90f);
-            var contactWrist = basePosition + new Vector3(boss ? -.092f : .092f, GripHeight, boss ? palmAdvance : -palmAdvance);
+            var contactWrist = basePosition + (boss ? new Vector3(-.092f, GripHeight, palmAdvance) :
+                new Vector3(.092f, GripHeight, -palmAdvance));
             var wristOffset = Quaternion.Inverse(baseRotation) * (contactWrist - basePosition);
             var wristRotationOffset = Quaternion.Inverse(baseRotation) * gripOrientation;
-            var shoulderRest = right.upper.position;
             try
             {
                 for (var strength = 1; strength <= 3; strength++)
@@ -106,6 +129,7 @@ namespace ColaCola.Editor
                     var poses = new LocalPose[Samples + 1][];
                     var bottlePoses = new LocalPose[Samples + 1];
                     var maximumContactError = 0f; var minimumHandY = float.PositiveInfinity;
+                    var minimumPlayerSide = float.PositiveInfinity;
                     for (var sample = 0; sample <= Samples; sample++)
                     {
                         for (var node = 0; node < nodes.Length; node++) rest[node].Apply(nodes[node]);
@@ -121,12 +145,12 @@ namespace ColaCola.Editor
                         var handRotation = bottleRotation * wristRotationOffset;
                         if (time < .95f)
                         {
-                            target = Vector3.Lerp(right.position, contactWrist, reach) + Vector3.up * (.10f * Mathf.Sin(Mathf.PI * reach));
+                            target = Vector3.Lerp(right.position, contactWrist, reach) + Vector3.up * ((boss ? .10f : .045f) * Mathf.Sin(Mathf.PI * reach));
                             handRotation = Quaternion.Slerp(right.rotation, gripOrientation, reach);
                         }
                         else if (time > 3.6f)
                         {
-                            target = Vector3.Lerp(contactWrist, right.position, returnProgress) + Vector3.up * (.10f * Mathf.Sin(Mathf.PI * returnProgress));
+                            target = Vector3.Lerp(contactWrist, right.position, returnProgress) + Vector3.up * ((boss ? .10f : .045f) * Mathf.Sin(Mathf.PI * returnProgress));
                             handRotation = Quaternion.Slerp(gripOrientation, right.rotation, returnProgress);
                         }
                         var lean = reach * Mathf.Lerp(1, .28f, hold) * (1 - returnProgress);
@@ -143,21 +167,18 @@ namespace ColaCola.Editor
                         }
                         else
                         {
-                            var contactShoulder = new Vector3(.28f, .88f, -.57f);
-                            var heldShoulder = new Vector3(.25f, 1.035f, -.63f);
-                            var desired = Vector3.Lerp(contactShoulder, heldShoulder, hold);
-                            right.upper.position = Vector3.Lerp(shoulderRest, desired, reach * (1 - returnProgress));
-                            if (time < .95f)
-                                right.upper.position += Vector3.up * ((.88f - shoulderRest.y) * (Ease(time / .35f) - reach));
-                            else if (time > 3.6f)
-                                right.upper.position += Vector3.up * ((.88f - shoulderRest.y) * (returnProgress - Ease((time - 4.05f) / .30f)));
+                            right.FitFirstPersonReach(target, reach * (1 - returnProgress));
                         }
-                        var elbowPole = boss ? new Vector3(-.38f, .99f, .48f) : new Vector3(.47f, .99f, -.61f);
+                        var elbowPole = boss ? new Vector3(-.38f, .99f, .48f) :
+                            Vector3.Lerp(new Vector3(.60f, .91f, -.62f), new Vector3(.59f, .98f, -.72f), hold);
                         elbowPole = Vector3.Lerp(right.pole, elbowPole, reach * (1 - returnProgress));
                         right.Solve(target, elbowPole, handRotation, (boss ? "boss" : "player") + " right hand at " + time);
                         WrapFingers(actor, bottlePosition, bottleRotation * Quaternion.Inverse(baseRotation), boss, grip);
                         if (time >= GripStart && time <= GripEnd)
+                        {
                             maximumContactError = Mathf.Max(maximumContactError, Vector3.Distance(right.wrist.position, target));
+                            if (!boss) minimumPlayerSide = Mathf.Min(minimumPlayerSide, right.wrist.position.x - bottle.position.x);
+                        }
                         if (sample % 6 == 0)
                             minimumHandY = Mathf.Min(minimumHandY, CharacterIdleFactory.HandMinimumY(actor.gameObject, right.wrist));
                         poses[sample] = nodes.Select(t => new LocalPose(t)).ToArray();
@@ -173,7 +194,9 @@ namespace ColaCola.Editor
                     WritePose(bottleClip, "", sample => bottlePoses[sample]);
                     Save(actorClip, ActorClipPath(boss, strength)); Save(bottleClip, BottleClipPath(boss, strength));
                     if (maximumContactError > .0001f) throw new InvalidOperationException("Baked wrist lost its grip: " + maximumContactError);
+                    if (!boss && minimumPlayerSide < .06f) throw new InvalidOperationException("Player wrist crossed the bottle's right-side grip.");
                     report.AppendLine($"PASS: {(boss ? "Boss" : "Player")} strength {strength}, contact drift={maximumContactError * 1000:F4} mm, sampled hand minimumY={minimumHandY:F5}.");
+                    if (!boss) report.AppendLine($"PASS: player wrist stays on the bottle's right side; minimum horizontal offset={minimumPlayerSide:F5}m.");
                 }
                 report.AppendLine($"{(boss ? "Boss" : "Player")} rest wrist={right.position:F4}; acquisition wrist={contactWrist:F4}; palm advance={palmAdvance:F4} m.");
             }
@@ -189,7 +212,8 @@ namespace ColaCola.Editor
 
         private static void BottlePose(float time, int strength, bool boss, Vector3 rest, Quaternion rotation, out Vector3 position, out Quaternion orientation)
         {
-            var held = boss ? new Vector3(.015f, .985f, .36f) : new Vector3(.015f, .960f, -.28f);
+            // Bring the shared bottle toward the owner and their right-hand side before shaking.
+            var held = boss ? new Vector3(-.08f, .985f, .44f) : new Vector3(.12f, .960f, -.40f);
             var lift = Hold(time);
             position = Vector3.Lerp(rest, held, lift);
             orientation = Quaternion.Euler((boss ? -5 : 5) * lift, 0, (boss ? -3 : 3) * lift) * rotation;

@@ -1,0 +1,2 @@
+System.InvalidOperationException: Automatic preview did not move the original right hand on the bottle's right side.
+  at ColaCola.Editor.ColaShakeAnimationSceneTools.VerifyAutomaticPreviewTick () [0x000de] in C:\Work\COLA_COLA\Assets\Editor\COLACOLA\ColaShakeAnimationSceneTools.cs:90 

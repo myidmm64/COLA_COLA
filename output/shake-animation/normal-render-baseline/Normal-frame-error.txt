@@ -1,0 +1,2 @@
+Normal-frame verification timed out.
+Standalone development player; normal URP camera rendering, no Camera.Render or editor pose sampling.
