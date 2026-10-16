@@ -1,0 +1,7 @@
+PASS: saved MainScene reopens with public bottle-limit digits, probability readout and separate pressure/forecast needles.
+PASS: all three physical key colliders, central cola collider, input component and settings asset are bound.
+PASS: old ? and fixed 15 inscriptions are absent from the scene.
+PASS: all material/shader references present and no missing scripts.
+Gauge mesh instances: 25; displayed mesh triangles: 1540.
+Temporary probability exponent: 2; bottle limit range: 18..24.
+Display-only health/token terminal values are preserved. Match AI, damage and token awards remain separate.

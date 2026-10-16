@@ -1,0 +1,7 @@
+PASS: saved sample values load without automatically changing game state.
+PASS: independent participant setters, partial/empty bars, negative values and numeric overflow display.
+PASS: 4-digit token display saturates visually at 9999 while retaining the actual supplied integer.
+PASS: damage blink and token tick finish at the requested value.
+PASS: display disable/enable has no stale animation; both existing character Idles continue.
+Real Play-mode verification duration: 3.00s, Unity 6000.6.4f1.
+Display samples are not a gameplay simulation. No boss AI, currency-award rules or shop logic added.

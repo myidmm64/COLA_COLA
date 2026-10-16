@@ -1,0 +1,2 @@
+PASS: 323 pre-existing non-gauge transforms preserved.
+Camera, cola, console, terminal, characters and lighting keep their saved placement.

@@ -1,0 +1,15 @@
+Actual fixed-camera item visibility, using temporary unlit identity colours and normal scene depth.
+PlayerInventory/TestItem01_ReleaseValve: 4116/4116 pixels visible (100.0 %).
+PlayerInventory/TestItem02_ColdPack: 6994/7001 pixels visible (99.9 %).
+PlayerInventory/TestItem03_FoldedCoupon: 4922/4927 pixels visible (99.9 %).
+PlayerInventory/TestItem04_WrappedCandy: 2496/2496 pixels visible (100.0 %).
+PlayerInventory/TestItem05_ExpansionCap: 2230/2230 pixels visible (100.0 %).
+PlayerInventory/TestItem06_AdditiveBottle: 3948/3948 pixels visible (100.0 %).
+BossInventory/TestItem01_ReleaseValve: 1696/1734 pixels visible (97.8 %).
+BossInventory/TestItem02_ColdPack: 2547/2713 pixels visible (93.9 %).
+BossInventory/TestItem03_FoldedCoupon: 1843/2022 pixels visible (91.1 %).
+BossInventory/TestItem04_WrappedCandy: 956/956 pixels visible (100.0 %).
+BossInventory/TestItem05_ExpansionCap: 1019/1019 pixels visible (100.0 %).
+BossInventory/TestItem06_AdditiveBottle: 2055/2055 pixels visible (100.0 %).
+PASS: all twelve props retain at least 90% of their isolated projected pixels in the full scene; none is hidden behind another item, character or device.
+Mask materials, renderer enable states, fog and camera settings are temporary and restored after capture.

@@ -48,6 +48,7 @@ namespace ColaCola.Editor
                 }
                 var gauge = InstantiateGauge(deviceGroup, position, rotation, sizeMultiplier);
                 UnityEngine.Object.DestroyImmediate(anchor.gameObject);
+                PressureInteractionSceneTools.ApplyToScene(root, Camera.main);
                 foreach (var pair in unaffected)
                 {
                     if (!pair.Key || Vector3.Distance(pair.Key.position, pair.Value.position) > .00001f ||
@@ -103,13 +104,14 @@ namespace ColaCola.Editor
             var report = new StringBuilder();
             report.AppendLine("PASS: PLACEHOLDER_PressureGauge replaced by PressureGauge prefab.");
             report.AppendLine("PASS: " + unchangedCount + " unrelated transforms retained their world position and rotation.");
-            report.AppendLine("PASS: separate NeedlePivot for future local-Z rotation.");
+            report.AppendLine("PASS: actual pressure NeedlePivot and separate selected-strength forecast needle.");
             report.AppendLine("Prefab: " + PressureGaugeModelFactory.PrefabPath);
             report.AppendLine("Custom mesh parts: " + meshes.Length);
             report.AppendLine("Triangles: " + meshes.Sum(m => m.sharedMesh.triangles.Length / 3));
             report.AppendLine("World bounds center: " + bounds.center.ToString("F4"));
             report.AppendLine("World bounds size: " + bounds.size.ToString("F4"));
-            report.AppendLine("Static visual readout: 15. Unknown threshold: ?. No gameplay binding added.");
+            report.AppendLine("Dynamic readouts: public bottle limit on final tick; expected burst probability in the former 15 window.");
+            report.AppendLine("Strength selection previews only; the central cola collider confirms the pressure action.");
             File.WriteAllText(ReportPath, report.ToString());
         }
 

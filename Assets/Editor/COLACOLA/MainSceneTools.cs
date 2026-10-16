@@ -59,11 +59,6 @@ namespace ColaCola.Editor
 
                 BuildBoss(characters);
                 BuildArms(characters);
-                Prop("Can_Soda", "BossItem_SodaCan_ExistingModel", items,
-                    new Vector3(.65f, .835f, .38f), new Vector3(.12f, .23f, .12f));
-                Prop("tongs", "BossItem_Tongs_ExistingModel", items,
-                    new Vector3(.92f, .835f, .17f), new Vector3(.34f, .045f, .12f), -18);
-                BuildPlaceholders(placeholders);
                 PressureGaugeSceneTools.InstantiateGauge(devices, new Vector3(-.74f, 1.19f, -.11f), Quaternion.identity, Vector3.one);
                 ConsoleAndIdleSceneTools.InstantiateConsole(devices, new Vector3(-.74f, .90f, -.19f), Quaternion.identity);
                 CharacterIdleFactory.Apply(root);
@@ -84,6 +79,11 @@ namespace ColaCola.Editor
                 mainCamera.GetUniversalAdditionalCameraData().renderPostProcessing = false;
                 PlayerFacingDeviceLayout.Apply(root, mainCamera);
                 HorrorSceneTools.ApplyToScene(root, mainCamera);
+                StatusTerminalSceneTools.ApplyToScene(root, mainCamera);
+                PressureInteractionSceneTools.ApplyToScene(root, mainCamera);
+                TestItemLayoutSceneTools.ApplyToScene(root);
+                TabletopFocusSceneTools.ApplyToScene(root);
+                ColaShakeAnimationSceneTools.ApplyToScene(root);
 
                 UnityEngine.Object.DestroyImmediate(props);
                 UnityEngine.Object.DestroyImmediate(environment);
@@ -336,17 +336,6 @@ namespace ColaCola.Editor
             }
         }
 
-        private static void BuildPlaceholders(Transform parent)
-        {
-            var cream = Flat("Placeholder_Cream", new Color(.77f, .70f, .48f));
-            var silver = Flat("Placeholder_Silver", new Color(.40f, .42f, .43f));
-            var cold = Flat("Placeholder_ColdPack", new Color(.03f, .38f, .46f));
-            Cube("PLACEHOLDER_ReleaseValve", parent, new Vector3(-.75f, .885f, -.35f), new Vector3(.15f, .10f, .12f), silver);
-            Cube("PLACEHOLDER_ColdPack", parent, new Vector3(-.55f, .89f, -.29f), new Vector3(.17f, .11f, .14f), cold);
-            Cube("PLACEHOLDER_PizzaCoupon_Player", parent, new Vector3(-.30f, .88f, -.34f), new Vector3(.16f, .09f, .018f), cream);
-            Cube("PLACEHOLDER_PizzaCoupon_Boss", parent, new Vector3(.87f, .88f, -.02f), new Vector3(.17f, .09f, .018f), cream);
-        }
-
         private static void BuildLighting(Transform parent)
         {
             RenderSettings.skybox = null;
@@ -399,9 +388,10 @@ namespace ColaCola.Editor
             report.AppendLine("Reference: output/concept-art/pizzeria-boss-v4.png");
             report.AppendLine($"Camera: position={mainCamera.transform.position:F3}, rotation={mainCamera.transform.eulerAngles:F3}, vertical FOV={mainCamera.fieldOfView}, aspect=16:9");
             foreach (var t in root.GetComponentsInChildren<Transform>(true))
-                if (t.name.StartsWith("PLACEHOLDER_") || t.parent && t.parent.name.StartsWith("0"))
+                if (t.name.StartsWith("PLACEHOLDER_") || t.name.StartsWith("TestItem0") ||
+                    t.name == "PlayerInventory" || t.name == "BossInventory" || t.parent && t.parent.name.StartsWith("0"))
                     report.AppendLine($"{t.name}: position={t.position:F3} rotation={t.eulerAngles:F2} scale={t.lossyScale:F3}");
-            report.AppendLine("Scope: camera/model staging, supported character Idles, Cinemachine camera and URP horror lighting/post-processing. HUD, rules and interactions are not implemented.");
+            report.AppendLine("Scope: 3D staging, Idles, horror effects, sample health/token terminal, pressure forecast and player click-to-confirm cola shaking with hand animation. Boss shake clips have a Play-mode preview. Boss AI, health damage, token awards and shop flow are not implemented.");
             File.WriteAllText(Output + "/MainScene-layout.txt", report.ToString());
         }
 
@@ -418,13 +408,7 @@ namespace ColaCola.Editor
                 if (missingScripts != 0) throw new InvalidOperationException("Missing scripts: " + missingScripts);
                 var renderers = objects.Select(t => t.GetComponent<Renderer>()).Where(r => r).ToArray();
                 if (renderers.Any(r => r.sharedMaterials.Any(m => !m || !m.shader))) throw new InvalidOperationException("Missing renderer material/shader.");
-                string[] expected = { "PLACEHOLDER_ReleaseValve", "PLACEHOLDER_ColdPack", "PLACEHOLDER_PizzaCoupon_Player", "PLACEHOLDER_PizzaCoupon_Boss" };
-                foreach (string name in expected)
-                {
-                    var target = objects.Single(t => t.name == name);
-                    if (!target.GetComponent<MeshFilter>() || target.GetComponent<MeshFilter>().sharedMesh.name != "Cube")
-                        throw new InvalidOperationException("Expected Cube placeholder: " + name);
-                }
+                TestItemLayoutSceneTools.Validate(scene.GetRootGameObjects().Single(g => g.name == "COLA_COLA_MainScene"), cameras[0]);
                 var gauge = objects.Single(t => t.name == "PressureGauge");
                 if (!gauge.GetComponentsInChildren<Transform>().Any(t => t.name == "NeedlePivot") ||
                     gauge.GetComponentsInChildren<MeshFilter>().Length < 6 ||
@@ -434,6 +418,14 @@ namespace ColaCola.Editor
                 if (console.GetComponentsInChildren<MeshFilter>().Length < 6 ||
                     objects.Any(t => t.name == "PLACEHOLDER_ShakeConsole" || t.name.StartsWith("PLACEHOLDER_ShakeButton")))
                     throw new InvalidOperationException("Console/button model replacement was not preserved.");
+                var terminal = objects.Single(t => t.name == "StatusTerminal");
+                var gaugeDisplay = gauge.GetComponent<ColaCola.Presentation.PressureGaugeDisplay>();
+                if (!gaugeDisplay || !gaugeDisplay.TryValidateBindings(out _) ||
+                    !objects.Any(t => t.GetComponent<ColaCola.Presentation.ShakeSelectionInteraction>()))
+                    throw new InvalidOperationException("Dynamic pressure preview and cola confirmation were not preserved.");
+                var terminalDisplay = terminal.GetComponent<ColaCola.Presentation.StatusTerminalDisplay>();
+                if (!terminalDisplay || !terminalDisplay.TryValidateBindings(out _))
+                    throw new InvalidOperationException("Physical health/token terminal bindings were not preserved.");
                 foreach (var name in new[] { CharacterIdleFactory.BossName, CharacterIdleFactory.ArmsName })
                 {
                     var animator = objects.Single(t => t.name == name).GetComponent<Animator>();
@@ -448,7 +440,7 @@ namespace ColaCola.Editor
                 var point = mainCamera.WorldToViewportPoint(bottle.position + Vector3.up * .2f);
                 if (point.z <= 0 || point.x < .35f || point.x > .65f || point.y < .15f || point.y > .8f)
                     throw new InvalidOperationException("Hero bottle is outside the intended central frame: " + point);
-                var report = $"PASS: Saved MainScene reopened in Unity {Application.unityVersion}\nPASS: one MainCamera and one AudioListener\nPASS: {renderers.Length} renderers with material/shader references\nPASS: no missing scripts\nPASS: all 4 remaining named placeholders use Cube meshes\nPASS: custom PressureGauge model and NeedlePivot replace the gauge Cube\nPASS: custom ShakeConsole with three independent numbered keys replaces console/button Cubes\nPASS: both character Animators have enabled looping Idle controllers without root motion\nPASS: MainScene is first enabled build scene\nPASS: hero bottle center viewport={point:F3}\nScope: 3D scene staging plus character Idle; no gameplay/HUD/network implementation.\n";
+                var report = $"PASS: Saved MainScene reopened in Unity {Application.unityVersion}\nPASS: one MainCamera and one AudioListener\nPASS: {renderers.Length} renderers with material/shader references\nPASS: no missing scripts\nPASS: six authored test item models per participant, twelve instances, no remaining item Cube placeholders\nPASS: custom PressureGauge model and NeedlePivot replace the gauge Cube\nPASS: custom ShakeConsole with three independent numbered keys replaces console/button Cubes\nPASS: physical StatusTerminal with complete health/token readout bindings\nPASS: both character Animators have enabled looping Idle controllers without root motion\nPASS: MainScene is first enabled build scene\nPASS: hero bottle center viewport={point:F3}\nScope: 3D staging, test item props, character Idle, sample physical readouts and pressure selection/confirmation prototype. Boss AI, damage, token awards, item effects and shop flow are not implemented.\n";
                 File.WriteAllText(Output + "/MainScene-validation.txt", report);
                 Debug.Log("COLA_MAIN_SCENE_VALIDATION_PASS");
                 double captureAt = EditorApplication.timeSinceStartup + 3;

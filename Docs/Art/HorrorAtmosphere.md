@@ -16,22 +16,25 @@
 
 ## 조명
 
-`06_Lighting`에 기존 조명을 재사용하고 필요한 조명만 이름을 지정해 추가해 총 10개를 구성한다. 조명은 실시간 조명이며, 테이블 키 라이트에 부드러운 그림자를 사용한다. 아래 강도는 Unity Light의 intensity 값이다.
+`06_Lighting`에 기존 조명을 재사용하고 필요한 조명만 이름을 지정해 추가한다. 테스트 아이템용 국소 보조광을 포함해 현재 총 11개다. 조명은 실시간 조명이며, 테이블 키 라이트에 부드러운 그림자를 사용한다. 아래 강도는 Unity Light의 intensity 값이다.
 
 | 오브젝트 | 역할 | 강도 |
 |---|---|---:|
 | `Warm_Table_Key` | 위에서 테이블·콜라·손을 비추는 옅은 녹색 키 라이트 | 4.1 |
 | `Warm_Face_Fill` | 보스의 얼굴과 상체를 읽게 하는 차가운 보조광 | 1.25 |
 | `Horror_Face_Softbox` | 보스의 얼굴 앞면을 읽게 하는 48° 스포트 보조광 | 2.3 |
-| `Horror_Cola_LabelFill` | 중앙 콜라의 라벨을 읽게 하는 40° 스포트 보조광 | 0.55 |
+| `Horror_Cola_LabelFill` | 중앙 콜라로 시선을 모으는 따뜻한 46° 스포트 보조광 | 0.90 |
 | `Kitchen_Warm` | 주방의 어두운 녹색 공간광 | 0.50 |
 | `Soda_Cool_Fill` | 음료 기계 방향의 청록색 보조광 | 0.95 |
 | `Horror_Boss_RedRim` | 보스 뒤에서 들어오는 붉은 역광 | 2.1 |
-| `Horror_Gauge_Readability` | 압력계 눈금과 버튼의 가독성 보조 | 0.40 |
+| `Horror_Gauge_Readability` | 축소한 압력계의 가독성을 유지하는 약한 보조광 | 0.16 |
 | `Horror_Kitchen_Fluorescent` | 주방 형광등의 약한 밝기 변화 | 기본 0.85 |
 | `Horror_Emergency_WallGlow` | 벽의 붉은 비상등 주변광 | 0.65 |
+| `TestItems_ReadabilityFill` | 양쪽 아이템 쟁반을 읽게 하는 국소 보조광 | 0.85 |
 
 환경광은 어두운 녹색 계열의 Flat Ambient를 사용하고 Skybox는 제거한다. 반사 강도는 `0.12`다. 배경을 멀리 보낼 때는 Exponential Squared Fog를 사용하며 밀도는 `0.065`다.
+
+압력계 축소 단계에서 압력계 보조광을 `0.40 → 0.16`, 콜라 라벨 보조광을 `0.55 → 0.90`으로 조정했다. 콜라·압력계의 조명 균형만 부분 적용할 때는 `TabletopFocusSceneTools`가 `HorrorSceneTools.ApplyTabletopFocusLighting`을 사용한다. 전체 후처리·배경 조명을 재생성하지 않는다. 최신 화면은 `output/gauge-focus/MainScene-Focus.png`다.
 
 `09_Atmosphere`에는 녹색 주방 스트립과 붉은 벽 비상등의 하우징·발광부를 실제 메시로 둔다. 네 메시의 Collider는 제거한다. 재질은 `Assets/_COLA_COLA/Art/Materials/HorrorLighting`에 따로 저장하며 원본 재질을 수정하지 않는다.
 

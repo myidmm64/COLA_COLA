@@ -1,0 +1,9 @@
+Baked one-hand cola performances; 4.4 s, 30 samples/s, 3 strengths per actor.
+PASS: Player strength 1, contact drift=0.0003 mm, sampled hand minimumY=0.83300.
+PASS: Player strength 2, contact drift=0.0003 mm, sampled hand minimumY=0.83300.
+PASS: Player strength 3, contact drift=0.0003 mm, sampled hand minimumY=0.83300.
+Player rest wrist=(0.4011, 0.8722, -0.7812); acquisition wrist=(0.0920, 1.0000, -0.2861); palm advance=0.2161 m.
+PASS: Boss strength 1, contact drift=0.0006 mm, sampled hand minimumY=0.83300.
+PASS: Boss strength 2, contact drift=0.0006 mm, sampled hand minimumY=0.83300.
+PASS: Boss strength 3, contact drift=0.0006 mm, sampled hand minimumY=0.83300.
+Boss rest wrist=(-0.1600, 0.9092, 0.6700); acquisition wrist=(-0.0920, 1.0000, -0.0133); palm advance=0.0567 m.

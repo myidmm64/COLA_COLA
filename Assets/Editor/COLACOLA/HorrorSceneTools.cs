@@ -117,16 +117,13 @@ namespace ColaCola.Editor
                 new Color(.70f, .79f, .73f), 1.25f, 2.7f, LightType.Point);
             Light(group, "Horror_Face_Softbox", new Vector3(-.45f, 1.85f, -.55f), new Vector3(.10f, 1.34f, .98f),
                 new Color(.77f, .84f, .74f), 2.3f, 3.2f, LightType.Spot, 48);
-            Light(group, "Horror_Cola_LabelFill", new Vector3(.15f, 1.45f, -.80f), new Vector3(0, 1.04f, -.07f),
-                new Color(.84f, .86f, .72f), .55f, 1.8f, LightType.Spot, 40);
             Light(group, "Kitchen_Warm", new Vector3(-1.9f, 2.7f, 3.4f), new Vector3(-1.4f, .9f, 3.5f),
                 new Color(.36f, .61f, .44f), .50f, 4.5f, LightType.Spot, 106);
             Light(group, "Soda_Cool_Fill", new Vector3(2.1f, 1.8f, 3.15f), Vector3.zero,
                 new Color(.20f, .66f, .57f), .95f, 2.6f, LightType.Point);
             Light(group, "Horror_Boss_RedRim", new Vector3(1.20f, 1.95f, 2.05f), new Vector3(.10f, 1.17f, .98f),
                 new Color(1f, .12f, .055f), 2.1f, 3.1f, LightType.Spot, 64);
-            Light(group, "Horror_Gauge_Readability", new Vector3(-.74f, 1.53f, -.62f), Vector3.zero,
-                new Color(.86f, .88f, .70f), .40f, 1.1f, LightType.Point);
+            ApplyTabletopFocusLighting(root);
             var practical = Light(group, "Horror_Kitchen_Fluorescent", new Vector3(-.35f, 2.13f, 4.75f), Vector3.zero,
                 new Color(.40f, .70f, .51f), .85f, 2.8f, LightType.Point);
             var flicker = practical.GetComponent<HorrorPracticalFlicker>();
@@ -162,6 +159,16 @@ namespace ColaCola.Editor
             Fixture(atmosphere, "EmergencyLamp_Glow", new Vector3(2.80f, 1.95f, 5.005f), new Vector3(.095f, .13f, .035f), red);
             Light(group, "Horror_Emergency_WallGlow", new Vector3(2.80f, 1.95f, 4.78f), Vector3.zero,
                 new Color(1, .075f, .025f), .65f, 1.75f, LightType.Point);
+        }
+
+        internal static void ApplyTabletopFocusLighting(GameObject root)
+        {
+            var group = root.transform.Find("06_Lighting");
+            if (!group) throw new InvalidOperationException("Lighting group is missing.");
+            Light(group, "Horror_Cola_LabelFill", new Vector3(.15f, 1.45f, -.80f), new Vector3(0, 1.04f, -.07f),
+                new Color(.94f, .84f, .66f), .90f, 1.8f, LightType.Spot, 46);
+            Light(group, "Horror_Gauge_Readability", new Vector3(-.74f, 1.53f, -.62f), Vector3.zero,
+                new Color(.86f, .88f, .70f), .16f, 1.1f, LightType.Point);
         }
 
         private static Light Light(Transform parent, string name, Vector3 position, Vector3 target, Color color, float intensity, float range, LightType type, float angle = 90)

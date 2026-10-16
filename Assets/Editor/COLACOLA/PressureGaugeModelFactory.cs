@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using ColaCola.Presentation;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace ColaCola.Editor
 {
@@ -23,14 +25,16 @@ namespace ColaCola.Editor
             AssetDatabase.Refresh();
 
             var teal = Material("Enamel_Teal", new Color(.055f, .19f, .19f), .12f, .22f);
-            var tealEdge = Material("Enamel_Edge", new Color(.095f, .27f, .26f), .15f, .25f);
+            var tealEdge = TopEnamel();
             var darkTeal = Material("Enamel_Shadow", new Color(.035f, .10f, .105f), .1f, .18f);
             var metal = Material("Bezel_AgedMetal", new Color(.43f, .41f, .33f), .45f, .25f);
-            var paleMetal = Material("Bezel_PaleMetal", new Color(.68f, .65f, .53f), .4f, .22f);
-            var cream = Material("Dial_Cream", new Color(.79f, .74f, .59f), 0, .1f);
+            var paleMetal = InnerBezel();
+            var cream = DialFace();
             var black = Material("Markings_Charcoal", new Color(.035f, .035f, .027f), 0, .1f);
             var red = Material("Needle_Red", new Color(.72f, .055f, .025f), .05f, .2f);
             var brass = Material("Hub_Brass", new Color(.52f, .33f, .10f), .6f, .3f);
+            var previewAmber = FlatMaterial("Forecast_Amber", new Color(.96f, .52f, .12f));
+            var readoutInk = FlatMaterial("Readout_Charcoal", new Color(.025f, .030f, .022f));
 
             var root = new GameObject("PressureGauge");
             try
@@ -70,9 +74,14 @@ namespace ColaCola.Editor
                     Extrude(tickMesh, OrientedRectangle(center, direction, length, width), -.056f, -.055f);
                 }
                 Part("RaisedBlackTicks", ticks, "TickMarks", tickMesh, black);
-                var question = new MeshBuilder();
-                PixelText(question, "?", new Vector2(.060f, -.026f), .0045f, -.057f, -.0555f);
-                Part("HiddenLimit_QuestionMark", dial, "QuestionMark", question, black);
+                var glyphMeshes = new Mesh[PressureGaugeDisplay.GlyphCharacters.Length];
+                for (int i = 0; i < glyphMeshes.Length; i++)
+                {
+                    var glyph = new MeshBuilder();
+                    FlatPixelText(glyph, PressureGaugeDisplay.GlyphCharacters[i].ToString());
+                    glyphMeshes[i] = SaveMesh("ReadoutGlyph_" + i.ToString("00"), glyph);
+                }
+                var limitSlots = DigitSlots("RoundPressureLimit", dial, 3, glyphMeshes[0], readoutInk);
 
                 var needle = Group("NeedlePivot", root.transform);
                 needle.localPosition = new Vector3(DialCenter.x, DialCenter.y, -.058f);
@@ -99,6 +108,16 @@ namespace ColaCola.Editor
                 Extrude(pin, Ellipse(.0055f, .0055f, Vector2.zero, 8), -.010f, -.008f);
                 Part("BrassAxle", needle, "BrassAxle", pin, brass);
 
+                var forecast = Group("PreviewNeedlePivot", root.transform);
+                forecast.localPosition = new Vector3(DialCenter.x, DialCenter.y, -.064f);
+                var forecastMesh = new MeshBuilder();
+                foreach (float x in new[] { .026f, .052f, .078f })
+                    Extrude(forecastMesh, OrientedRectangle(new Vector2(x, 0), Vector2.right, .019f, .0030f), -.001f, 0);
+                Extrude(forecastMesh, new[] { new Vector2(.094f, -.006f), new Vector2(.108f, 0), new Vector2(.094f, .006f) }, -.001f, 0);
+                var forecastPart = Part("AmberForecastPointer", forecast, "ForecastNeedle", forecastMesh, previewAmber);
+                forecastPart.GetComponent<Renderer>().shadowCastingMode = ShadowCastingMode.Off;
+                forecastPart.GetComponent<Renderer>().receiveShadows = false;
+
                 var numberWindow = Group("NumberWindow", root.transform);
                 var windowCenter = new Vector2(0, -.153f);
                 Part("MetalFrame", numberWindow, "NumberFrame", BevelBox(windowCenter, .077f, .037f, -.059f, -.024f, .004f), metal);
@@ -108,9 +127,7 @@ namespace ColaCola.Editor
                 var plate = new MeshBuilder();
                 Extrude(plate, ChamferRectangle(windowCenter, .065f, .025f, .0015f), -.063f, -.0615f);
                 Part("CreamNumberPlate", numberWindow, "NumberPlate", plate, cream);
-                var digits = new MeshBuilder();
-                PixelText(digits, "15", windowCenter, .0046f, -.065f, -.064f);
-                Part("CurrentPressure_15", numberWindow, "PressureDigits", digits, black);
+                var probabilitySlots = DigitSlots("ExpectedBurstProbability", numberWindow, 6, glyphMeshes[0], readoutInk);
                 var fasteners = new MeshBuilder();
                 foreach (var x in new[] { -.071f, .071f })
                     foreach (var y in new[] { -.180f, -.126f })
@@ -120,6 +137,14 @@ namespace ColaCola.Editor
                 var collider = root.AddComponent<BoxCollider>();
                 collider.center = new Vector3(0, 0, -.008f);
                 collider.size = new Vector3(.34f, .42f, .12f);
+                var display = root.AddComponent<PressureGaugeDisplay>();
+                display.glyphMeshes = glyphMeshes;
+                display.needlePivot = needle;
+                display.previewNeedlePivot = forecast;
+                display.limitDigits = limitSlots;
+                display.probabilityDigits = probabilitySlots;
+                display.Show(0, 20, null, null, true);
+                EditorUtility.SetDirty(display);
                 AssetDatabase.SaveAssets();
                 var prefab = PrefabUtility.SaveAsPrefabAsset(root, PrefabPath);
                 if (!prefab) throw new InvalidOperationException("Could not save pressure gauge prefab.");
@@ -131,6 +156,18 @@ namespace ColaCola.Editor
                 UnityEngine.Object.DestroyImmediate(root);
             }
         }
+
+        // Keep the existing mesh/prefab GUIDs when only the visual hierarchy needs tuning.
+        public static void ApplyMutedPalette()
+        {
+            TopEnamel();
+            InnerBezel();
+            DialFace();
+        }
+
+        private static Material TopEnamel() => Material("Enamel_Edge", new Color(.075f, .21f, .20f), .10f, .14f);
+        private static Material InnerBezel() => Material("Bezel_PaleMetal", new Color(.49f, .48f, .40f), .25f, .12f);
+        private static Material DialFace() => Material("Dial_Cream", new Color(.56f, .54f, .44f), 0, .08f);
 
         private static Material Material(string name, Color color, float metallic, float smoothness)
         {
@@ -160,26 +197,63 @@ namespace ColaCola.Editor
             return group;
         }
 
-        private static void Part(string name, Transform parent, string meshName, MeshBuilder builder, Material material)
+        private static Material FlatMaterial(string name, Color color)
         {
-            var mesh = builder.Build(meshName);
+            var path = MaterialPath + "/" + name + ".mat";
+            var material = AssetDatabase.LoadAssetAtPath<Material>(path);
+            var shader = Shader.Find("Universal Render Pipeline/Unlit");
+            if (!material) { material = new Material(shader) { name = name }; AssetDatabase.CreateAsset(material, path); }
+            else material.shader = shader;
+            material.SetColor("_BaseColor", color);
+            material.SetFloat("_Surface", 0);
+            EditorUtility.SetDirty(material);
+            return material;
+        }
+
+        private static MeshFilter[] DigitSlots(string name, Transform parent, int count, Mesh mesh, Material material)
+        {
+            var group = Group(name, parent);
+            var slots = new MeshFilter[count];
+            for (int i = 0; i < count; i++)
+            {
+                var child = new GameObject("Glyph" + i, typeof(MeshFilter), typeof(MeshRenderer));
+                child.transform.SetParent(group, false);
+                slots[i] = child.GetComponent<MeshFilter>();
+                slots[i].sharedMesh = mesh;
+                var renderer = child.GetComponent<MeshRenderer>();
+                renderer.sharedMaterial = material;
+                renderer.shadowCastingMode = ShadowCastingMode.Off;
+                renderer.receiveShadows = false;
+            }
+            return slots;
+        }
+
+        private static Mesh SaveMesh(string meshName, MeshBuilder builder)
+        {
             var path = ModelPath + "/" + meshName + ".asset";
             var savedMesh = AssetDatabase.LoadAssetAtPath<Mesh>(path);
             if (savedMesh)
             {
-                EditorUtility.CopySerialized(mesh, savedMesh);
-                UnityEngine.Object.DestroyImmediate(mesh);
+                builder.Populate(savedMesh, meshName);
                 EditorUtility.SetDirty(savedMesh);
             }
             else
             {
-                savedMesh = mesh;
+                savedMesh = builder.Build(meshName);
                 AssetDatabase.CreateAsset(savedMesh, path);
             }
+            savedMesh.MarkModified();
+            savedMesh.UploadMeshData(false);
+            return savedMesh;
+        }
+
+        private static GameObject Part(string name, Transform parent, string meshName, MeshBuilder builder, Material material)
+        {
             var part = new GameObject(name, typeof(MeshFilter), typeof(MeshRenderer));
             part.transform.SetParent(parent, false);
-            part.GetComponent<MeshFilter>().sharedMesh = savedMesh;
+            part.GetComponent<MeshFilter>().sharedMesh = SaveMesh(meshName, builder);
             part.GetComponent<MeshRenderer>().sharedMaterial = material;
+            return part;
         }
 
         private static Vector2[] Ellipse(float radiusX, float radiusY, Vector2 center, int count = Sides)
@@ -284,9 +358,9 @@ namespace ColaCola.Editor
 
         private static Vector3 V(Vector2 xy, float z) { return new Vector3(xy.x, xy.y, z); }
 
-        private static void PixelText(MeshBuilder mesh, string text, Vector2 center, float pixel, float frontZ, float backZ)
+        private static void FlatPixelText(MeshBuilder mesh, string text)
         {
-            var width = (text.Length * 5 + (text.Length - 1)) * pixel;
+            var width = text.Length * 6 - 1;
             for (var letter = 0; letter < text.Length; letter++)
             {
                 var glyph = Glyph(text[letter]);
@@ -294,10 +368,9 @@ namespace ColaCola.Editor
                     for (var column = 0; column < 5; column++)
                     {
                         if (glyph[row][column] != '1') continue;
-                        var pixelCenter = center + new Vector2(-width * .5f + (letter * 6 + column + .5f) * pixel, (3f - row) * pixel);
-                        // One shared mesh per inscription; raised square pixels have their own flat side faces.
-                        var half = pixel * .49f;
-                        Extrude(mesh, OrientedRectangle(pixelCenter, Vector2.right, half * 2, half * 2), frontZ, backZ);
+                        var pixelCenter = new Vector2(-width * .5f + letter * 6 + column + .5f, 3f - row);
+                        mesh.Quad(V(pixelCenter + new Vector2(-.5f, -.5f), 0), V(pixelCenter + new Vector2(-.5f, .5f), 0),
+                            V(pixelCenter + new Vector2(.5f, .5f), 0), V(pixelCenter + new Vector2(.5f, -.5f), 0));
                     }
             }
         }
@@ -306,9 +379,20 @@ namespace ColaCola.Editor
         {
             switch (value)
             {
-                case '?': return new[] { "01110", "10001", "00001", "00010", "00100", "00000", "00100" };
+                case '0': return new[] { "01110", "10001", "10011", "10101", "11001", "10001", "01110" };
                 case '1': return new[] { "00100", "01100", "00100", "00100", "00100", "00100", "01110" };
+                case '2': return new[] { "01110", "10001", "00001", "00010", "00100", "01000", "11111" };
+                case '3': return new[] { "11110", "00001", "00001", "01110", "00001", "00001", "11110" };
+                case '4': return new[] { "00010", "00110", "01010", "10010", "11111", "00010", "00010" };
                 case '5': return new[] { "11111", "10000", "10000", "11110", "00001", "00001", "11110" };
+                case '6': return new[] { "01110", "10000", "10000", "11110", "10001", "10001", "01110" };
+                case '7': return new[] { "11111", "00001", "00010", "00100", "01000", "01000", "01000" };
+                case '8': return new[] { "01110", "10001", "10001", "01110", "10001", "10001", "01110" };
+                case '9': return new[] { "01110", "10001", "10001", "01111", "00001", "00001", "01110" };
+                case '.': return new[] { "00000", "00000", "00000", "00000", "00000", "00110", "00110" };
+                case '-': return new[] { "00000", "00000", "00000", "11111", "00000", "00000", "00000" };
+                case '%': return new[] { "11001", "11010", "00010", "00100", "01000", "01011", "10011" };
+                case '<': return new[] { "00001", "00010", "00100", "01000", "00100", "00010", "00001" };
                 default: throw new ArgumentOutOfRangeException(nameof(value), value, "Unsupported gauge glyph.");
             }
         }
@@ -323,7 +407,7 @@ namespace ColaCola.Editor
             public void Triangle(Vector3 a, Vector3 b, Vector3 c)
             {
                 var first = vertices.Count;
-                var normal = Vector3.Cross(b - a, c - a).normalized;
+                var normal = FaceNormal(a, b, c);
                 Vertex(a, normal); Vertex(b, normal); Vertex(c, normal);
                 triangles.Add(first); triangles.Add(first + 1); triangles.Add(first + 2);
             }
@@ -331,7 +415,7 @@ namespace ColaCola.Editor
             public void Quad(Vector3 a, Vector3 b, Vector3 c, Vector3 d)
             {
                 var first = vertices.Count;
-                var normal = Vector3.Cross(b - a, c - a).normalized;
+                var normal = FaceNormal(a, b, c);
                 Vertex(a, normal); Vertex(b, normal); Vertex(c, normal); Vertex(d, normal);
                 triangles.Add(first); triangles.Add(first + 1); triangles.Add(first + 2);
                 triangles.Add(first); triangles.Add(first + 2); triangles.Add(first + 3);
@@ -346,13 +430,26 @@ namespace ColaCola.Editor
 
             public Mesh Build(string name)
             {
-                var mesh = new Mesh { name = name };
+                var mesh = new Mesh();
+                Populate(mesh, name);
+                return mesh;
+            }
+
+            public void Populate(Mesh mesh, string name)
+            {
+                mesh.Clear(false);
+                mesh.name = name;
                 mesh.SetVertices(vertices);
                 mesh.SetNormals(normals);
                 mesh.SetUVs(0, uv);
                 mesh.SetTriangles(triangles, 0);
                 mesh.RecalculateBounds();
-                return mesh;
+            }
+
+            private static Vector3 FaceNormal(Vector3 a, Vector3 b, Vector3 c)
+            {
+                var cross = Vector3.Cross(b - a, c - a);
+                return cross.magnitude > 0 ? cross / cross.magnitude : Vector3.back;
             }
         }
     }

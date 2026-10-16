@@ -1,0 +1,15 @@
+Real Play-mode verification of saved player and boss shake animation bindings.
+Player phase 1 captured at sampled clip time 0.9005s.
+Player phase 2 captured at sampled clip time 1.8006s.
+Player phase 3 captured at sampled clip time 2.2004s.
+PASS: Player: 22 native runtime frames; grip samples 2047; maximum wrist/bottle drift 1.329mm / 0.213 degrees; wrist travel 0.599m, bottle lift 0.159m.
+Boss phase 1 captured at sampled clip time 0.9001s.
+Boss phase 2 captured at sampled clip time 1.8004s.
+Boss phase 3 captured at sampled clip time 2.2001s.
+PASS: Boss: 22 native runtime frames; grip samples 1878; maximum wrist/bottle drift 0.209mm / 0.000 degrees; wrist travel 0.693m, bottle lift 0.177m.
+PASS: boss preview locks shared input and changes no pressure, public limit, bottle number, action count or resolution events.
+PASS: disabling/re-enabling the driver mid-grip restores the boss rig, bottle and Idle without a rule action.
+PASS: the next real pressure result uses the expected next seeded RNG value after boss preview and cancellation.
+PASS: disabling/re-enabling interaction mid-grip restores both rig and bottle, cancels stale callbacks and resets input state.
+PASS: both seated actor roots, parents and imported scales remain fixed throughout full playback and cancellation.
+Scope: player input starts the player animation; boss animation is a context preview. No boss AI, damage, currency or automatic turn system is introduced.
