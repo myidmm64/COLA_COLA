@@ -34,4 +34,4 @@
 
 ## 검증 근거
 
-`output/pressure-interaction/Core-validation.txt`는 선택/비교 시 상태·난수 불변, 예측과 확정 계산 일치, 한 번만 확정, 한계 미만 확률 폭발과 경계 조건을 검사한다. 같은 폴더의 `Playmode-validation.txt`는 자동 보스 응답을 끈 상태에서 압력 규칙을 독립 검증한다. 실제 자동 보스까지의 전체 흐름은 `output/shake-animation/Playmode-validation.txt`와 `Duel-OriginalFPS-LiveBoss.webp`를 따른다. 검증용 상태는 씬에 저장하지 않는다.
+`output/pressure-interaction/Core-validation.txt`는 선택/비교 시 상태·난수 불변, 예측과 확정 계산 일치, 한 번만 확정, 한계 미만 확률 폭발과 경계 조건을 검사한다. 같은 폴더의 `Playmode-validation.txt`는 자동 보스 응답을 끈 상태에서 압력 규칙을 독립 검증한다. 실제 자동 보스까지의 전체 흐름은 `output/shake-animation/Playmode-validation.txt`의 Play 모드 상태 검사를 따른다. 화면 확인은 Play 중 실제 Game 뷰에서 한다. 검증용 상태는 씬에 저장하지 않는다.

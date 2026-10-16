@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace ColaCola.Editor
 {
-    /// <summary>Exercises saved bindings in real Play mode and captures the actual main camera.</summary>
+    /// <summary>Exercises live bindings, input and bone movement in Play mode without preview rendering.</summary>
     [InitializeOnLoad]
     public static class ColaShakeAnimationVerification
     {
@@ -20,7 +20,6 @@ namespace ColaCola.Editor
         private const string Initialized = Running + ".Initialized";
         private const string Error = Running + ".Error";
         private const string Completed = Running + ".Completed";
-        private const float CaptureInterval = .2f;
         private static readonly float[] KeyTimes = { .9f, 1.8f, 2.2f };
 
         private static ColaShakeAnimator driver;
@@ -29,7 +28,7 @@ namespace ColaCola.Editor
         private static StringBuilder report;
         private static System.Random expectedRandom;
         private static int phase, resolvedEvents, phaseFrame, previewPressure, previewLimit, previewBottle, previewCount;
-        private static float phaseStarted, nextCapture, maximumGripPositionError, maximumGripAngleError;
+        private static float phaseStarted, maximumGripPositionError, maximumGripAngleError;
         private static float maximumWristMotion, maximumBottleLift, maximumBottleMotion;
         private static int keyIndex, gripSamples;
         private static bool gripCaptured;
@@ -40,10 +39,7 @@ namespace ColaCola.Editor
         private static Vector3[] otherHandsAtRest;
         private static float maximumOtherHandMotion;
         private static OriginalHandProbe handMesh;
-        private static bool liveBossCapture;
         private static int duelResolvedBefore, liveBossStrength, cancelResolvedCount;
-        private static float duelStarted, nextDuelFrame;
-        private static readonly List<float> DuelFrameTimes = new List<float>();
 
         private sealed class OriginalHandProbe
         {
@@ -98,7 +94,7 @@ namespace ColaCola.Editor
                 for (int i = 0; i < indices.Length; i++) MaximumMotion = Mathf.Max(MaximumMotion, Vector3.Distance(Skin(indices[i]), rest[i]));
             }
         }
-        private static readonly List<float> FrameTimes = new List<float>();
+        private static readonly List<float> ObservationTimes = new List<float>();
 
         private sealed class RootPose
         {
@@ -134,13 +130,6 @@ namespace ColaCola.Editor
             {
                 Check(!EditorApplication.isPlayingOrWillChangePlaymode, "Start verification from the saved edit-time scene.");
                 Directory.CreateDirectory(Output);
-                foreach (string owner in new[] { "player", "boss", "boss-live-turn", "duel-live" })
-                {
-                    string folder = Output + "/" + owner + "-frames";
-                    Directory.CreateDirectory(folder);
-                    // These are only this verifier's numbered preview frames; retain all other artifacts.
-                    foreach (string file in Directory.GetFiles(folder, "Frame-*.png")) File.Delete(file);
-                }
                 SessionState.SetString(Error, "");
                 SessionState.SetBool(Completed, false);
                 SessionState.SetBool(Initialized, false);
@@ -195,15 +184,13 @@ namespace ColaCola.Editor
             Check(Math.Abs(interaction.LastResult.Roll - expectedRandom.NextDouble()) < 1e-12, "Initial pressure RNG diverged from the seeded control.");
             Check(!interaction.SelectStrength(1) && !interaction.ConfirmShake(), "Repeated player inputs were accepted during playback.");
             phase = 0;
-            StartCapture(false);
+            StartObservation(false);
             SessionState.SetBool(Initialized, true);
         }
 
-        private static void StartCapture(bool boss, bool live = false)
+        private static void StartObservation(bool boss)
         {
-            liveBossCapture = live;
-            FrameTimes.Clear();
-            nextCapture = 0;
+            ObservationTimes.Clear();
             keyIndex = 0;
             gripCaptured = false;
             gripSamples = 0;
@@ -236,7 +223,6 @@ namespace ColaCola.Editor
                 bossRoot.CheckRestored("Boss actor root");
                 Check(driver.bottle.parent == bottleRest.parent && Vector3.Distance(driver.bottle.localScale, bottleRest.scale) < .00001f,
                     "Playback changed the bottle parent or imported scale.");
-                if (phase == 6 || phase == 7) CaptureDuelFrame();
 
                 switch (phase)
                 {
@@ -245,7 +231,7 @@ namespace ColaCola.Editor
                         if (interaction.IsBusy || Time.unscaledTime - phaseStarted < ColaShakeAnimationFactory.Duration) return;
                         Check(driver.LastPlaybackCompleted && resolvedEvents == 1 && interaction.CommittedActionCount == 1 && interaction.Model.Pressure == 3,
                             "Player performance did not complete exactly one safe pressure action.");
-                        FinishCapture(false);
+                        FinishObservation(false);
                         CheckIdleAndBottle();
                         previewPressure = interaction.Model.Pressure;
                         previewLimit = interaction.Model.Limit;
@@ -255,14 +241,14 @@ namespace ColaCola.Editor
                         Check(driver.IsPlaying && driver.PlayingBoss && interaction.IsBusy, "Boss context preview did not start or lock shared input.");
                         Check(!interaction.SelectStrength(1) && !interaction.ConfirmShake(), "Boss preview allowed a competing pressure action.");
                         phase = 1;
-                        StartCapture(true);
+                        StartObservation(true);
                         break;
                     case 1:
                         CheckPreviewHasNoRuleEffects();
                         if (driver.IsPlaying) { ObservePerformance(true); return; }
                         if (interaction.IsBusy || Time.unscaledTime - phaseStarted < ColaShakeAnimationFactory.Duration) return;
                         Check(driver.LastPlaybackCompleted, "Boss preview ended without completing its clip.");
-                        FinishCapture(true);
+                        FinishObservation(true);
                         CheckIdleAndBottle();
                         report.AppendLine("PASS: boss preview locks shared input and changes no pressure, public limit, bottle number, action count or resolution events.");
                         driver.PreviewBossShake();
@@ -272,7 +258,6 @@ namespace ColaCola.Editor
                     case 2:
                         CheckPreviewHasNoRuleEffects();
                         if (driver.PlaybackTime < 1.6f) return;
-                        MainSceneTools.Capture(Camera.main, Output + "/Boss-Cancel-MidGrip.png", 900, 506);
                         driver.enabled = false;
                         Check(!driver.IsPlaying && !interaction.IsBusy, "Disabling the animation driver did not cancel a boss preview.");
                         CheckIdleAndBottle();
@@ -294,7 +279,6 @@ namespace ColaCola.Editor
                         break;
                     case 4:
                         if (driver.PlaybackTime < 1.6f) return;
-                        MainSceneTools.Capture(Camera.main, Output + "/Player-Cancel-MidGrip.png", 900, 506);
                         interaction.enabled = false;
                         Check(!driver.IsPlaying && !interaction.IsBusy, "Disabling interaction left its player performance running.");
                         CheckIdleAndBottle();
@@ -313,7 +297,6 @@ namespace ColaCola.Editor
                         interaction.ResetSession(123);
                         interaction.BeginBottle(20);
                         duelResolvedBefore = resolvedEvents;
-                        DuelFrameTimes.Clear(); duelStarted = Time.unscaledTime; nextDuelFrame = 0;
                         Check(ClickBottleWithStrength(3), "Normal player click failed to begin an automatic turn pair.");
                         phase = 6;
                         break;
@@ -325,18 +308,17 @@ namespace ColaCola.Editor
                         Check(resolvedEvents == duelResolvedBefore + 1 && !interaction.SelectStrength(1) && !interaction.ConfirmShake(),
                             "Player/boss sequencing or input locking failed.");
                         liveBossStrength = interaction.LastResult.Prediction.Strength;
-                        StartCapture(true, true);
+                        StartObservation(true);
                         phase = 7;
                         break;
                     case 7:
                         if (driver.IsPlaying) { ObservePerformance(true); return; }
                         if (interaction.IsBusy) return;
-                        FinishCapture(true);
+                        FinishObservation(true);
                         CheckIdleAndBottle();
                         Check(!interaction.IsBossTurn && interaction.CommittedActionCount == 2 && resolvedEvents == duelResolvedBefore + 2 &&
                               interaction.Model.Pressure == 3 + liveBossStrength && interaction.Model.SelectedStrength == 0,
                             "Normal player -> boss -> player flow did not complete exactly two pressure actions.");
-                        File.WriteAllLines(Output + "/duel-live-frame-times.txt", DuelFrameTimes.Select(t => t.ToString("F6", CultureInfo.InvariantCulture)));
                         report.AppendLine("PASS: actual strength/cola raycasts play the original FPS arm, automatically play the original boss hand, and return input to the player; two pressure actions and two results exactly.");
                         interaction.ResetSession(123); interaction.BeginBottle(999);
                         Check(ClickBottleWithStrength(1), "Live boss cancellation sequence did not begin.");
@@ -357,9 +339,8 @@ namespace ColaCola.Editor
                         Check(!driver.IsPlaying && !interaction.IsBusy && !interaction.IsBossTurn && interaction.CommittedActionCount == 0 && resolvedEvents == cancelResolvedCount,
                             "Cancelled automatic boss action emitted a stale callback or restarted.");
                         report.AppendLine("PASS: disabling interaction during a real automatic boss turn cancels both hand and delayed callbacks and restores normal input.");
-                        report.AppendLine("Scope: original FPS/boss skinned meshes, hand playback and a basic alternating turn loop. Health, rewards, items, shop and boss tactics remain separate.");
+                        report.AppendLine("Scope: live Play-mode state/input/bone and CPU skinning checks; no Game-view visual confirmation or preview rendering. Original FPS/boss hand playback and a basic alternating turn loop. Health, rewards, items, shop and boss tactics remain separate.");
                         File.WriteAllText(Output + "/Playmode-validation.txt", report.ToString());
-                        MainSceneTools.Capture(Camera.main, Output + "/MainScene-AfterShake.png");
                         SessionState.SetBool(Completed, true);
                         Debug.Log("COLA_SHAKE_ANIMATION_PLAYMODE_PASS\n" + report);
                         phase = 10;
@@ -376,15 +357,6 @@ namespace ColaCola.Editor
             var key = interaction.strengthButtons[strength - 1].GetComponent<Collider>();
             return interaction.HandlePointer(interaction.playerCamera.WorldToScreenPoint(key.bounds.center)) &&
                 interaction.HandlePointer(interaction.playerCamera.WorldToScreenPoint(interaction.bottleCollider.bounds.center));
-        }
-
-        private static void CaptureDuelFrame()
-        {
-            float elapsed = Time.unscaledTime - duelStarted;
-            if (elapsed < nextDuelFrame) return;
-            MainSceneTools.Capture(Camera.main, Output + "/duel-live-frames/Frame-" + DuelFrameTimes.Count.ToString("D3") + ".png", 900, 506);
-            DuelFrameTimes.Add(elapsed);
-            nextDuelFrame = elapsed + 1f / 15;
         }
 
         private static void ObservePerformance(bool boss)
@@ -421,24 +393,11 @@ namespace ColaCola.Editor
                 maximumBottleMotion = Mathf.Max(maximumBottleMotion, Vector3.Distance(driver.bottle.position, firstGripBottlePosition));
                 gripSamples++;
             }
-            string owner = boss ? (liveBossCapture ? "boss-live-turn" : "boss") : "player";
-            // PlaybackTime describes the most recently sampled LateUpdate pose, so camera and measured hands agree.
-            if (time + .0001f >= nextCapture)
-            {
-                MainSceneTools.Capture(Camera.main, Output + "/" + owner + "-frames/Frame-" + FrameTimes.Count.ToString("D3") + ".png", 900, 506);
-                FrameTimes.Add(time);
-                nextCapture = time + CaptureInterval;
-            }
-            if (keyIndex < KeyTimes.Length && time >= KeyTimes[keyIndex])
-            {
-                string label = boss ? (liveBossCapture ? "Boss-LiveTurn" : "Boss") : "Player";
-                MainSceneTools.Capture(Camera.main, Output + "/" + label + "-Phase" + (keyIndex + 1) + ".png");
-                report.AppendLine(label + " phase " + (keyIndex + 1) + " captured at sampled clip time " + time.ToString("F4", CultureInfo.InvariantCulture) + "s.");
-                keyIndex++;
-            }
+            ObservationTimes.Add(time);
+            if (keyIndex < KeyTimes.Length && time >= KeyTimes[keyIndex]) keyIndex++;
         }
 
-        private static void FinishCapture(bool boss)
+        private static void FinishObservation(bool boss)
         {
             string label = boss ? "Boss" : "Player";
             Check(gripCaptured && gripSamples >= 3, label + " performance had no sustained sampled grip.");
@@ -446,14 +405,12 @@ namespace ColaCola.Editor
                 label + " bottle slipped relative to its gripping wrist: " + (maximumGripPositionError * 1000).ToString("F3") + "mm, " + maximumGripAngleError.ToString("F3") + " degrees.");
             Check(maximumWristMotion > .05f && maximumBottleLift > .025f && maximumBottleMotion > .005f,
                 label + " hand/bottle performance did not reach, lift and move visibly.");
-            Check(FrameTimes.Count >= 8 && keyIndex == KeyTimes.Length, label + " runtime preview did not capture all phases.");
+            Check(ObservationTimes.Count >= 8 && keyIndex == KeyTimes.Length, label + " Play-mode observations did not cover all phases.");
             Check(maximumOtherHandMotion <= .003f, label + " shake displaced the waiting actor's hands.");
             Check(handMesh.MaximumMotion > .03f, "The original visible hand mesh did not move with the rig: " + label);
-            string owner = boss ? (liveBossCapture ? "boss-live-turn" : "boss") : "player";
-            File.WriteAllLines(Output + "/" + owner + "-frame-times.txt", FrameTimes.Select(t => t.ToString("F6", CultureInfo.InvariantCulture)));
-            report.AppendLine($"PASS: {label}: {FrameTimes.Count} native runtime frames; grip samples {gripSamples}; maximum wrist/bottle drift {maximumGripPositionError * 1000:F3}mm / {maximumGripAngleError:F3} degrees; wrist travel {maximumWristMotion:F3}m, bottle lift {maximumBottleLift:F3}m.");
+            report.AppendLine($"PASS: {label}: {ObservationTimes.Count} live Play-mode observations; grip samples {gripSamples}; maximum wrist/bottle drift {maximumGripPositionError * 1000:F3}mm / {maximumGripAngleError:F3} degrees; wrist travel {maximumWristMotion:F3}m, bottle lift {maximumBottleLift:F3}m.");
             report.AppendLine($"PASS: {label} grips through its own {wrist.name}; waiting actor remains in Idle, maximum waiting-hand displacement {maximumOtherHandMotion * 1000:F4}mm.");
-            report.AppendLine($"PASS: visible original skinned hand from {handMesh.assetPath}; tracked surface movement {handMesh.MaximumMotion:F4}m.");
+            report.AppendLine($"PASS: original skinned hand CPU surface probe from {handMesh.assetPath}; tracked surface movement {handMesh.MaximumMotion:F4}m.");
         }
 
         private static void CheckPreviewHasNoRuleEffects()
@@ -488,7 +445,6 @@ namespace ColaCola.Editor
                 try
                 {
                     EditorSceneManager.OpenScene(MainSceneTools.ScenePath, OpenSceneMode.Single);
-                    MainSceneTools.Capture(Camera.main, Output + "/MainScene-ShakeAnimation.png");
                     PressureInteractionSceneTools.Verify();
                 }
                 catch (Exception exception) { Fail(exception); }

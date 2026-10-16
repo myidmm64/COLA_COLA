@@ -120,8 +120,6 @@ namespace ColaCola.Editor
 
         private static void StartVerification()
         {
-            ValidateCore();
-            ValidateSavedScene();
             SessionState.SetBool(Running, true);
             SessionState.SetString(Running + ".Started", DateTime.UtcNow.ToString("O"));
             SessionState.SetBool(Running + ".Initialized", false);
@@ -215,6 +213,8 @@ namespace ColaCola.Editor
                 var interaction = UnityEngine.Object.FindFirstObjectByType<ShakeSelectionInteraction>();
                 if (!SessionState.GetBool(Running + ".Initialized", false))
                 {
+                    ValidateCore();
+                    ValidateSavedScene();
                     // Isolate the pressure rules here; full player -> boss playback is verified separately.
                     interaction.automaticBossTurns = false;
                     SessionState.SetBool(Running + ".Initialized", true);
@@ -235,9 +235,7 @@ namespace ColaCola.Editor
                         Check(interaction.gauge.PredictedPressure == prediction.PressureAfter &&
                             interaction.gauge.ProbabilityText == PressureGaugeDisplay.FormatProbability(prediction.BurstProbability),
                             "Gauge forecast differs from the rule model.");
-                        MainSceneTools.Capture(Camera.main, Output + $"/Preview-Strength{i}.png");
                     }
-                    CaptureDevices(interaction, Output + "/Preview-Closeup.png");
                     report.AppendLine("PASS: actual 3D raycasts select all keys; no pressure or action count changes before cola confirmation.");
                     Check(Click(interaction, interaction.bottle) && interaction.IsBusy && interaction.Model.Pressure == 11 && interaction.CommittedActionCount == 1,
                         "Cola did not resolve the selected strength exactly once.");
@@ -254,7 +252,6 @@ namespace ColaCola.Editor
                         "Selection/forecast was not cleared after commit.");
                     interaction.BeginBottle(28, 12);
                     Check(interaction.gauge.CurrentLimit == 28, "New round limit did not update the dial.");
-                    MainSceneTools.Capture(Camera.main, Output + "/ChangedLimit-28.png");
                     interaction.BeginBottle(20, 19);
                     Check(Click(interaction, interaction.strengthButtons[0]) && interaction.gauge.ProbabilityText == "100%", "Guaranteed burst preview is incorrect.");
                     bottleBeforeBurst = interaction.BottleNumber;
@@ -304,45 +301,12 @@ namespace ColaCola.Editor
                 try
                 {
                     EditorSceneManager.OpenScene(MainSceneTools.ScenePath, OpenSceneMode.Single);
-                    var interaction = ValidateSavedScene();
-                    interaction.RefreshAuthoringView();
-                    MainSceneTools.Capture(Camera.main, Output + "/MainScene-PressureInteraction.png");
-                    MainSceneTools.Capture(Camera.main, MainSceneTools.Output + "/MainScene-preview.png");
-                    CaptureDevices(interaction, Output + "/Gauge-Closeup.png");
                     MainSceneTools.WriteReport(GameObject.Find("COLA_COLA_MainScene"), Camera.main);
                     Debug.Log("COLA_PRESSURE_INTERACTION_VALIDATION_PASS");
                     if (Application.isBatchMode) MainSceneTools.Verify();
                 }
                 catch (Exception exception) { Fail(exception); }
             };
-        }
-
-        private static void CaptureDevices(ShakeSelectionInteraction interaction, string path)
-        {
-            var nodes = interaction.gauge.GetComponentsInChildren<Transform>(true)
-                .Concat(interaction.strengthButtons[0].parent.GetComponentsInChildren<Transform>(true)).Distinct().ToArray();
-            var layers = nodes.Select(t => t.gameObject.layer).ToArray();
-            var cameraObject = new GameObject("__GaugeInteractionPreview", typeof(Camera));
-            try
-            {
-                foreach (var node in nodes) node.gameObject.layer = 31;
-                var camera = cameraObject.GetComponent<Camera>();
-                camera.cullingMask = 1 << 31;
-                camera.clearFlags = CameraClearFlags.SolidColor;
-                camera.backgroundColor = new Color(.045f, .058f, .052f);
-                camera.orthographic = true;
-                camera.orthographicSize = .32f;
-                camera.nearClipPlane = .02f;
-                camera.farClipPlane = 5;
-                camera.transform.position = interaction.gauge.transform.TransformPoint(.03f, .10f, -.9f);
-                camera.transform.LookAt(interaction.gauge.transform.position - Vector3.up * .10f);
-                MainSceneTools.Capture(camera, path, 1100, 1100);
-            }
-            finally
-            {
-                for (int i = 0; i < nodes.Length; i++) nodes[i].gameObject.layer = layers[i];
-                UnityEngine.Object.DestroyImmediate(cameraObject);
-            }
         }
 
         private static Transform Find(GameObject root, string name) => root.GetComponentsInChildren<Transform>(true).Single(t => t.name == name);

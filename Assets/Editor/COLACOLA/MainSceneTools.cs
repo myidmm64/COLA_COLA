@@ -397,9 +397,36 @@ namespace ColaCola.Editor
 
         public static void Verify()
         {
+            if (EditorApplication.isPlaying)
+                throw new InvalidOperationException("Start MainScene verification from Edit mode; the tool enters Play itself.");
+            EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+            SessionState.SetBool("COLA_COLA.MainScene.PlayVerification", true);
+            RestorePlayVerification();
+            EditorApplication.isPlaying = true;
+        }
+
+        [InitializeOnLoadMethod]
+        private static void RestorePlayVerification()
+        {
+            if (!SessionState.GetBool("COLA_COLA.MainScene.PlayVerification", false)) return;
+            EditorApplication.update -= VerifyMainSceneTick;
+            EditorApplication.update += VerifyMainSceneTick;
+        }
+
+        private static void VerifyMainSceneTick()
+        {
+            if (!EditorApplication.isPlaying || Time.frameCount < 3) return;
+            EditorApplication.update -= VerifyMainSceneTick;
+            SessionState.SetBool("COLA_COLA.MainScene.PlayVerification", false);
+            VerifyInPlay();
+        }
+
+        private static void VerifyInPlay()
+        {
             try
             {
-                var scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+                if (!Application.isPlaying) throw new InvalidOperationException("MainScene checks require Play mode.");
+                var scene = SceneManager.GetActiveScene();
                 var objects = scene.GetRootGameObjects().SelectMany(r => r.GetComponentsInChildren<Transform>(true)).ToArray();
                 var cameras = objects.Select(t => t.GetComponent<Camera>()).Where(c => c).ToArray();
                 if (cameras.Length != 1 || !cameras[0].CompareTag("MainCamera")) throw new InvalidOperationException("Expected exactly one tagged main camera.");
@@ -443,16 +470,8 @@ namespace ColaCola.Editor
                 var report = $"PASS: Saved MainScene reopened in Unity {Application.unityVersion}\nPASS: one MainCamera and one AudioListener\nPASS: {renderers.Length} renderers with material/shader references\nPASS: no missing scripts\nPASS: six authored test item models per participant, twelve instances, no remaining item Cube placeholders\nPASS: custom PressureGauge model and NeedlePivot replace the gauge Cube\nPASS: custom ShakeConsole with three independent numbered keys replaces console/button Cubes\nPASS: physical StatusTerminal with complete health/token readout bindings\nPASS: both character Animators have enabled looping Idle controllers without root motion\nPASS: MainScene is first enabled build scene\nPASS: hero bottle center viewport={point:F3}\nScope: 3D staging, test item props, character Idle, sample physical readouts and pressure selection/confirmation prototype. Boss AI, damage, token awards, item effects and shop flow are not implemented.\n";
                 File.WriteAllText(Output + "/MainScene-validation.txt", report);
                 Debug.Log("COLA_MAIN_SCENE_VALIDATION_PASS");
-                double captureAt = EditorApplication.timeSinceStartup + 3;
-                EditorApplication.CallbackFunction finish = null;
-                finish = () =>
-                {
-                    if (EditorApplication.timeSinceStartup < captureAt) return;
-                    EditorApplication.update -= finish;
-                    try { Capture(mainCamera, Output + "/MainScene-preview.png"); if (Application.isBatchMode) EditorApplication.Exit(0); }
-                    catch (Exception e) { Debug.LogException(e); if (Application.isBatchMode) EditorApplication.Exit(2); }
-                };
-                EditorApplication.update += finish;
+                EditorApplication.isPlaying = false;
+                if (Application.isBatchMode) EditorApplication.Exit(0);
             }
             catch (Exception e) { Debug.LogException(e); if (Application.isBatchMode) EditorApplication.Exit(1); else throw; }
         }

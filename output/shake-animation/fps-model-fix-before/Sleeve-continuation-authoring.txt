@@ -1,3 +1,0 @@
-Source: Cube.001; open welded boundary; rim vertices: 10; radius: 0.06381m.
-Rest center: (0.48587, 0.74496, -1.09440); hidden anchor: (0.49000, 0.70000, -1.55000); initial seam error: 0.00000000m.
-Original FBX, importer readability, materials, actor hierarchy and Idle assets were not modified.

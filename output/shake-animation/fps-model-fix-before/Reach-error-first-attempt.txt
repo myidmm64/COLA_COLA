@@ -1,5 +1,0 @@
-System.InvalidOperationException: Unreachable player right hand at 0.4333333: distance=0.39861, permitted=0.02484..0.39456, shoulder=(0.3896, 0.8000, -0.8833), wrist=(0.2718, 1.0224, -0.5741)
-  at ColaCola.Editor.ColaShakeAnimationFactory+Arm.Solve (UnityEngine.Vector3 target, UnityEngine.Vector3 bend, UnityEngine.Quaternion orientation, System.String context) [0x0005f] in C:\Work\COLA_COLA\Assets\Editor\COLACOLA\ColaShakeAnimationFactory.cs:49 
-  at ColaCola.Editor.ColaShakeAnimationFactory.BuildActor (UnityEngine.Transform actor, UnityEngine.Transform bottle, System.Boolean boss, System.Text.StringBuilder report) [0x0068e] in C:\Work\COLA_COLA\Assets\Editor\COLACOLA\ColaShakeAnimationFactory.cs:159 
-  at ColaCola.Editor.ColaShakeAnimationFactory.Build (UnityEngine.GameObject sceneRoot) [0x00034] in C:\Work\COLA_COLA\Assets\Editor\COLACOLA\ColaShakeAnimationFactory.cs:69 
-  at ColaCola.Editor.ColaShakeAnimationSceneTools.Apply () [0x000b4] in C:\Work\COLA_COLA\Assets\Editor\COLACOLA\ColaShakeAnimationSceneTools.cs:29 

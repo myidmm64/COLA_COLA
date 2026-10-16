@@ -1,8 +1,0 @@
-Player-only right-side grip revision; boss clips and scene placement are not rebuilt.
-PASS: Player strength 1, contact drift=0.0004 mm, sampled hand minimumY=0.83300.
-PASS: player wrist stays on the bottle's right side; minimum horizontal offset=0.07756m.
-PASS: Player strength 2, contact drift=0.0003 mm, sampled hand minimumY=0.83300.
-PASS: player wrist stays on the bottle's right side; minimum horizontal offset=0.07663m.
-PASS: Player strength 3, contact drift=0.0003 mm, sampled hand minimumY=0.83300.
-PASS: player wrist stays on the bottle's right side; minimum horizontal offset=0.07722m.
-Player rest wrist=(0.4011, 0.8722, -0.7812); acquisition wrist=(0.0920, 1.0000, -0.2861); palm advance=0.2161 m.

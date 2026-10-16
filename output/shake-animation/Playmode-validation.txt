@@ -1,27 +1,18 @@
 Real Play-mode verification of saved player and boss shake animation bindings.
-Player phase 1 captured at sampled clip time 0.9147s.
-Player phase 2 captured at sampled clip time 1.8563s.
-Player phase 3 captured at sampled clip time 2.2166s.
-PASS: Player: 20 native runtime frames; grip samples 194; maximum wrist/bottle drift 0.000mm / 0.000 degrees; wrist travel 0.598m, bottle lift 0.129m.
-PASS: Player grips through its own Wrist.R; waiting actor remains in Idle, maximum waiting-hand displacement 0.0006mm.
-PASS: visible original skinned hand from Assets/2.Assets/02_Player_Arms/Models/Player_Arms.fbx; tracked surface movement 0.6099m.
-Boss phase 1 captured at sampled clip time 0.9031s.
-Boss phase 2 captured at sampled clip time 1.8013s.
-Boss phase 3 captured at sampled clip time 2.2223s.
-PASS: Boss: 22 native runtime frames; grip samples 760; maximum wrist/bottle drift 0.001mm / 0.000 degrees; wrist travel 0.693m, bottle lift 0.178m.
+PASS: Player: 10941 live Play-mode observations; grip samples 4838; maximum wrist/bottle drift 0.000mm / 0.000 degrees; wrist travel 0.598m, bottle lift 0.159m.
+PASS: Player grips through its own Wrist.R; waiting actor remains in Idle, maximum waiting-hand displacement 0.0008mm.
+PASS: original skinned hand CPU surface probe from Assets/2.Assets/02_Player_Arms/Models/Player_Arms.fbx; tracked surface movement 0.6099m.
+PASS: Boss: 12214 live Play-mode observations; grip samples 5544; maximum wrist/bottle drift 0.001mm / 0.000 degrees; wrist travel 0.693m, bottle lift 0.178m.
 PASS: Boss grips through its own hand.R; waiting actor remains in Idle, maximum waiting-hand displacement 0.0003mm.
-PASS: visible original skinned hand from Assets/2.Assets/03_Simple_Character_PSX/Models/simple-character-psx.fbx; tracked surface movement 0.7842m.
+PASS: original skinned hand CPU surface probe from Assets/2.Assets/03_Simple_Character_PSX/Models/simple-character-psx.fbx; tracked surface movement 0.7844m.
 PASS: boss preview locks shared input and changes no pressure, public limit, bottle number, action count or resolution events.
 PASS: disabling/re-enabling the driver mid-grip restores the boss rig, bottle and Idle without a rule action.
 PASS: the next real pressure result uses the expected next seeded RNG value after boss preview and cancellation.
 PASS: disabling/re-enabling interaction mid-grip restores both rig and bottle, cancels stale callbacks and resets input state.
 PASS: both seated actor roots, parents and imported scales remain fixed throughout full playback and cancellation.
-Boss-LiveTurn phase 1 captured at sampled clip time 0.9028s.
-Boss-LiveTurn phase 2 captured at sampled clip time 1.8126s.
-Boss-LiveTurn phase 3 captured at sampled clip time 2.2476s.
-PASS: Boss: 16 native runtime frames; grip samples 27; maximum wrist/bottle drift 0.000mm / 0.000 degrees; wrist travel 0.691m, bottle lift 0.167m.
-PASS: Boss grips through its own hand.R; waiting actor remains in Idle, maximum waiting-hand displacement 0.0003mm.
-PASS: visible original skinned hand from Assets/2.Assets/03_Simple_Character_PSX/Models/simple-character-psx.fbx; tracked surface movement 0.7821m.
+PASS: Boss: 5886 live Play-mode observations; grip samples 2704; maximum wrist/bottle drift 0.001mm / 0.000 degrees; wrist travel 0.693m, bottle lift 0.167m.
+PASS: Boss grips through its own hand.R; waiting actor remains in Idle, maximum waiting-hand displacement 0.0004mm.
+PASS: original skinned hand CPU surface probe from Assets/2.Assets/03_Simple_Character_PSX/Models/simple-character-psx.fbx; tracked surface movement 0.7844m.
 PASS: actual strength/cola raycasts play the original FPS arm, automatically play the original boss hand, and return input to the player; two pressure actions and two results exactly.
 PASS: disabling interaction during a real automatic boss turn cancels both hand and delayed callbacks and restores normal input.
-Scope: original FPS/boss skinned meshes, hand playback and a basic alternating turn loop. Health, rewards, items, shop and boss tactics remain separate.
+Scope: live Play-mode state/input/bone and CPU skinning checks; no Game-view visual confirmation or preview rendering. Original FPS/boss hand playback and a basic alternating turn loop. Health, rewards, items, shop and boss tactics remain separate.

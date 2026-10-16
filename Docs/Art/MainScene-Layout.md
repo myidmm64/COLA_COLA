@@ -109,6 +109,10 @@ Unity 6000.6.4f1을 사용한다. 저장본의 카메라·AudioListener·재질�
 
 최신 화면은 압력계를 18% 축소하고 다이얼·테두리와 국소 조명의 시선 균형을 조정한 `output/gauge-focus/MainScene-Focus.png`다. `output/scene-layout/MainScene-preview.png`도 갱신했다. 압력계 받침 접촉점·다른 Transform 369개·보호 파일 32개를 보존했고 기존 버튼·콜라 입력을 실제 Play에서 재검증했다. 화면 경계 면적은 기존의 65.2%다.
 
-플레이어·보스의 강도별 콜라 흔들기는 캐릭터와 병의 클립 총 12개로 구성된다. 추가했던 소매 보조 메시를 제거하고 원래 FPS 팔 모델을 사용한다. 보스는 일반 플레이의 다음 차례에 자동으로 흔들도록 연결했다. 자세한 내용은 `Docs/Art/ColaShakeAnimations.md`, 실제 연속 재생은 `output/shake-animation/Duel-OriginalFPS-LiveBoss.webp`와 최신 Play 검증을 따른다.
+플레이어·보스의 강도별 콜라 흔들기는 캐릭터와 병의 클립 총 12개로 구성된다. 추가했던 소매 보조 메시를 제거하고 원래 FPS 팔 모델을 사용한다. 보스는 일반 플레이의 다음 차례에 자동으로 흔들도록 연결했다. 자세한 내용은 `Docs/Art/ColaShakeAnimations.md`, 동작 검증은 Play 모드에서 진행하며 `output/shake-animation/Playmode-validation.txt`에 상태 검사 결과를 기록한다. 시각적 확인은 실제 Game 뷰에서 한다.
 
 플레이어의 `Wrist.R`와 보스의 `hand.R`를 명시적으로 연결했다. 병은 잡은 손의 위치·회전을 따라가고 기다리는 상대의 양손은 테이블에 둔 Idle을 유지한다. 원본 FBX 스킨 메시의 실제 정점 이동과 자동 보스 응답까지 확인하며, 검증 시 원본 모델·프리팹·텍스처도 해시로 비교한다.
+
+## 현재 검증 원칙
+
+과거에 기록한 프리뷰 렌더·캡처 수치는 당시 제작 참고 자료다. 앞으로의 변경 검증은 Play 모드에서 진행하며, 실제 Game 뷰 확인과 자동 상태 검사의 범위를 구분한다. `MainSceneTools.Verify`도 Play에 진입해 검사하며 검증용 이미지를 생성하지 않는다.

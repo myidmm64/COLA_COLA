@@ -17,7 +17,7 @@ namespace ColaCola.Editor
         private static float automaticPreviewStarted;
         private static Vector3 automaticPreviewRestHand;
         private static int automaticPreviewCycles;
-        private static bool automaticPreviewWasPlaying, automaticPreviewCaptured;
+        private static bool automaticPreviewWasPlaying;
 
         static ColaShakeAnimationSceneTools()
         {
@@ -64,7 +64,7 @@ namespace ColaCola.Editor
                 automaticPreviewStarted = (float)EditorApplication.timeSinceStartup;
                 automaticPreviewRestHand = driver.playerHand.position;
                 automaticPreviewCycles = 0;
-                automaticPreviewWasPlaying = automaticPreviewCaptured = false;
+                automaticPreviewWasPlaying = false;
                 SessionState.SetBool(VerifyAutomaticPreview, true);
                 EditorApplication.update += VerifyAutomaticPreviewTick;
                 EditorApplication.isPlaying = true;
@@ -88,11 +88,6 @@ namespace ColaCola.Editor
                         Vector3.Distance(driver.playerHand.position, automaticPreviewRestHand) < .1f ||
                         driver.playerHand.position.x - driver.bottle.position.x < .06f)
                         throw new InvalidOperationException("Automatic preview did not move the original right hand on the bottle's right side.");
-                    if (!automaticPreviewCaptured)
-                    {
-                        MainSceneTools.Capture(Camera.main, Output + "/Player-AutomaticPlay.png");
-                        automaticPreviewCaptured = true;
-                    }
                     if (automaticPreviewCycles >= 2)
                     {
                         driver.StopPlayerPlayPreview();
@@ -134,8 +129,6 @@ namespace ColaCola.Editor
                     EditorApplication.update -= finish;
                     try
                     {
-                        CapturePoses(true);
-                        CaptureSmoothPreviews(true);
                         Debug.Log("COLA_PLAYER_RIGHT_SIDE_APPLIED");
                         ColaShakeAnimationVerification.Begin();
                     }
@@ -180,8 +173,6 @@ namespace ColaCola.Editor
                     EditorApplication.update -= finish;
                     try
                     {
-                        CapturePoses();
-                        CaptureSmoothPreviews();
                         Debug.Log("COLA_CHARACTER_SHAKE_APPLIED");
                         ColaShakeAnimationVerification.Begin();
                     }
@@ -231,60 +222,6 @@ namespace ColaCola.Editor
         private static AnimationClip[] Clips(bool boss, bool bottle) => Enumerable.Range(1, 3)
             .Select(strength => AssetDatabase.LoadAssetAtPath<AnimationClip>(bottle
                 ? ColaShakeAnimationFactory.BottleClipPath(boss, strength) : ColaShakeAnimationFactory.ActorClipPath(boss, strength))).ToArray();
-
-        private static void CapturePoses(bool playerOnly = false)
-        {
-            foreach (var boss in playerOnly ? new[] { false } : new[] { false, true })
-                foreach (var time in new[] { .95f, 1.9f })
-                {
-                    EditorSceneManager.OpenScene(MainSceneTools.ScenePath, OpenSceneMode.Single);
-                    var driver = UnityEngine.Object.FindFirstObjectByType<ColaShakeAnimator>();
-                    var actor = boss ? driver.bossAnimator : driver.playerAnimator;
-                    actor.enabled = false;
-                    SampleHandAttachedPose(driver, boss, time);
-                    var camera = Camera.main; camera.aspect = 16f / 9f;
-                    MainSceneTools.Capture(camera, Output + "/" + (boss ? "Boss" : "Player") + (time < 1 ? "-Reach.png" : "-Shake.png"));
-                }
-            EditorSceneManager.OpenScene(MainSceneTools.ScenePath, OpenSceneMode.Single);
-        }
-
-        private static void CaptureSmoothPreviews(bool playerOnly = false)
-        {
-            const int fps = 24;
-            foreach (var boss in playerOnly ? new[] { false } : new[] { false, true })
-            {
-                EditorSceneManager.OpenScene(MainSceneTools.ScenePath, OpenSceneMode.Single);
-                var driver = UnityEngine.Object.FindFirstObjectByType<ColaShakeAnimator>();
-                var actor = boss ? driver.bossAnimator : driver.playerAnimator;
-                actor.enabled = false;
-                var camera = Camera.main; camera.aspect = 16f / 9f;
-                var folder = Output + "/" + (boss ? "boss" : "player") + "-smooth-frames";
-                Directory.CreateDirectory(folder);
-                for (var frame = 0; frame <= Mathf.CeilToInt(ColaShakeAnimationFactory.Duration * fps); frame++)
-                {
-                    var time = Mathf.Min(ColaShakeAnimationFactory.Duration, frame / (float)fps);
-                    SampleHandAttachedPose(driver, boss, time);
-                    MainSceneTools.Capture(camera, folder + $"/Frame-{frame:D3}.png", 900, 506);
-                }
-            }
-            EditorSceneManager.OpenScene(MainSceneTools.ScenePath, OpenSceneMode.Single);
-        }
-
-        private static void SampleHandAttachedPose(ColaShakeAnimator driver, bool boss, float time)
-        {
-            var actor = boss ? driver.bossAnimator : driver.playerAnimator;
-            var hand = boss ? driver.bossHand : driver.playerHand;
-            var actorClip = boss ? driver.bossClips[2] : driver.playerClips[2];
-            var bottleClip = boss ? driver.bossBottleClips[2] : driver.playerBottleClips[2];
-            actorClip.SampleAnimation(actor.gameObject, ColaShakeAnimator.GripStartTime);
-            bottleClip.SampleAnimation(driver.bottle.gameObject, ColaShakeAnimator.GripStartTime);
-            var gripPosition = hand.InverseTransformPoint(driver.bottle.position);
-            var gripRotation = Quaternion.Inverse(hand.rotation) * driver.bottle.rotation;
-            actorClip.SampleAnimation(actor.gameObject, time);
-            bottleClip.SampleAnimation(driver.bottle.gameObject, time);
-            if (time >= ColaShakeAnimator.GripStartTime && time <= ColaShakeAnimator.GripEndTime)
-                driver.bottle.SetPositionAndRotation(hand.TransformPoint(gripPosition), hand.rotation * gripRotation);
-        }
 
         private static void RemoveAddedSleeve(GameObject root)
         {
