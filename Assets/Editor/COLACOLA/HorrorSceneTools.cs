@@ -167,8 +167,9 @@ namespace ColaCola.Editor
             if (!group) throw new InvalidOperationException("Lighting group is missing.");
             Light(group, "Horror_Cola_LabelFill", new Vector3(.15f, 1.45f, -.80f), new Vector3(0, 1.04f, -.07f),
                 new Color(.94f, .84f, .66f), .90f, 1.8f, LightType.Spot, 46);
-            Light(group, "Horror_Gauge_Readability", new Vector3(-.74f, 1.53f, -.62f), Vector3.zero,
-                new Color(.86f, .88f, .70f), .16f, 1.1f, LightType.Point);
+            var gaugeFill = Light(group, "Horror_Gauge_Readability", new Vector3(-.74f, 1.53f, -.62f), Vector3.zero,
+                new Color(.86f, .88f, .70f), 0, .8f, LightType.Point);
+            gaugeFill.enabled = false;
         }
 
         private static Light Light(Transform parent, string name, Vector3 position, Vector3 target, Color color, float intensity, float range, LightType type, float angle = 90)
@@ -249,7 +250,8 @@ namespace ColaCola.Editor
             ranges.highlights.Override(new Vector4(1.04f, 1.01f, .94f, 0));
             var bloom = Effect<Bloom>(profile);
             bloom.threshold.Override(1.0f);
-            bloom.intensity.Override(.20f);
+            bloom.intensity.Override(0);
+            bloom.clamp.Override(2);
             bloom.scatter.Override(.50f);
             bloom.tint.Override(new Color(.85f, 1, .87f));
             bloom.highQualityFiltering.Override(true);
@@ -359,8 +361,10 @@ namespace ColaCola.Editor
                 var brain = camera.GetComponent<CinemachineBrain>();
                 if (brain.ActiveVirtualCamera == null || brain.ActiveVirtualCamera.Name != "CM_SeatedDuel")
                     throw new InvalidOperationException("Cinemachine is not actively driving the camera.");
-                if (Vector3.Distance(camera.transform.position, OriginalCameraPosition) > .0001f ||
-                    Quaternion.Angle(camera.transform.rotation, Quaternion.Euler(11, 0, 0)) > .03f || Mathf.Abs(camera.fieldOfView - 50) > .001f)
+                var breathing = UnityEngine.Object.FindAnyObjectByType<ColaCameraBreathing>();
+                bool breathes = breathing && breathing.enabled;
+                if (Vector3.Distance(camera.transform.position, OriginalCameraPosition) > (breathes ? .012f : .0001f) ||
+                    Quaternion.Angle(camera.transform.rotation, Quaternion.Euler(11, 0, 0)) > (breathes ? .4f : .03f) || Mathf.Abs(camera.fieldOfView - 50) > .001f)
                     throw new InvalidOperationException("Cinemachine changed the seated camera framing.");
                 var data = camera.GetUniversalAdditionalCameraData();
                 if (!camera.allowHDR || !data.renderPostProcessing) throw new InvalidOperationException("Camera post-processing/HDR disabled.");

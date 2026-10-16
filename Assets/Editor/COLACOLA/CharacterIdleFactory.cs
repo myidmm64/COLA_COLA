@@ -56,6 +56,16 @@ namespace ColaCola.Editor
             File.WriteAllText(MainSceneTools.Output + "/NaturalIdle-authoring-validation.txt", report.ToString());
         }
 
+        public static void RebuildBossOnly(GameObject sceneRoot)
+        {
+            var report = new StringBuilder("More active seated boss Idle with supported hands.\n");
+            Build(sceneRoot.GetComponentsInChildren<Transform>(true).Single(t => t.name == BossName).gameObject,
+                "Boss_SeatedIdle", true, report);
+            AssetDatabase.SaveAssets();
+            Directory.CreateDirectory("output/presentation-motion");
+            File.WriteAllText("output/presentation-motion/Boss-authoring.txt", report.ToString());
+        }
+
         private static Transform Bone(GameObject root, string name)
         {
             return root.GetComponentsInChildren<Transform>(true).Single(t => t.name == name);
@@ -284,14 +294,14 @@ namespace ColaCola.Editor
             float shift = Pulse(time, 7.2f, 9.3f, 12.6f, 16.0f) - .65f * Pulse(time, 21f, 23.2f, 25f, 28.8f);
             if (boss)
             {
-                RotateWorld(Bone(character, "spine.001"), new Vector3(.12f * breath, .55f * shift, -.85f * shift));
-                RotateWorld(Bone(character, "spine.002"), new Vector3(.30f * breath, .20f * shift, -.35f * shift));
-                RotateWorld(Bone(character, "spine.003"), new Vector3(.34f * breath, 0, -.25f * shift));
-                Bone(character, "spine.003").position += Vector3.up * (.0012f * breath);
-                float down = 3.2f * Pulse(time, 1.6f, 3.0f, 4.1f, 6.2f) + 1.6f * Pulse(time, 23.8f, 25.1f, 26.2f, 28.1f);
-                float glance = 3.8f * Pulse(time, 10.8f, 12.1f, 13.3f, 15.7f);
-                RotateWorld(Bone(character, "spine.004"), new Vector3(-down - .42f * breath, glance - .35f * shift, .95f * shift));
-                RotateWorld(Bone(character, "spine.005"), new Vector3(-.24f * down, .18f * glance, .30f * shift));
+                RotateWorld(Bone(character, "spine.001"), new Vector3(.30f * breath, .90f * shift, -1.35f * shift));
+                RotateWorld(Bone(character, "spine.002"), new Vector3(.65f * breath, .40f * shift, -.65f * shift));
+                RotateWorld(Bone(character, "spine.003"), new Vector3(.75f * breath, 0, -.45f * shift));
+                Bone(character, "spine.003").position += Vector3.up * (.0035f * breath);
+                float down = 4.4f * Pulse(time, 1.6f, 3.0f, 4.1f, 6.2f) + 2.2f * Pulse(time, 23.8f, 25.1f, 26.2f, 28.1f);
+                float glance = 5.2f * Pulse(time, 10.8f, 12.1f, 13.3f, 15.7f) - 2.5f * Pulse(time, 18f, 19.2f, 20.2f, 22f);
+                RotateWorld(Bone(character, "spine.004"), new Vector3(-down - .65f * breath, glance - .50f * shift, 1.35f * shift));
+                RotateWorld(Bone(character, "spine.005"), new Vector3(-.30f * down, .22f * glance, .45f * shift));
             }
             else
             {

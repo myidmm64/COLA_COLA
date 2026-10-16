@@ -20,9 +20,9 @@
 
 ## 실행 방법
 
-현재 MainScene은 **Play를 누르면 약 0.75초 뒤 플레이어의 손 동작을 자동으로 반복**하도록 저장되어 있다. 원본 FPS 오른손으로 병의 오른쪽을 잡아 강도 2로 흔들고 내려놓으며, 각 4.4초 동작 사이에 1초를 쉰다. 이 확인용 반복은 압력이나 턴을 진행하지 않는다. `08_Devices/ColaShakeAnimation`의 `ColaShakeAnimator`에서 `Preview Player On Play`를 끄면 다음 Play부터 일반 입력으로 진행한다. Play 중 즉시 멈추려면 같은 컴포넌트의 컨텍스트 메뉴 `Stop Player Play Preview`를 사용한다.
+현재 MainScene은 **직접 플레이하는 경기**로 저장되어 있으며 손의 자동 반복 미리보기는 껐다. 원본 FPS 오른손으로 병의 오른쪽을 잡아 흔드는 동작은 실제 행동을 확정했을 때만 재생한다. 조작과 경기 규칙은 `Docs/Gameplay/PlayableDuel.md`를 따른다.
 
-Editor의 Play 진입 이벤트에서 시작하므로 도메인·씬 재로드를 끈 설정에서도 반복 확인할 수 있다. 자동 시작·두 번 반복·원본 오른손 이동 검증 기록은 `output/shake-animation/Automatic-preview-validation.txt`, 엔진 로그는 `unity-auto-play-preview.log`다.
+경기 컨트롤러는 도메인·씬 재로드를 끈 설정에서도 Play 진입마다 상태와 이벤트 구독을 초기화한다. 최신 경기 검증은 `output/playable-duel/Playmode-validation.txt`다. 과거 자동 미리보기 기록은 현재의 경기 시작 동작을 뜻하지 않는다.
 
 플레이어는 기존처럼 강도 1·2·3 버튼을 선택한 뒤 중앙 콜라를 클릭한다. 확정 클릭에서 압력·확률 판정을 한 번 수행하고 FPS 모델의 손으로 흔든다. 동작과 폭발 피드백이 끝나면 0.65초 뒤 보스가 강도 1~3 중 하나를 골라 같은 병을 자기 손으로 흔든다. 보스 행동도 실제 압력·폭발 판정을 한 번 수행한다. 보스가 병을 내려놓은 뒤 다음 플레이어 입력을 받는다. 두 동작과 대기 사이에는 추가 클릭을 막는다.
 
@@ -32,7 +32,7 @@ Editor의 Play 진입 이벤트에서 시작하므로 도메인·씬 재로드�
 
 `ActiveHand`로 현재 동작하는 원본 손 본을, `BottleHeld`로 손에 고정된 구간인지 확인한다. 이 상태는 표현용이며 턴이나 압력 판정을 진행하지 않는다.
 
-`ShakeSelectionInteraction.automaticBossTurns`가 일반 플레이의 자동 보스 응답을 켠다. 강도 선택용 난수는 폭발 판정용 난수와 분리했다. `IsBossTurn`과 `LastActionWasBoss`로 차례와 마지막 행동 주체를 확인한다. `ShakeResolved`는 각 행동이 끝날 때 한 번씩 발생한다. 초기화·비활성화는 보스 대기와 진행 중인 손 동작도 취소한다. 현재 보스 선택은 임시 무작위이며 피해량·토큰·아이템 효과·상점·보스 전술은 별도다.
+`ShakeSelectionInteraction.automaticBossTurns`가 일반 플레이의 자동 보스 응답을 켠다. 강도 선택용 난수는 폭발 판정용 난수와 분리했다. `IsBossTurn`과 `LastActionWasBoss`로 차례와 마지막 행동 주체를 확인한다. `ShakeResolved`는 각 행동이 끝날 때 한 번씩 발생하며 경기 컨트롤러가 피해·토큰·승패를 반영한다. 초기화·비활성화는 보스 대기와 진행 중인 손 동작도 취소한다. 현재 보스 선택은 임시 무작위이며 아이템 효과·상점·보스 전술은 제외한다.
 
 ## 원본 FPS 모델 사용
 

@@ -1,0 +1,10 @@
+Unity Play-mode playable duel verification
+PASS: saved MainScene boots level 1, full 3/3 health, zero tokens, player input enabled, original hand bindings, item props hidden and animation preview disabled.
+PASS: idle strength-3 selection followed by interaction disable/re-enable restores all three key positions, clears selection and produces no action, health change or token reward.
+PASS: real collider input -> original FPS right hand -> original boss hand -> player input; safe rewards player=3, boss=1; health and physical readouts remain synchronized.
+PASS: a fatal strength-3 player burst gives exactly 5 tokens total, removes one health, ends the run, rejects further input and suppresses the pending boss turn; bottle resets silently.
+PASS: safe player then guaranteed boss burst awards 1/5 tokens and wins; continuation is busy-gated, then advances to level 2 with boss 2/2, player healed and player tokens retained.
+PASS: disabling/re-enabling interaction during an actual boss grip cancels its hand animation and delayed resolution without extra health/token changes.
+PASS: disabling the match mid-player-grip cancels pending work; re-enabling starts a fresh run and receives no stale reward callback.
+PASS: a second complete Play entry reuses the existing scene with no reopen/reload; the previously selected strength-3 key and both other keys return to their original positions, health/level/tokens/input reset, and one real fatal action awards exactly 5 tokens once.
+Scope: automated live Play-mode state, physics input, original hand-bone movement, turn, health, token and physical readout checks. No Game-view visual confirmation, preview renders, frame captures or standalone build.

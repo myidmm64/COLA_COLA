@@ -63,6 +63,8 @@ namespace ColaCola.Core
             return true;
         }
 
+        public void ClearSelection() => SelectedStrength = 0;
+
         public ShakePrediction Predict(int strength)
         {
             if (strength < 1 || strength > 3) throw new ArgumentOutOfRangeException(nameof(strength));

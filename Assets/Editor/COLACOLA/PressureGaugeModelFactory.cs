@@ -166,8 +166,19 @@ namespace ColaCola.Editor
         }
 
         private static Material TopEnamel() => Material("Enamel_Edge", new Color(.075f, .21f, .20f), .10f, .14f);
-        private static Material InnerBezel() => Material("Bezel_PaleMetal", new Color(.49f, .48f, .40f), .25f, .12f);
-        private static Material DialFace() => Material("Dial_Cream", new Color(.56f, .54f, .44f), 0, .08f);
+        private static Material InnerBezel() => MatteGaugeSurface("Bezel_PaleMetal", new Color(.36f, .35f, .29f), .10f, .06f);
+        private static Material DialFace() => MatteGaugeSurface("Dial_Cream", new Color(.42f, .405f, .33f), 0, .04f);
+
+        private static Material MatteGaugeSurface(string name, Color color, float metallic, float smoothness)
+        {
+            var material = Material(name, color, metallic, smoothness);
+            material.SetFloat("_SpecularHighlights", 0);
+            material.SetFloat("_EnvironmentReflections", 0);
+            material.EnableKeyword("_SPECULARHIGHLIGHTS_OFF");
+            material.EnableKeyword("_ENVIRONMENTREFLECTIONS_OFF");
+            EditorUtility.SetDirty(material);
+            return material;
+        }
 
         private static Material Material(string name, Color color, float metallic, float smoothness)
         {

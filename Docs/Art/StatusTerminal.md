@@ -27,7 +27,7 @@
 
 ## 표시값과 연결 API
 
-컴포넌트는 `ColaCola.Presentation.StatusTerminalDisplay`다. 저장된 **보스 3/3·12토큰, 플레이어 3/3·15토큰은 배치 확인용 예시**이며 실제 경기 체력·잔액·보상 규칙을 뜻하지 않는다. 일반 Play 시작 시 예시 값이 자동으로 변하지 않는다.
+컴포넌트는 `ColaCola.Presentation.StatusTerminalDisplay`다. 현재 MainScene은 양쪽 **체력 3/3·토큰 0**으로 시작하며 `ColaDuelController`가 실제 피해·보상·차례를 전달한다. 단말기 자체는 규칙을 계산하지 않는다. 초기 제작 단계의 12·15토큰은 과거 배치 예시다.
 
 ```csharp
 terminal.SetBossState(bossHealth, bossMaxHealth, bossTokens);

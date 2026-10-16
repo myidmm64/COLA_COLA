@@ -19,11 +19,11 @@
 - 실제 배치값: `output/scene-layout/MainScene-layout.txt`
 - 엔진 재열기 검증 기록: `output/scene-layout/MainScene-validation.txt`
 
-이 씬은 보스와의 1대1 구도를 위한 모델 배치·대기 애니메이션·실물 체력/토큰 단말기를 포함한다. 기존 우측 HUD 구상은 좌측 탁상 단말기로 대체했다. 두 사람의 체력·토큰 표시 API와 피드백, 강도 선택·압력/폭발 확률 미리보기·중앙 콜라 클릭 확정과 기본 교대 행동을 구현했다. 저장된 3/3 체력과 12·15토큰은 외형 확인용 예시다. 보스 전술·피해·토큰 지급·아이템·상점 연결은 별도 구현 범위다.
+이 씬은 보스와의 1대1 경기, 실제 체력·토큰을 표시하는 3D 단말기, 강도 선택·압력/폭발 확률 미리보기·중앙 콜라 클릭 확정을 포함한다. 양쪽 체력 3·토큰 0으로 시작하며 승패·재시작·다음 난이도를 연결했다. 아이템 그룹과 해당 보조광은 숨겼고 폭발 연출·상점은 제외한다. 현재 규칙은 `Docs/Gameplay/PlayableDuel.md`를 따른다.
 
 ## 열어서 확인하기
 
-Unity의 `COLA_COLA > Open Main Scene` 메뉴로 열 수 있다. Game 뷰는 **16:9**로 확인한다. 현재는 Play를 누르면 약 0.75초 뒤 원본 FPS 오른손으로 병의 오른쪽을 잡고 흔드는 확인용 동작이 반복된다. 보스는 기존 Idle을 유지한다. 일반 입력으로 플레이하려면 `08_Devices/ColaShakeAnimation`의 `Preview Player On Play`를 끈다. 빌드 설정의 첫 번째 활성 씬은 MainScene이며 기존 SampleScene도 보존한다.
+Unity의 `COLA_COLA > Open Main Scene` 메뉴로 열 수 있다. Game 뷰는 **16:9**로 확인한다. Play를 누르면 경기가 시작되며 자동 손 미리보기는 꺼져 있다. 1·2·3 버튼 또는 숫자키로 선택하고 콜라 클릭 또는 Space로 확정한다. 빌드 설정의 첫 번째 활성 씬은 MainScene이며 기존 SampleScene도 보존한다.
 
 플레이어는 강도 1·2·3 선택 후 콜라를 클릭하면 기존 FPS 모델의 오른손으로 잡아 흔들고 내려놓는다. 이후 0.65초 뒤 보스가 자기 손으로 자동 응답하며, 완료 후 다시 플레이어가 선택한다. 보스 강도는 임시 무작위 1~3이며 압력 판정은 각자 한 번 수행한다. 동작만 볼 때는 Play 모드의 `COLA_COLA > Preview Boss Cola Shake (Play Mode)`를 사용할 수 있다. 이 별도 미리보기는 압력·턴 규칙을 진행하지 않는다. 구조는 `Docs/Art/ColaShakeAnimations.md`를 따른다.
 
@@ -116,3 +116,5 @@ Unity 6000.6.4f1을 사용한다. 저장본의 카메라·AudioListener·재질�
 ## 현재 검증 원칙
 
 과거에 기록한 프리뷰 렌더·캡처 수치는 당시 제작 참고 자료다. 앞으로의 변경 검증은 Play 모드에서 진행하며, 실제 Game 뷰 확인과 자동 상태 검사의 범위를 구분한다. `MainSceneTools.Verify`도 Play에 진입해 검사하며 검증용 이미지를 생성하지 않는다.
+
+현재 보스 대기 동작·카메라 호흡·예상 바늘/확률의 부드러운 전환은 `Docs/Art/PresentationMotion.md`를 따른다. 카메라의 기준 Transform·FOV는 유지하며 Cinemachine 출력에만 작은 호흡 보정을 더한다.

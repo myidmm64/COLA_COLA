@@ -14,26 +14,53 @@ namespace ColaCola.Presentation
         public Vector3 limitTextOrigin = new Vector3(.064f, -.029f, -.057f);
         public Vector3 probabilityTextOrigin = new Vector3(0, -.153f, -.065f);
         public float limitPixelSize = .0038f, probabilityPixelSize = .00355f;
+        [Min(.05f)] public float forecastTransitionSeconds = .38f;
         [SerializeField] private int pressure, limit = 20, predictedPressure;
         [SerializeField] private bool hasPrediction, hasProbability;
         [SerializeField] private double probability;
         private float needleAngle = 225;
+        private float previewAngle = 225, previewStartAngle, previewStarted;
+        private double displayedProbability, previewStartProbability;
+        private bool previewAnimating;
 
         public int CurrentPressure => pressure;
         public int CurrentLimit => limit;
         public int PredictedPressure => predictedPressure;
         public bool HasPrediction => hasPrediction;
         public string ProbabilityText => hasProbability ? FormatProbability(probability) : "--%";
+        public string DisplayedProbabilityText => hasProbability ? FormatProbability(displayedProbability) : "--%";
+        public double DisplayedProbability => displayedProbability;
+        public float DisplayedPreviewAngle => previewAngle;
+        public bool IsPreviewAnimating => previewAnimating;
 
         public void Show(int currentPressure, int bottleLimit, int? expectedPressure,
             double? expectedProbability, bool immediate = false)
         {
+            if (Application.IsPlaying(gameObject)) AdvancePreview();
+            bool wasPrediction = hasPrediction;
+            bool changed = !wasPrediction || limit != bottleLimit || predictedPressure != expectedPressure ||
+                hasProbability != expectedProbability.HasValue || Math.Abs(probability - (expectedProbability ?? 0)) > .00000001;
             pressure = Mathf.Max(0, currentPressure);
             limit = Mathf.Clamp(bottleLimit, 1, 999);
             hasPrediction = expectedPressure.HasValue;
             predictedPressure = expectedPressure ?? pressure;
             hasProbability = expectedProbability.HasValue;
             probability = expectedProbability ?? 0;
+            bool snap = immediate || !Application.IsPlaying(gameObject) || !hasPrediction;
+            if (snap)
+            {
+                previewAnimating = false;
+                previewAngle = Angle(predictedPressure);
+                displayedProbability = probability;
+            }
+            else if (changed)
+            {
+                if (!wasPrediction) { previewAngle = Angle(pressure); displayedProbability = 0; }
+                previewStartAngle = previewAngle;
+                previewStartProbability = displayedProbability;
+                previewStarted = Time.unscaledTime;
+                previewAnimating = true;
+            }
             Refresh(immediate || !Application.IsPlaying(gameObject));
         }
 
@@ -47,7 +74,15 @@ namespace ColaCola.Presentation
             return valid;
         }
 
-        private void OnEnable() { Refresh(true); }
+        private void OnEnable()
+        {
+            previewAnimating = false;
+            previewAngle = Angle(predictedPressure);
+            displayedProbability = probability;
+            Refresh(true);
+        }
+
+        private void OnDisable() { previewAnimating = false; }
 
         private void Update()
         {
@@ -56,6 +91,22 @@ namespace ColaCola.Presentation
             needleAngle = Application.IsPlaying(gameObject)
                 ? Mathf.MoveTowards(needleAngle, target, Time.unscaledDeltaTime * 420) : target;
             needlePivot.localRotation = Quaternion.Euler(0, 0, needleAngle);
+            if (previewAnimating)
+            {
+                AdvancePreview();
+                Refresh(false);
+            }
+        }
+
+        private void AdvancePreview()
+        {
+            if (!previewAnimating) return;
+            float t = Mathf.Clamp01((Time.unscaledTime - previewStarted) / Mathf.Max(.05f, forecastTransitionSeconds));
+            float eased = t * t * (3 - 2 * t);
+            // Keep the authored 270-degree sweep; LerpAngle would wrap across the empty quadrant.
+            previewAngle = Mathf.Lerp(previewStartAngle, Angle(predictedPressure), eased);
+            displayedProbability = previewStartProbability + (probability - previewStartProbability) * eased;
+            if (t >= 1) { previewAnimating = false; displayedProbability = probability; }
         }
 
         private float Angle(int value) => 225f - 270f * Mathf.Clamp01((float)value / Math.Max(1, limit));
@@ -63,7 +114,7 @@ namespace ColaCola.Presentation
         private void Refresh(bool immediate)
         {
             Write(limitDigits, limit.ToString(CultureInfo.InvariantCulture), limitTextOrigin, limitPixelSize);
-            Write(probabilityDigits, ProbabilityText, probabilityTextOrigin, probabilityPixelSize);
+            Write(probabilityDigits, DisplayedProbabilityText, probabilityTextOrigin, probabilityPixelSize);
             if (needlePivot && immediate)
             {
                 needleAngle = Angle(pressure);
@@ -72,7 +123,7 @@ namespace ColaCola.Presentation
             if (previewNeedlePivot)
             {
                 previewNeedlePivot.gameObject.SetActive(hasPrediction);
-                previewNeedlePivot.localRotation = Quaternion.Euler(0, 0, Angle(predictedPressure));
+                previewNeedlePivot.localRotation = Quaternion.Euler(0, 0, previewAngle);
             }
         }
 

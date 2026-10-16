@@ -527,12 +527,12 @@ Light:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 53196944}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 13
   m_Type: 2
   m_Color: {r: 0.86, g: 0.88, b: 0.7, a: 1}
-  m_Intensity: 0.16
-  m_Range: 1.1
+  m_Intensity: 0
+  m_Range: 0.8
   m_SpotAngle: 90
   m_InnerSpotAngle: 63
   m_CookieSize2D: {x: 0.5, y: 0.5}
@@ -2360,7 +2360,7 @@ MonoBehaviour:
   - {fileID: 7400000, guid: 7e7bb49a5769e56418bebe6a6084abd3, type: 2}
   bottle: {fileID: 489600033}
   idleBlendSeconds: 0.2
-  previewPlayerOnPlay: 1
+  previewPlayerOnPlay: 0
   playPreviewStrength: 2
 --- !u!1 &641643749
 GameObject:
@@ -3122,7 +3122,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8050900961307739451, guid: 9ac7b1996657fcd4389d7ffd9f2fe858, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0.06377926
+      value: 0.06377929
       objectReference: {fileID: 0}
     - target: {fileID: 8050900961307739451, guid: 9ac7b1996657fcd4389d7ffd9f2fe858, type: 3}
       propertyPath: m_LocalRotation.y
@@ -3130,7 +3130,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8050900961307739451, guid: 9ac7b1996657fcd4389d7ffd9f2fe858, type: 3}
       propertyPath: m_LocalRotation.z
-      value: -0.015475223
+      value: -0.01547523
       objectReference: {fileID: 0}
     - target: {fileID: 8114780718006566951, guid: 9ac7b1996657fcd4389d7ffd9f2fe858, type: 3}
       propertyPath: m_LocalRotation.w
@@ -4606,6 +4606,7 @@ Transform:
   - {fileID: 500019900}
   - {fileID: 747250925}
   - {fileID: 641193456}
+  - {fileID: 2090590225}
   m_Father: {fileID: 976549646}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1156346357
@@ -4616,6 +4617,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1153126899}
     m_Modifications:
+    - target: {fileID: 667180929920088610, guid: 830ca8c7dc96e284fbf5e7a97233780e, type: 3}
+      propertyPath: m_Mesh
+      value:
+      objectReference: {fileID: 4300000, guid: cf153c7cae4ffd942bb300463cad7b23, type: 2}
     - target: {fileID: 2693735240275050413, guid: 830ca8c7dc96e284fbf5e7a97233780e, type: 3}
       propertyPath: m_LocalPosition.x
       value: -1.05
@@ -4656,9 +4661,29 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2877825918630805217, guid: 830ca8c7dc96e284fbf5e7a97233780e, type: 3}
+      propertyPath: m_Mesh
+      value:
+      objectReference: {fileID: 4300000, guid: cf153c7cae4ffd942bb300463cad7b23, type: 2}
+    - target: {fileID: 4143479640695263971, guid: 830ca8c7dc96e284fbf5e7a97233780e, type: 3}
+      propertyPath: m_Mesh
+      value:
+      objectReference: {fileID: 4300000, guid: cf153c7cae4ffd942bb300463cad7b23, type: 2}
     - target: {fileID: 7685484070054882154, guid: 830ca8c7dc96e284fbf5e7a97233780e, type: 3}
       propertyPath: m_Name
       value: StatusTerminal
+      objectReference: {fileID: 0}
+    - target: {fileID: 7690349605430774837, guid: 830ca8c7dc96e284fbf5e7a97233780e, type: 3}
+      propertyPath: m_Mesh
+      value:
+      objectReference: {fileID: 4300000, guid: cf153c7cae4ffd942bb300463cad7b23, type: 2}
+    - target: {fileID: 8904626731739669238, guid: 830ca8c7dc96e284fbf5e7a97233780e, type: 3}
+      propertyPath: boss.tokens
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8904626731739669238, guid: 830ca8c7dc96e284fbf5e7a97233780e, type: 3}
+      propertyPath: player.tokens
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -4670,6 +4695,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 2693735240275050413, guid: 830ca8c7dc96e284fbf5e7a97233780e, type: 3}
   m_PrefabInstance: {fileID: 1156346357}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1156346359 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8904626731739669238, guid: 830ca8c7dc96e284fbf5e7a97233780e, type: 3}
+  m_PrefabInstance: {fileID: 1156346357}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ae1c36da09514e71ba735c93a64df894, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::ColaCola.Presentation.StatusTerminalDisplay
 --- !u!1 &1184068498
 GameObject:
   m_ObjectHideFlags: 0
@@ -5302,6 +5338,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1406412382}
   - component: {fileID: 1406412383}
+  - component: {fileID: 1406412384}
   m_Layer: 0
   m_Name: CM_SeatedDuel
   m_TagString: Untagged
@@ -5367,6 +5404,21 @@ MonoBehaviour:
       BarrelClipping: 0.25
       Anamorphism: 0
   BlendHint: 0
+--- !u!114 &1406412384
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1406412381}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe10fb4b6d67475a803e722c3c261434, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::ColaCola.Presentation.ColaCameraBreathing
+  cycleSeconds: 4.8
+  liftMetres: 0.004
+  pitchDegrees: 0.16
 --- !u!1 &1422962303
 GameObject:
   m_ObjectHideFlags: 0
@@ -5424,7 +5476,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1432627393
 Transform:
   m_ObjectHideFlags: 0
@@ -7243,7 +7295,7 @@ Light:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2034285176}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 13
   m_Type: 0
   m_Color: {r: 0.78, g: 0.84, b: 0.72, a: 1}
@@ -8376,6 +8428,70 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2089891332}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &2090590224
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2090590225}
+  - component: {fileID: 2090590227}
+  - component: {fileID: 2090590226}
+  m_Layer: 0
+  m_Name: DuelRules
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2090590225
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2090590224}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1153126899}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2090590226
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2090590224}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 530076d247939fa4a88cef2327aa26e4, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::ColaCola.Presentation.ColaDuelHUD
+  match: {fileID: 2090590227}
+--- !u!114 &2090590227
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2090590224}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2a74cdcbd83d9e04f8f36ae710c7c786, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::ColaCola.Presentation.ColaDuelController
+  interaction: {fileID: 747250926}
+  terminal: {fileID: 1156346359}
+  itemRoot: {fileID: 1432627392}
+  itemLight: {fileID: 2034285178}
+  playerMaxHealth: 3
+  bossBaseHealth: 3
 --- !u!1 &2103481409
 GameObject:
   m_ObjectHideFlags: 0

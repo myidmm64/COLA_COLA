@@ -68,7 +68,8 @@ namespace ColaCola.Presentation
             public Transform[] bones;
             public LocalPose[] rest;
             public LocalPose actorRootRest, bottleRest;
-            public float elapsed, duration, normalizedTime, idleSpeed;
+            public float elapsed, duration, normalizedTime, idleSpeed, burstRecoil;
+            public bool paused;
             public int stateHash;
             public PlayableGraph graph;
             public AnimationClipPlayable actorPlayable, idlePlayable;
@@ -90,7 +91,7 @@ namespace ColaCola.Presentation
         }
 
         /// <summary>The shared bottle is locked to one performance at a time. No pressure or turn rules are changed here.</summary>
-        public IEnumerator PlayShake(bool boss, int strength)
+        public IEnumerator PlayShake(bool boss, int strength, Func<IEnumerator> burstPerformance = null)
         {
             if (!Application.IsPlaying(gameObject) || !isActiveAndEnabled || IsPlaying || !CanPlay(boss, strength)) yield break;
             int version = ++playbackVersion;
@@ -98,7 +99,21 @@ namespace ColaCola.Presentation
             try
             {
                 BeginPlayback(boss, strength);
-                while (playback != null && version == playbackVersion) yield return null;
+                bool performed = false;
+                while (playback != null && version == playbackVersion)
+                {
+                    if (!performed && burstPerformance != null && playback.elapsed >= 2.45f)
+                    {
+                        performed = true;
+                        playback.paused = true;
+                        yield return burstPerformance();
+                        if (playback == null || version != playbackVersion) yield break;
+                        playback.paused = false;
+                        playback.burstRecoil = 0;
+                        playback.elapsed = GripEndTime;
+                    }
+                    yield return null;
+                }
             }
             finally
             {
@@ -217,7 +232,7 @@ namespace ColaCola.Presentation
             }
             try
             {
-                pose.elapsed = Mathf.Min(pose.duration, pose.elapsed + Time.unscaledDeltaTime);
+                if (!pose.paused) pose.elapsed = Mathf.Min(pose.duration, pose.elapsed + Time.unscaledDeltaTime);
                 SamplePlayback(pose);
                 if (pose.elapsed >= pose.duration)
                 {
@@ -238,6 +253,10 @@ namespace ColaCola.Presentation
                 Mathf.SmoothStep(0, 1, pose.elapsed / idleBlendSeconds),
                 Mathf.SmoothStep(0, 1, (pose.duration - pose.elapsed) / idleBlendSeconds));
             EvaluateActor(pose, pose.elapsed, blend);
+            // Add a brief reflex to the original rig, then keep the bottle attached to that hand.
+            if (pose.burstRecoil > 0 && pose.hand.parent)
+                pose.hand.parent.localRotation *= Quaternion.Euler(-9 * pose.burstRecoil,
+                    (pose.boss ? -4 : 4) * pose.burstRecoil, (pose.boss ? 12 : -12) * pose.burstRecoil);
             pose.bottleClip.SampleAnimation(pose.bottleTransform.gameObject, Mathf.Min(pose.elapsed, pose.bottleClip.length));
             pose.bottleTransform.localScale = pose.bottleRest.scale;
             if (pose.elapsed >= GripStartTime && pose.elapsed <= GripEndTime)
@@ -251,6 +270,11 @@ namespace ColaCola.Presentation
             ++playbackVersion;
             var pose = playback;
             if (pose != null) RestorePlayback(pose);
+        }
+
+        public void SetBurstRecoil(float amount)
+        {
+            if (playback != null) playback.burstRecoil = Mathf.Clamp01(amount);
         }
 
         private void RestorePlayback(Playback pose)

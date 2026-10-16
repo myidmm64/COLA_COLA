@@ -5,9 +5,10 @@ namespace ColaCola.Presentation
     [CreateAssetMenu(menuName = "COLA COLA/Pressure Interaction Settings")]
     public sealed class PressureInteractionSettings : ScriptableObject
     {
-        [Range(1, 999)] public int minimumBottleLimit = 18;
-        [Range(1, 999)] public int maximumBottleLimit = 24;
-        [Min(.1f)] public float probabilityExponent = 2;
+        [Range(1, 999)] public int minimumBottleLimit = 20;
+        [Range(1, 999)] public int maximumBottleLimit = 30;
+        [Tooltip("1 is linear; values above 1 soften early risk. Lower values raise early burst probability.")]
+        [Min(.1f)] public float probabilityExponent = 1.5f;
         [Min(.1f)] public float shakeSeconds = .55f;
         [Min(.1f)] public float burstPauseSeconds = .55f;
 

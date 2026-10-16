@@ -18,7 +18,9 @@ namespace ColaCola.Presentation
         public Transform bottle, cap;
         public Collider bottleCollider;
         public ColaShakeAnimator shakeAnimator;
+        public ColaBurstPresentation burstPresentation;
         public bool automaticBossTurns = true;
+        public bool InputEnabled { get; set; } = true;
         [Min(0)] public float bossThinkSeconds = .65f;
         private BottlePressureModel model;
         private System.Random random;
@@ -41,7 +43,11 @@ namespace ColaCola.Presentation
         {
             if (!HasBindings) return;
             CaptureRestPose();
-            if (Application.IsPlaying(gameObject)) ResetSession();
+            if (Application.IsPlaying(gameObject))
+            {
+                burstPresentation = ColaBurstPresentation.EnsureFor(this);
+                ResetSession();
+            }
             else RefreshAuthoringView();
         }
 
@@ -69,20 +75,31 @@ namespace ColaCola.Presentation
         public void ResetSession(int? seed = null)
         {
             if (!HasBindings) return;
-            sessionVersion++;
-            if (shakeAnimator) shakeAnimator.CancelAndRestore();
-            StopAllCoroutines();
-            busy = false;
+            CancelPendingActions();
             if (!captured) CaptureRestPose();
             RestorePoses();
             random = seed.HasValue ? new System.Random(seed.Value) : new System.Random();
             bossChoiceRandom = seed.HasValue ? new System.Random(seed.Value ^ 0x43A1) : new System.Random();
             IsBossTurn = false;
             LastActionWasBoss = false;
+            LastResult = default;
             model = new BottlePressureModel(20, settings.probabilityExponent);
             CommittedActionCount = 0;
             BottleNumber = 0;
             BeginNextBottle();
+        }
+
+        public void CancelPendingActions()
+        {
+            sessionVersion++;
+            if (shakeAnimator) shakeAnimator.CancelAndRestore();
+            if (burstPresentation) burstPresentation.CancelAndRestore();
+            StopAllCoroutines();
+            busy = false;
+            IsBossTurn = false;
+            model?.ClearSelection();
+            RestorePoses();
+            RefreshView(true);
         }
 
         public void BeginBottle(int limit, int pressure = 0)
@@ -113,14 +130,14 @@ namespace ColaCola.Presentation
 
         public bool SelectStrength(int strength)
         {
-            if (!HasBindings || !Application.IsPlaying(gameObject) || !isActiveAndEnabled || IsBusy || model == null || !model.SelectStrength(strength)) return false;
+            if (!InputEnabled || !HasBindings || !Application.IsPlaying(gameObject) || !isActiveAndEnabled || IsBusy || model == null || !model.SelectStrength(strength)) return false;
             RefreshView();
             return true;
         }
 
         public bool ConfirmShake()
         {
-            if (!HasBindings || !Application.IsPlaying(gameObject) || !isActiveAndEnabled || IsBusy || model == null) return false;
+            if (!InputEnabled || !HasBindings || !Application.IsPlaying(gameObject) || !isActiveAndEnabled || IsBusy || model == null) return false;
             if (!CommitSelected(false, out var result)) return false;
             busy = true;
             StartCoroutine(ResolveSequence(result, sessionVersion));
@@ -140,7 +157,7 @@ namespace ColaCola.Presentation
 
         public bool HandlePointer(Vector2 screenPoint)
         {
-            if (!HasBindings || IsBusy || !Application.IsPlaying(gameObject)) return false;
+            if (!InputEnabled || !HasBindings || IsBusy || !Application.IsPlaying(gameObject)) return false;
             Physics.SyncTransforms();
             if (!Physics.Raycast(playerCamera.ScreenPointToRay(screenPoint), out var hit, 8, ~0, QueryTriggerInteraction.Ignore)) return false;
             for (int i = 0; i < 3; i++)
@@ -153,6 +170,14 @@ namespace ColaCola.Presentation
         {
             if (!Application.IsPlaying(gameObject) || !HasBindings || !isActiveAndEnabled) return;
             if (model == null) ResetSession();
+            var keyboard = Keyboard.current;
+            if (keyboard != null && InputEnabled && !IsBusy)
+            {
+                if (keyboard.digit1Key.wasPressedThisFrame || keyboard.numpad1Key.wasPressedThisFrame) SelectStrength(1);
+                if (keyboard.digit2Key.wasPressedThisFrame || keyboard.numpad2Key.wasPressedThisFrame) SelectStrength(2);
+                if (keyboard.digit3Key.wasPressedThisFrame || keyboard.numpad3Key.wasPressedThisFrame) SelectStrength(3);
+                if (keyboard.spaceKey.wasPressedThisFrame) ConfirmShake();
+            }
             var mouse = Mouse.current;
             if (mouse != null && mouse.leftButton.wasPressedThisFrame &&
                 (!EventSystem.current || !EventSystem.current.IsPointerOverGameObject()))
@@ -195,18 +220,22 @@ namespace ColaCola.Presentation
 
         private IEnumerator ResolveAnimation(ShakeResult result, bool boss, int version)
         {
+            if (!burstPresentation) burstPresentation = ColaBurstPresentation.EnsureFor(this);
+            burstPresentation.BeginShake(boss);
             float duration;
             float started;
             if (shakeAnimator && shakeAnimator.isActiveAndEnabled && shakeAnimator.CanPlay(boss, result.Prediction.Strength))
             {
                 // The character clip owns its full reach, shake and set-down duration.
-                yield return shakeAnimator.PlayShake(boss, result.Prediction.Strength);
+                yield return shakeAnimator.PlayShake(boss, result.Prediction.Strength,
+                    result.Burst ? () => burstPresentation.PlayBurst(boss) : (Func<IEnumerator>)null);
                 if (!IsCurrent(version)) yield break;
                 if (!shakeAnimator.LastPlaybackCompleted)
                 {
                     sessionVersion++;
                     busy = false;
                     IsBossTurn = false;
+                    burstPresentation.CancelAndRestore();
                     RestorePoses();
                     yield break;
                 }
@@ -224,21 +253,10 @@ namespace ColaCola.Presentation
                     bottle.localRotation = bottleRestRotation * Quaternion.Euler(wave * 2, 0, wave * 5 * amplitude);
                     yield return null;
                 }
+                if (result.Burst) yield return burstPresentation.PlayBurst(boss);
             }
             if (!IsCurrent(version)) yield break;
-            RestorePoses();
-            if (result.Burst)
-            {
-                started = Time.unscaledTime;
-                duration = Mathf.Max(.1f, settings.burstPauseSeconds);
-                while (Time.unscaledTime - started < duration)
-                {
-                    float t = (Time.unscaledTime - started) / duration;
-                    bottle.localScale = bottleRestScale * (1 + Mathf.Sin(t * Mathf.PI) * .045f);
-                    if (cap) cap.position += Vector3.up * (Time.unscaledDeltaTime * .18f);
-                    yield return null;
-                }
-            }
+            burstPresentation.FinishShake();
             RestorePoses();
             if (result.Burst) BeginNextBottle();
             else RefreshView();
@@ -266,12 +284,7 @@ namespace ColaCola.Presentation
 
         private void OnDisable()
         {
-            sessionVersion++;
-            if (shakeAnimator) shakeAnimator.CancelAndRestore();
-            StopAllCoroutines();
-            busy = false;
-            IsBossTurn = false;
-            RestorePoses();
+            CancelPendingActions();
             if (gauge && model != null) gauge.Show(model.Pressure, model.Limit, null, null, true);
         }
     }

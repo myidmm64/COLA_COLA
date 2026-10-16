@@ -84,6 +84,7 @@ namespace ColaCola.Editor
                 TestItemLayoutSceneTools.ApplyToScene(root);
                 TabletopFocusSceneTools.ApplyToScene(root);
                 ColaShakeAnimationSceneTools.ApplyToScene(root);
+                ColaDuelSceneTools.ApplyToScene(root);
 
                 UnityEngine.Object.DestroyImmediate(props);
                 UnityEngine.Object.DestroyImmediate(environment);
@@ -391,12 +392,13 @@ namespace ColaCola.Editor
                 if (t.name.StartsWith("PLACEHOLDER_") || t.name.StartsWith("TestItem0") ||
                     t.name == "PlayerInventory" || t.name == "BossInventory" || t.parent && t.parent.name.StartsWith("0"))
                     report.AppendLine($"{t.name}: position={t.position:F3} rotation={t.eulerAngles:F2} scale={t.lossyScale:F3}");
-            report.AppendLine("Scope: 3D staging, Idles, horror effects, sample health/token terminal, pressure forecast and a basic player-to-boss turn loop using the original FPS/boss hand models. Boss strength selection is provisional random choice. Boss tactics, health damage, token awards and shop flow are not implemented.");
+            report.AppendLine("Scope: playable single-player duel with original FPS/boss hands, live health/tokens, public pressure forecasts, victory/defeat, restart and escalating boss health. Boss strength selection is provisional random choice. Items, shop and burst effects are excluded.");
             File.WriteAllText(Output + "/MainScene-layout.txt", report.ToString());
         }
 
         public static void Verify()
         {
+            Directory.CreateDirectory(Output);
             if (EditorApplication.isPlaying)
                 throw new InvalidOperationException("Start MainScene verification from Edit mode; the tool enters Play itself.");
             EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
@@ -435,7 +437,14 @@ namespace ColaCola.Editor
                 if (missingScripts != 0) throw new InvalidOperationException("Missing scripts: " + missingScripts);
                 var renderers = objects.Select(t => t.GetComponent<Renderer>()).Where(r => r).ToArray();
                 if (renderers.Any(r => r.sharedMaterials.Any(m => !m || !m.shader))) throw new InvalidOperationException("Missing renderer material/shader.");
-                TestItemLayoutSceneTools.Validate(scene.GetRootGameObjects().Single(g => g.name == "COLA_COLA_MainScene"), cameras[0]);
+                var duel = UnityEngine.Object.FindAnyObjectByType<ColaCola.Presentation.ColaDuelController>();
+                if (duel)
+                {
+                    if (!duel.interaction || !duel.terminal || !duel.itemRoot || duel.itemRoot.activeInHierarchy ||
+                        !duel.itemLight || duel.itemLight.enabled || duel.interaction.shakeAnimator.previewPlayerOnPlay)
+                        throw new InvalidOperationException("Playable duel bindings, disabled items or manual input setup are invalid.");
+                }
+                else TestItemLayoutSceneTools.Validate(scene.GetRootGameObjects().Single(g => g.name == "COLA_COLA_MainScene"), cameras[0]);
                 var gauge = objects.Single(t => t.name == "PressureGauge");
                 if (!gauge.GetComponentsInChildren<Transform>().Any(t => t.name == "NeedlePivot") ||
                     gauge.GetComponentsInChildren<MeshFilter>().Length < 6 ||
@@ -468,6 +477,9 @@ namespace ColaCola.Editor
                 if (point.z <= 0 || point.x < .35f || point.x > .65f || point.y < .15f || point.y > .8f)
                     throw new InvalidOperationException("Hero bottle is outside the intended central frame: " + point);
                 var report = $"PASS: Saved MainScene reopened in Unity {Application.unityVersion}\nPASS: one MainCamera and one AudioListener\nPASS: {renderers.Length} renderers with material/shader references\nPASS: no missing scripts\nPASS: six authored test item models per participant, twelve instances, no remaining item Cube placeholders\nPASS: custom PressureGauge model and NeedlePivot replace the gauge Cube\nPASS: custom ShakeConsole with three independent numbered keys replaces console/button Cubes\nPASS: physical StatusTerminal with complete health/token readout bindings\nPASS: both character Animators have enabled looping Idle controllers without root motion\nPASS: MainScene is first enabled build scene\nPASS: hero bottle center viewport={point:F3}\nScope: 3D staging, test item props, character Idle, sample physical readouts and pressure selection/confirmation prototype. Boss AI, damage, token awards, item effects and shop flow are not implemented.\n";
+                if (duel)
+                    report = report.Replace("six authored test item models per participant, twelve instances, no remaining item Cube placeholders", "playable single-player duel; item props/light hidden and automatic hand preview disabled")
+                        .Replace("sample physical readouts and pressure selection/confirmation prototype. Boss AI, damage, token awards, item effects and shop flow are not implemented.", "live health/token readouts, alternating pressure actions, in-hand cola burst presentation, victory/defeat/retry and escalating boss health. Items and shop excluded.");
                 File.WriteAllText(Output + "/MainScene-validation.txt", report);
                 Debug.Log("COLA_MAIN_SCENE_VALIDATION_PASS");
                 EditorApplication.isPlaying = false;

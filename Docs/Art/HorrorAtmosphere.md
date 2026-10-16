@@ -104,3 +104,19 @@ Unity 6000.6.4f1에서 저장본을 다시 열어 Cinemachine `6.6.0 (BuiltIn)`�
 별도의 Unity 실행에서 저장본을 다시 열고 검증했다. 조명 메시를 포함한 Renderer 81개의 재질·셰이더 참조, 남은 아이템 Cube 4개, 두 캐릭터의 Idle Controller와 첫 시작 씬 등록이 유지되었다. 결과는 `output/scene-layout/MainScene-validation.txt`에 있다.
 
 기존 `SampleScene.unity`, `URPProjectSettings.asset`, `QualitySettings.asset`, `EditorSettings.asset`, `PC_RPAsset.asset`, `PC_Renderer.asset`, `DefaultVolumeProfile.asset`, `SampleSceneProfile.asset`의 SHA-256은 작업 전 기록과 동일했다. 공용 렌더 파이프라인·프로필을 수정하지 않고 MainScene의 전용 Volume으로 연출을 구성했다.
+
+## 압력계 과도한 밝기 조정
+
+압력계 전용 보조광 `Horror_Gauge_Readability`를 강도 0.16에서 0.035로, 범위를 1.1m에서 0.8m로 줄였다. 다이얼의 기본색은 (0.56, 0.54, 0.44)에서 (0.42, 0.405, 0.33), 안쪽 테두리는 (0.49, 0.48, 0.40)에서 (0.36, 0.35, 0.29)로 낮췄다. 두 재질의 직접광 반사 하이라이트와 환경 반사를 끄고 거칠게 조정했다. 눈금·숫자·바늘과 중앙 콜라 조명·카메라 노출은 유지한다.
+
+재적용은 `COLA_COLA > Reduce Gauge Glare` 메뉴다. 같은 값은 조명·재질 생성 도구에도 반영하여 다시 생성해도 유지한다. 검증은 프리뷰 캡처 없이 Play 모드에서 수행하고 `output/gauge-focus/Glare-playmode-validation.txt`와 `unity-glare-playmode.log`에 기록한다. 자동 검사는 조명·재질·바인딩·입력 상태를 확인하며 실제 Game 뷰의 시각적 확인을 대신하지 않는다.
+
+## 실제 Play 화면의 콘솔 백색 번짐 수정
+
+사용자가 제공한 실제 Play 화면에서 압력계 아래 콘솔과 버튼 주변에 큰 백색 번짐이 남는 것을 확인했다. 앞선 다이얼 재질 조정에 더해 `Horror_Gauge_Readability`를 완전히 비활성화하고 강도를 0으로 저장한다. 콘솔·키캡·숫자에 사용되는 7개 재질 모두 직접광 하이라이트와 환경 반사를 끄고 발광을 0으로 고정한다. 크림색 키는 (0.81, 0.75, 0.59)에서 (0.56, 0.52, 0.40)으로 낮추며 금속성과 매끄러움도 줄인다.
+
+MainScene 전용 Volume의 Bloom 강도는 0, HDR 입력 clamp는 2로 저장한다. 그레인·비네트·색 보정·카메라 노출은 유지한다. 조명·콘솔 생성 도구에도 동일하게 적용한다. 현재 값은 위의 과거 Bloom 0.20 및 압력계 보조광 0.035 기록을 대체한다.
+
+`Reduce Gauge Glare`는 Play에서 실제 사용 중인 콘솔 재질과 평가된 Volume stack의 Bloom=0, 보조광 비활성 상태, 압력 예측 선택을 검사한 다음 기본 대전 검증을 수행한다. 이 검사는 별도 카메라나 프리뷰 렌더를 생성하지 않는다. 실제 Game 뷰의 수정 후 모습은 자동 상태 검사만으로 시각 확인했다고 표현하지 않는다.
+
+검증 환경 메모: 사용 중인 원본 Unity를 유지하기 위해 임시 프로젝트 복사본에서 Play 검사를 실행한다. 화면을 그리지 않는 배치 환경에서는 VolumeManager의 렌더링 스택이 초기화되지 않을 수 있으므로 이때는 실제 활성 Volume의 런타임 프로필을 검사하고, 렌더링 스택이 있으면 그 평가값도 검사한다. 렌더링 스택 없이 화면을 시각 검증했다고 보고하지 않는다. 임시 복사본은 검증 후 삭제한다.

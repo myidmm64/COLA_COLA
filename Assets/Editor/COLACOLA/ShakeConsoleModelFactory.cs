@@ -14,6 +14,17 @@ namespace ColaCola.Editor
         private const string MaterialPath = "Assets/_COLA_COLA/Art/Materials/ShakeConsole";
         private const float TopSlope = .13333333f;
 
+        public static void ApplyMattePalette()
+        {
+            Material("Console_EnamelTeal", new Color(.047f, .155f, .16f), 0, .04f);
+            Material("Console_TopTeal", new Color(.075f, .22f, .21f), 0, .04f);
+            Material("Console_AgedMetal", new Color(.32f, .31f, .25f), .08f, .05f);
+            Material("Console_Charcoal", new Color(.023f, .034f, .031f), 0, .04f);
+            Material("Key_Cream", new Color(.56f, .52f, .40f), 0, .04f);
+            Material("Key_Red", new Color(.48f, .045f, .022f), 0, .04f);
+            Material("Marking_WarmIvory", new Color(.65f, .60f, .46f), 0, .04f);
+        }
+
         public static GameObject BuildPrefab()
         {
             Directory.CreateDirectory(ModelPath);
@@ -21,13 +32,14 @@ namespace ColaCola.Editor
             Directory.CreateDirectory(Path.GetDirectoryName(PrefabPath));
             AssetDatabase.Refresh();
 
-            var teal = Material("Console_EnamelTeal", new Color(.047f, .155f, .16f), .12f, .19f);
-            var topTeal = Material("Console_TopTeal", new Color(.075f, .22f, .21f), .12f, .21f);
-            var metal = Material("Console_AgedMetal", new Color(.40f, .39f, .31f), .45f, .22f);
-            var dark = Material("Console_Charcoal", new Color(.023f, .034f, .031f), .08f, .12f);
-            var cream = Material("Key_Cream", new Color(.81f, .75f, .59f), .02f, .16f);
-            var red = Material("Key_Red", new Color(.64f, .055f, .026f), .05f, .18f);
-            var pale = Material("Marking_WarmIvory", new Color(.91f, .85f, .67f), 0, .1f);
+            ApplyMattePalette();
+            var teal = AssetDatabase.LoadAssetAtPath<Material>(MaterialPath + "/Console_EnamelTeal.mat");
+            var topTeal = AssetDatabase.LoadAssetAtPath<Material>(MaterialPath + "/Console_TopTeal.mat");
+            var metal = AssetDatabase.LoadAssetAtPath<Material>(MaterialPath + "/Console_AgedMetal.mat");
+            var dark = AssetDatabase.LoadAssetAtPath<Material>(MaterialPath + "/Console_Charcoal.mat");
+            var cream = AssetDatabase.LoadAssetAtPath<Material>(MaterialPath + "/Key_Cream.mat");
+            var red = AssetDatabase.LoadAssetAtPath<Material>(MaterialPath + "/Key_Red.mat");
+            var pale = AssetDatabase.LoadAssetAtPath<Material>(MaterialPath + "/Marking_WarmIvory.mat");
 
             var root = new GameObject("ShakeConsole");
             try
@@ -117,6 +129,12 @@ namespace ColaCola.Editor
             if (material.HasProperty("_Metallic")) material.SetFloat("_Metallic", metallic);
             if (material.HasProperty("_Smoothness")) material.SetFloat("_Smoothness", smoothness);
             if (material.HasProperty("_Glossiness")) material.SetFloat("_Glossiness", smoothness);
+            material.SetFloat("_SpecularHighlights", 0);
+            material.SetFloat("_EnvironmentReflections", 0);
+            material.SetColor("_EmissionColor", Color.black);
+            material.EnableKeyword("_SPECULARHIGHLIGHTS_OFF");
+            material.EnableKeyword("_ENVIRONMENTREFLECTIONS_OFF");
+            material.DisableKeyword("_EMISSION");
             EditorUtility.SetDirty(material);
             return material;
         }
