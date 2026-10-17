@@ -80,6 +80,7 @@ namespace ColaCola.Presentation
         public void ResetSession(int? seed = null)
         {
             if (!HasBindings) return;
+            if (Application.IsPlaying(gameObject)) ColaInteractionGuide.EnsureFor(this);
             CancelPendingActions();
             if (!captured) CaptureRestPose();
             RestorePoses();
@@ -230,6 +231,22 @@ namespace ColaCola.Presentation
 
         private bool IsCurrent(int version) => version == sessionVersion && isActiveAndEnabled;
 
+        public void RevealNewRound()
+        {
+            if (!Application.IsPlaying(gameObject) || !isActiveAndEnabled || IsBusy) return;
+            if (!burstPresentation) burstPresentation = ColaBurstPresentation.EnsureFor(this);
+            busy = true;
+            StartCoroutine(RevealRound(sessionVersion));
+        }
+
+        private IEnumerator RevealRound(int version)
+        {
+            yield return burstPresentation.RevealAfterBurst();
+            if (!IsCurrent(version)) yield break;
+            busy = false;
+            RefreshView();
+        }
+
         private IEnumerator ResolveSequence(ShakeResult result, int version)
         {
             yield return ResolveAnimation(result, false, version);
@@ -335,6 +352,7 @@ namespace ColaCola.Presentation
             if (result.Burst) BeginNextBottle();
             else RefreshView();
             ShakeResolved?.Invoke(result);
+            if (result.Burst && IsCurrent(version)) yield return burstPresentation.RevealAfterBurst();
         }
 
         private void ReleaseButtons()

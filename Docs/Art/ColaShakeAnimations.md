@@ -22,7 +22,7 @@
 
 현재 MainScene은 **직접 플레이하는 경기**로 저장되어 있으며 손의 자동 반복 미리보기는 껐다. 원본 FPS 오른손으로 병의 오른쪽을 잡아 흔드는 동작은 실제 행동을 확정했을 때만 재생한다. 조작과 경기 규칙은 `Docs/Gameplay/PlayableDuel.md`를 따른다.
 
-경기 컨트롤러는 도메인·씬 재로드를 끈 설정에서도 Play 진입마다 상태와 이벤트 구독을 초기화한다. 최신 경기 검증은 `output/playable-duel/Playmode-validation.txt`다. 과거 자동 미리보기 기록은 현재의 경기 시작 동작을 뜻하지 않는다.
+경기 컨트롤러는 도메인·씬 재로드를 끈 설정에서도 Play 진입마다 상태와 이벤트 구독을 초기화한다. 최신 경기 검증은 `output/verification/latest/playable-duel/Playmode-validation.txt`다. 과거 자동 미리보기 기록은 현재의 경기 시작 동작을 뜻하지 않는다.
 
 플레이어는 기존처럼 강도 1·2·3 버튼을 선택한 뒤 중앙 콜라를 클릭한다. 확정 클릭에서 압력·확률 판정을 한 번 수행하고 FPS 모델의 손으로 흔든다. 동작과 폭발 피드백이 끝나면 0.65초 뒤 보스가 강도 1~3 중 하나를 골라 같은 병을 자기 손으로 흔든다. 보스 행동도 실제 압력·폭발 판정을 한 번 수행한다. 보스가 병을 내려놓은 뒤 다음 플레이어 입력을 받는다. 두 동작과 대기 사이에는 추가 클릭을 막는다.
 
@@ -42,6 +42,6 @@
 
 검증은 Unity Play 모드에서 실제 입력·Animator·원본 손 본·병 위치·턴 상태를 관찰한다. 자동 반복 두 번, 오른쪽 파지, 병 고정, 입력 잠금, 플레이어→보스→플레이어 순서, 취소 후 Idle 복귀와 압력 규칙을 검사한다.
 
-`output/shake-animation/Playmode-validation.txt`는 상태와 본 이동 및 CPU 스키닝 계산의 자동 검사 결과다. `Automatic-preview-validation.txt`는 Play 자동 시작과 반복 결과다. 이 기록만으로 실제 Game 뷰의 화면까지 확인했다고 판단하지 않는다. 시각적 확인은 Play 중 Game 뷰에서 한다.
+`output/verification/latest/shake-animation/Playmode-validation.txt`는 상태와 본 이동 및 CPU 스키닝 계산의 자동 검사 결과다. `Automatic-preview-validation.txt`는 Play 자동 시작과 반복 결과다. 이 기록만으로 실제 Game 뷰의 화면까지 확인했다고 판단하지 않는다. 시각적 확인은 Play 중 Game 뷰에서 한다.
 
 별도 카메라 렌더·Edit 모드 클립 샘플링·연속 프리뷰 캡처 생성 코드를 흔들기 검증에서 제거했다. 임시 실행 빌드, 진단 코드, 중복 미리보기, 과거 백업과 캡처는 정리했다. 최신 Play 로그와 검증 결과만 유지한다. 공통 작업 규칙은 프로젝트 루트 `AGENTS.md`를 따른다.

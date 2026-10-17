@@ -51,7 +51,7 @@ namespace ColaCola.Editor
                         "An unrelated transform changed: " + entry.Key);
                 Require(EditorSceneManager.SaveScene(scene, MainSceneTools.ScenePath), "Could not save MainScene.");
                 AssetDatabase.SaveAssets();
-                File.WriteAllText(Output + "/Placement-preservation.txt",
+                ProjectVerificationBridge.WriteReport(Output + "/Placement-preservation.txt",
                     $"PASS: {untouched.Count} existing transforms retained their world position and rotation.\n" +
                     "Only gauge/console placement and the new terminal were changed.\n");
                 if (Application.isBatchMode) BeginVerification();
@@ -190,7 +190,7 @@ namespace ColaCola.Editor
                 playReport.AppendLine("PASS: display disable/enable has no stale animation; both existing character Idles continue.");
                 playReport.AppendLine($"Real Play-mode verification duration: {elapsed:F2}s, Unity {Application.unityVersion}.");
                 playReport.AppendLine("Display samples are not a gameplay simulation. No boss AI, currency-award rules or shop logic added.");
-                File.WriteAllText(Output + "/Display-playmode-validation.txt", playReport.ToString());
+                ProjectVerificationBridge.WriteReport(Output + "/Display-playmode-validation.txt", playReport.ToString());
                 finishing = true;
                 EditorApplication.isPlaying = false;
             }
@@ -263,7 +263,7 @@ namespace ColaCola.Editor
             report.AppendLine($"Terminal mesh instances={meshes.Length}, triangles={meshes.Sum(m => m.sharedMesh.triangles.Length / 3)}");
             report.AppendLine("PASS: all material/shader references, one camera/listener, no missing scripts.");
             report.AppendLine("Sample display: boss 3/3, 12 tokens; player 3/3, 15 tokens. Values are visual samples only.");
-            File.WriteAllText(Output + "/StatusTerminal-validation.txt", report.ToString());
+            ProjectVerificationBridge.WriteReport(Output + "/StatusTerminal-validation.txt", report.ToString());
             return terminal;
         }
 

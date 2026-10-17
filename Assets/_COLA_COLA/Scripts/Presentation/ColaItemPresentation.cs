@@ -76,11 +76,11 @@ namespace ColaCola.Presentation
             bossShell = StorageMaterial("DeliveryCrate_RedWood", new Color(.38f, .13f, .085f));
             ivoryRim = StorageMaterial("ServingTray_IvoryRim", new Color(.70f, .65f, .49f));
             steelRim = StorageMaterial("DeliveryCrate_SteelBands", new Color(.34f, .37f, .31f));
-            paperLiner = StorageMaterial("Pizzeria_PaperLiner", new Color(.65f, .59f, .43f));
+            paperLiner = StorageMaterial("Pizzeria_PaperLiner", new Color(.75f, .69f, .52f));
             playerAccent = StorageMaterial("ServingTray_DarkChecks", new Color(.07f, .20f, .17f));
             bossAccent = StorageMaterial("DeliveryCrate_DarkRed", new Color(.22f, .055f, .035f));
             for (int i = 0; i < materials.Length; i++)
-                materials[i] = MakeMaterial("ItemCube_" + (i + 1), Color.HSVToRGB(i / 11f, .40f, .53f));
+                materials[i] = MakeMaterial("ItemCube_" + (i + 1), Color.HSVToRGB(i / 11f, .38f, .66f));
             inventoryRoot = BuildInventory(false);
             bossInventoryRoot = BuildInventory(true);
         }
@@ -134,47 +134,53 @@ namespace ColaCola.Presentation
             mesh.vertices = new[] { new Vector3(-.036f, .025f, 0), new Vector3(.036f, .025f, 0), new Vector3(0, -.030f, 0) };
             mesh.triangles = new[] { 0, 1, 2 }; mesh.RecalculateNormals(); mesh.RecalculateBounds(); storageMeshes.Add(mesh);
             var badge = new GameObject("PizzaSliceEmblem", typeof(MeshFilter), typeof(MeshRenderer));
-            badge.transform.SetParent(root, false); badge.transform.localPosition = new Vector3(0, .163f, .193f);
+            // Put the badge on the outside of the short front lip, clear of the item numbers.
+            badge.transform.SetParent(root, false); badge.transform.localPosition = new Vector3(0, .030f, -.217f);
+            badge.transform.localScale = Vector3.one * .50f;
             badge.GetComponent<MeshFilter>().sharedMesh = mesh; badge.GetComponent<Renderer>().sharedMaterial = ivoryRim;
-            StorageBlock(root, "PizzaCrust", new Vector3(0, .190f, .190f), new Vector3(.078f, .009f, .006f), paperLiner, false);
-            StorageBlock(root, "PepperoniTop", new Vector3(-.011f, .175f, .189f), new Vector3(.010f, .010f, .004f), bossAccent, false);
-            StorageBlock(root, "PepperoniBottom", new Vector3(.005f, .155f, .189f), new Vector3(.009f, .009f, .004f), bossAccent, false);
+            StorageBlock(badge.transform, "PizzaCrust", new Vector3(0, .027f, -.003f), new Vector3(.078f, .009f, .006f), paperLiner, false);
+            StorageBlock(badge.transform, "PepperoniTop", new Vector3(-.011f, .012f, -.004f), new Vector3(.010f, .010f, .004f), bossAccent, false);
+            StorageBlock(badge.transform, "PepperoniBottom", new Vector3(.005f, -.008f, -.004f), new Vector3(.009f, .009f, .004f), bossAccent, false);
         }
 
         private GameObject BuildInventory(bool boss)
         {
             var root = new GameObject(boss ? "BossItemCubes_Runtime" : "PlayerItemCubes_Runtime") { hideFlags = HideFlags.DontSave };
             root.transform.SetParent(items.transform.root, false);
-            root.transform.position = boss ? new Vector3(.62f, .913f, .64f) : new Vector3(.62f, .833f, .05f);
+            // Turn the front edges toward the player and leave the resting order sheet a separate strip of table.
+            root.transform.SetPositionAndRotation(
+                boss ? new Vector3(.75f, .913f, .58f) : new Vector3(.58f, .833f, .06f),
+                Quaternion.Euler(0, boss ? 10 : 14, 0));
+            root.transform.localScale = Vector3.one * .84f;
             Material shell = boss ? bossShell : playerShell, trim = boss ? steelRim : ivoryRim;
-            if (boss) StorageBlock(root.transform, "CrateRaisedStand", new Vector3(0, -.04f, 0), new Vector3(.59f, .08f, .40f), bossAccent);
+            if (boss) StorageBlock(root.transform, "CrateRaisedStand", new Vector3(0, -.0475f, 0), new Vector3(.59f, .095f, .40f), bossAccent);
             BeveledStorage(root.transform, boss ? "DeliveryCrateShell" : "ServingTrayShell", Vector3.zero, .60f, .42f, .024f, shell);
             BeveledStorage(root.transform, "SixSlotRearShelf", new Vector3(0, .024f, .105f), .568f, .186f, .060f, shell);
-            StorageBlock(root.transform, "FrontRolledRim", new Vector3(0, .040f, -.204f), new Vector3(.60f, .032f, .018f), trim);
-            StorageBlock(root.transform, "BackRim", new Vector3(0, boss ? .120f : .071f, .204f), new Vector3(.60f, boss ? .192f : .094f, .018f), shell);
+            StorageBlock(root.transform, "FrontRolledRim", new Vector3(0, .032f, -.204f), new Vector3(.60f, .016f, .018f), trim);
+            StorageBlock(root.transform, "BackRim", new Vector3(0, boss ? .088f : .071f, .204f), new Vector3(.60f, boss ? .128f : .094f, .018f), shell);
             foreach (int side in new[] { -1, 1 })
             {
-                StorageBlock(root.transform, "FrontSideRim_" + side, new Vector3(side * .291f, .040f, -.10f), new Vector3(.018f, .032f, .20f), trim);
-                StorageBlock(root.transform, "RearSideRim_" + side, new Vector3(side * .291f, boss ? .124f : .100f, .105f),
-                    new Vector3(.018f, boss ? .080f : .032f, .19f), trim);
-                StorageBlock(root.transform, "FrontSlotDivider_" + side, new Vector3(side * .09f, .040f, -.10f), new Vector3(.008f, .032f, .186f), shell);
+                StorageBlock(root.transform, "FrontSideRim_" + side, new Vector3(side * .291f, .032f, -.10f), new Vector3(.018f, .016f, .20f), trim);
+                StorageBlock(root.transform, "RearSideRim_" + side, new Vector3(side * .291f, .100f, .105f),
+                    new Vector3(.018f, .032f, .19f), trim);
+                StorageBlock(root.transform, "FrontSlotDivider_" + side, new Vector3(side * .09f, .036f, -.10f), new Vector3(.008f, .024f, .186f), shell);
                 StorageBlock(root.transform, "RearSlotDivider_" + side, new Vector3(side * .09f, .100f, .105f), new Vector3(.008f, .032f, .182f), shell);
                 if (boss)
                 {
-                    StorageBlock(root.transform, "SteelFrontCorner_" + side, new Vector3(side * .278f, .064f, -.216f), new Vector3(.022f, .080f, .008f), steelRim);
-                    StorageBlock(root.transform, "SteelRearCorner_" + side, new Vector3(side * .278f, .122f, .216f), new Vector3(.022f, .196f, .008f), steelRim);
-                    StorageBlock(root.transform, "CrateCarryHandle_" + side, new Vector3(side * .326f, .132f, .105f), new Vector3(.016f, .016f, .150f), steelRim);
+                    StorageBlock(root.transform, "SteelFrontCorner_" + side, new Vector3(side * .278f, .040f, -.216f), new Vector3(.022f, .032f, .008f), steelRim);
+                    StorageBlock(root.transform, "SteelRearCorner_" + side, new Vector3(side * .278f, .090f, .216f), new Vector3(.022f, .132f, .008f), steelRim);
+                    StorageBlock(root.transform, "CrateCarryHandle_" + side, new Vector3(side * .313f, .107f, .105f), new Vector3(.014f, .014f, .150f), steelRim);
                     foreach (int end in new[] { -1, 1 })
-                        StorageBlock(root.transform, "CrateHandleMount_" + side + "_" + end, new Vector3(side * .307f, .132f, .105f + end * .066f), new Vector3(.052f, .016f, .016f), steelRim);
+                        StorageBlock(root.transform, "CrateHandleMount_" + side + "_" + end, new Vector3(side * .301f, .107f, .105f + end * .066f), new Vector3(.028f, .014f, .014f), steelRim);
                 }
-                else StorageBlock(root.transform, "TrayHandleUpright_" + side, new Vector3(side * .085f, .065f, -.242f), new Vector3(.014f, .055f, .014f), ivoryRim);
+                else StorageBlock(root.transform, "TrayHandleUpright_" + side, new Vector3(side * .085f, .040f, -.242f), new Vector3(.014f, .032f, .014f), ivoryRim);
             }
             if (boss)
             {
-                StorageBlock(root.transform, "CrateTopBand", new Vector3(0, .218f, .204f), new Vector3(.60f, .012f, .023f), steelRim);
+                StorageBlock(root.transform, "CrateTopBand", new Vector3(0, .158f, .204f), new Vector3(.60f, .012f, .023f), steelRim);
                 PizzaBadge(root.transform);
             }
-            else StorageBlock(root.transform, "ServingTrayHandle", new Vector3(0, .092f, -.242f), new Vector3(.184f, .014f, .016f), ivoryRim);
+            else StorageBlock(root.transform, "ServingTrayHandle", new Vector3(0, .056f, -.242f), new Vector3(.184f, .014f, .016f), ivoryRim);
             var owned = boss ? bossCubes : cubes;
             for (int i = 0; i < owned.Length; i++)
             {
@@ -190,7 +196,7 @@ namespace ColaCola.Presentation
                 cube.GetComponent<Renderer>().shadowCastingMode = ShadowCastingMode.On;
                 var number = new GameObject("ItemNumber"); number.transform.SetParent(cube.transform, false);
                 number.transform.localPosition = new Vector3(0, .12f, -.515f);
-                var text = number.AddComponent<TextMesh>(); text.font = cubeFont; text.fontSize = 40; text.characterSize = .12f;
+                var text = number.AddComponent<TextMesh>(); text.font = cubeFont; text.fontSize = 48; text.characterSize = .145f;
                 text.anchor = TextAnchor.MiddleCenter; text.alignment = TextAlignment.Center; text.color = Ink; ColaWorldText.Bind(text);
                 owned[i] = cube; cube.SetActive(false);
             }

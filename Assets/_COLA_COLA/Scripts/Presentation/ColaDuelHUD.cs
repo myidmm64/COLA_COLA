@@ -77,7 +77,7 @@ namespace ColaCola.Presentation
             if (pressed)
             {
                 if (won) match.ContinueToNextBoss();
-                else match.RestartRun();
+                else match.RestartRun(fadeIn: true);
             }
 
             GUI.Label(new Rect(panel.x + padding, panel.yMax - 36 * scale, panel.width - padding * 2, 23 * scale),

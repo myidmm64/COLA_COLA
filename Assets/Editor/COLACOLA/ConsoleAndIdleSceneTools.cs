@@ -108,7 +108,7 @@ namespace ColaCola.Editor
                 var console = revise ? oldConsole.gameObject : InstantiateConsole(devices, position, rotation);
                 if (!revise) foreach (var target in targets) UnityEngine.Object.DestroyImmediate(target.gameObject);
                 string facingReport = PlayerFacingDeviceLayout.Apply(root, Camera.main);
-                File.WriteAllText(MainSceneTools.Output + "/PlayerFacingDevices-validation.txt", facingReport);
+                ProjectVerificationBridge.WriteReport(MainSceneTools.Output + "/PlayerFacingDevices-validation.txt", facingReport);
                 CharacterIdleFactory.Apply(root);
                 foreach (var pair in unchanged)
                     if (!pair.Key || Vector3.Distance(pair.Key.localPosition, pair.Value.position) > .00001f ||
@@ -189,7 +189,7 @@ namespace ColaCola.Editor
                 if (maxSeam > .00001f) throw new InvalidOperationException("Loop pose seam: " + name);
                 report.AppendLine($"PASS: {name}: {clip.name}, {clip.length:F2}s, loop enabled, all bindings valid, endpoint difference {maxSeam:F8}.");
             }
-            File.WriteAllText(MainSceneTools.Output + "/ConsoleIdle-assets-validation.txt", report.ToString());
+            ProjectVerificationBridge.WriteReport(MainSceneTools.Output + "/ConsoleIdle-assets-validation.txt", report.ToString());
         }
 
         private static void InstallCallbacks()
@@ -298,7 +298,7 @@ namespace ColaCola.Editor
                 report.AppendLine($"Maximum observed local joint motion: boss={maxBossMotion:F3} degrees, arms={maxArmsMotion:F3} degrees.");
                 report.AppendLine($"Runtime capture: {frames} frames over {elapsed:F2} seconds, Unity {Application.unityVersion}.");
                 report.AppendLine("No root motion, input, shake action, boss AI or gameplay rules added.");
-                File.WriteAllText(MainSceneTools.Output + "/Idle-playmode-validation.txt", report.ToString());
+                ProjectVerificationBridge.WriteReport(MainSceneTools.Output + "/Idle-playmode-validation.txt", report.ToString());
                 File.WriteAllLines(MainSceneTools.Output + "/Idle-frame-times.txt", frameTimes.Select(t => t.ToString("F5", System.Globalization.CultureInfo.InvariantCulture)));
                 MainSceneTools.Capture(Camera.main, MainSceneTools.Output + "/MainScene-idle-playing.png");
                 Debug.Log("COLA_IDLE_REAL_PLAYMODE_PASS\n" + report);
@@ -363,7 +363,7 @@ namespace ColaCola.Editor
         {
             Debug.LogException(exception);
             SessionState.SetString(Error, exception.ToString());
-            File.WriteAllText(MainSceneTools.Output + "/ConsoleIdle-error.txt", exception.ToString());
+            ProjectVerificationBridge.WriteReport(MainSceneTools.Output + "/ConsoleIdle-error.txt", exception.ToString());
             finishing = true;
             if (EditorApplication.isPlaying) EditorApplication.isPlaying = false;
             else

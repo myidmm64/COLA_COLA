@@ -34,9 +34,9 @@
 - 기존 씬 백업: `output/item-layout/MainScene-before-items.unity`
 - 고정 카메라 렌더: `output/item-layout/MainScene-Items.png`
 - 위에서 본 실제 Unity 렌더: `output/item-layout/Tabletop-Overview.png`
-- 개수·테이블 접촉·아이템 간격·프레임 범위 검사: `output/item-layout/Item-layout-validation.txt`
-- 같은 카메라의 실제 깊이 가림과 단독 렌더 픽셀 비교: `output/item-layout/Rendered-visibility-validation.txt`
-- 무관한 Transform 보존: `output/item-layout/Placement-preservation.txt`
+- 개수·테이블 접촉·아이템 간격·프레임 범위 검사: `output/verification/latest/item-layout/Item-layout-validation.txt`
+- 같은 카메라의 실제 깊이 가림과 단독 렌더 픽셀 비교: `output/verification/latest/item-layout/Rendered-visibility-validation.txt`
+- 무관한 Transform 보존: `output/verification/latest/item-layout/Placement-preservation.txt`
 - 설정·기존 장치 프리팹·Idle 파일 보존: `output/item-layout/preserved-files-after.json`
 
 적용 도구는 저장본을 다시 열어 렌더하고 기존 `PressureInteractionSceneTools.Verify`로 실제 Play 모드의 강도 선택·콜라 클릭 확정·중복 입력 방지·폭발 후 병 초기화와 Idle 지속을 확인한다. 결과는 `output/pressure-interaction`에 기록한다. 전체 `MainSceneTools.Build`에도 같은 12개 배치를 연결한다.

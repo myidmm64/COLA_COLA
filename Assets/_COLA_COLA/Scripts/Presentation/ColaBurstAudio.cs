@@ -22,14 +22,15 @@ namespace ColaCola.Presentation
                 double value;
                 if (sound == Sound.Rupture)
                 {
-                    // Fast plastic crack + downward pitched thump, followed by a sustained wet jet.
-                    phase += 2 * Math.PI * (52 + 170 * Math.Exp(-t * 35)) / rate;
-                    double crack = (white * .75 + Math.Sin(phase) * .7) * Math.Exp(-t * 65);
-                    double body = Math.Sin(phase) * .62 * Math.Exp(-t * 13);
-                    double jet = (white - filtered * .55) * .34 * (1 - Math.Exp(-t * 120)) * Math.Exp(-t * 2.8);
-                    double sputter = filtered * .6 * Math.Pow(.5 + .5 * Math.Sin(t * 81), 4) * Math.Exp(-Math.Max(0, t - .35) * 3);
-                    double ring = Math.Sin(2 * Math.PI * 2310 * t) * .025 * (1 - Math.Exp(-t * 40)) * Math.Exp(-t * 2.5);
-                    value = crack + body + jet + sputter + ring;
+                    // Broadband detonation crack, deep downward boom and a rolling pressure tail.
+                    phase += 2 * Math.PI * (38 + 155 * Math.Exp(-t * 28)) / rate;
+                    double crack = (white * 1.65 + Math.Sin(phase) * .8) * Math.Exp(-t * 85);
+                    double body = Math.Sin(phase) * 1.1 * Math.Exp(-t * 7);
+                    double rumble = filtered * 1.3 * (1 - Math.Exp(-t * 160)) * Math.Exp(-t * 4.8);
+                    double jet = (white - filtered * .55) * .36 * (1 - Math.Exp(-t * 120)) * Math.Exp(-t * 3.1);
+                    double sputter = filtered * .5 * Math.Pow(.5 + .5 * Math.Sin(t * 81), 4) * Math.Exp(-Math.Max(0, t - .35) * 3);
+                    double ring = Math.Sin(2 * Math.PI * 1730 * t) * .045 * (1 - Math.Exp(-t * 70)) * Math.Exp(-t * 2.7);
+                    value = crack + body + rumble + jet + sputter + ring;
                 }
                 else if (sound == Sound.Strain)
                 {

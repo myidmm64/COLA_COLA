@@ -27,7 +27,7 @@ namespace ColaCola.Editor
         [MenuItem("COLA_COLA/Verify Pressure Choice Balance")]
         public static void Begin()
         {
-            Directory.CreateDirectory("output/pressure-balance");
+            Directory.CreateDirectory("output/verification/latest/pressure-balance");
             EditorSceneManager.OpenScene(MainSceneTools.ScenePath, OpenSceneMode.Single);
             SessionState.SetBool(Key, true);
             SessionState.SetBool(Key + ".Ready", false);
@@ -139,7 +139,7 @@ namespace ColaCola.Editor
                             "Burst damage, exactly-five-token reward or next-bottle replacement failed.");
                         Report.AppendLine("PASS: limit reached -> self damage 1 -> exactly 5 total tokens -> replacement in range 20..30 after burst presentation -> boss turn -> player input.");
                         Report.AppendLine("Scope: live Play-mode rules, physics input, animated readout, turn and reward checks. No preview renders or claim of subjective playtest balance.");
-                        File.WriteAllText("output/pressure-balance/Playmode-validation.txt", Report.ToString());
+                        ProjectVerificationBridge.WriteReport("output/verification/latest/pressure-balance/Playmode-validation.txt", Report.ToString());
                         Debug.Log("COLA_PRESSURE_BALANCE_PLAYMODE_PASS\n" + Report);
                         interaction.ShakeResolved -= OnResolved;
                         SessionState.SetBool(Key + ".Complete", true);
@@ -151,7 +151,7 @@ namespace ColaCola.Editor
             catch (Exception exception)
             {
                 Debug.LogException(exception);
-                File.WriteAllText("output/pressure-balance/Playmode-error.txt", exception.ToString());
+                ProjectVerificationBridge.WriteReport("output/verification/latest/pressure-balance/Playmode-error.txt", exception.ToString());
                 SessionState.SetBool(Key, false); EditorApplication.update -= Tick;
                 if (Application.isBatchMode) EditorApplication.Exit(2);
             }
@@ -179,7 +179,7 @@ namespace ColaCola.Editor
         {
             if (state != PlayModeStateChange.EnteredEditMode || !SessionState.GetBool(Key, false)) return;
             SessionState.SetBool(Key, false); EditorApplication.update -= Tick; EditorApplication.playModeStateChanged -= PlayChanged;
-            if (SessionState.GetBool(Key + ".Complete", false)) EditorApplication.delayCall += MainSceneTools.Verify;
+            if (SessionState.GetBool(Key + ".Complete", false)) ProjectVerificationBridge.Schedule(MainSceneTools.Verify);
             else if (Application.isBatchMode) EditorApplication.Exit(2);
         }
         private static void Check(bool condition, string message) { if (!condition) throw new InvalidOperationException(message); }

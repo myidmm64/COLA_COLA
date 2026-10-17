@@ -16,7 +16,7 @@ namespace ColaCola.Editor
     public static class ColaOrderSheetVerification
     {
         private const string Key = "COLA_COLA.OrderSheetVerification";
-        private const string Output = "output/order-sheet/Playmode-validation.txt";
+        private const string Output = "output/verification/latest/order-sheet/Playmode-validation.txt";
         static ColaOrderSheetVerification() { if (SessionState.GetBool(Key, false)) Hook(); }
         public static void Begin()
         {
@@ -41,7 +41,7 @@ namespace ColaCola.Editor
         internal static void Complete(string report, Exception failure = null)
         {
             Directory.CreateDirectory(Path.GetDirectoryName(Output));
-            File.WriteAllText(Output, report + (failure == null ? "" : "\nFAIL: " + failure));
+            ProjectVerificationBridge.WriteReport(Output, report + (failure == null ? "" : "\nFAIL: " + failure));
             SessionState.SetBool(Key + ".Passed", failure == null);
             if (failure == null) Debug.Log("COLA_ORDER_SHEET_PLAYMODE_PASS\n" + report);
             else Debug.LogException(failure);
@@ -54,7 +54,7 @@ namespace ColaCola.Editor
             EditorApplication.update -= Tick; EditorApplication.playModeStateChanged -= Changed;
             if (!SessionState.GetBool(Key + ".Passed", false))
             { if (Application.isBatchMode) EditorApplication.Exit(2); return; }
-            EditorApplication.delayCall += ColaBossItemVerification.Begin;
+            ProjectVerificationBridge.Schedule(ColaBossItemVerification.Begin);
         }
     }
 

@@ -34,6 +34,6 @@
 
 ## 검증 근거
 
-현재 20~30·지수 1.5 밸런스는 `PressureBalanceVerification.Begin`으로 Play 모드에서 검증한다. 저장 설정, 모든 한계의 강도별 확률·경계·이전 곡선 대비 초반 증가, 실제 Collider 선택과 애니메이션 확률 표시, 예측과 실제 판정 일치, 교대 행동·보상·폭발 후 새 한계를 검사한다. 결과는 `output/pressure-balance/Playmode-validation.txt`다. 수치·동작 검사이며 체감 밸런스는 실제 플레이를 통해 추가 조정한다.
+현재 20~30·지수 1.5 밸런스는 `PressureBalanceVerification.Begin`으로 Play 모드에서 검증한다. 저장 설정, 모든 한계의 강도별 확률·경계·이전 곡선 대비 초반 증가, 실제 Collider 선택과 애니메이션 확률 표시, 예측과 실제 판정 일치, 교대 행동·보상·폭발 후 새 한계를 검사한다. 결과는 `output/verification/latest/pressure-balance/Playmode-validation.txt`다. 수치·동작 검사이며 체감 밸런스는 실제 플레이를 통해 추가 조정한다.
 
-`output/pressure-interaction/Core-validation.txt`는 선택/비교 시 상태·난수 불변, 예측과 확정 계산 일치, 한 번만 확정, 한계 미만 확률 폭발과 경계 조건을 검사한다. 같은 폴더의 `Playmode-validation.txt`는 자동 보스 응답을 끈 상태에서 압력 규칙을 독립 검증한다. 실제 자동 보스까지의 전체 흐름은 `output/shake-animation/Playmode-validation.txt`의 Play 모드 상태 검사를 따른다. 화면 확인은 Play 중 실제 Game 뷰에서 한다. 검증용 상태는 씬에 저장하지 않는다.
+`output/verification/latest/pressure-interaction/Core-validation.txt`는 선택/비교 시 상태·난수 불변, 예측과 확정 계산 일치, 한 번만 확정, 한계 미만 확률 폭발과 경계 조건을 검사한다. 같은 폴더의 `Playmode-validation.txt`는 자동 보스 응답을 끈 상태에서 압력 규칙을 독립 검증한다. 실제 자동 보스까지의 전체 흐름은 `output/verification/latest/shake-animation/Playmode-validation.txt`의 Play 모드 상태 검사를 따른다. 화면 확인은 Play 중 실제 Game 뷰에서 한다. 검증용 상태는 씬에 저장하지 않는다.

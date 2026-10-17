@@ -57,6 +57,6 @@ Unity 저장본 재열기와 실제 Play 검증을 통과했다. 고정 카메�
 | 선택 전 저장본 화면 | `output/pressure-interaction/MainScene-PressureInteraction.png` |
 | 새 한계 압력 예시 | `output/pressure-interaction/ChangedLimit-28.png` |
 | 규칙 / 실제 Play / 저장본 검사 | `Core-validation.txt`, `Playmode-validation.txt`, `Scene-validation.txt` (동일 출력 폴더) |
-| 배치 보존 | `output/pressure-interaction/Placement-preservation.txt` |
+| 배치 보존 | `output/verification/latest/pressure-interaction/Placement-preservation.txt` |
 
 미리보기 이미지의 현재 압력 8·한계 20은 검증용 상태다. 저장된 씬은 압력 0·강도 미선택으로 시작하고 Play에서 새 한계를 정한다. 자세한 흐름과 API는 `Docs/Gameplay/PressureSelection.md`를 참고한다. 예전 압력계 방향·정적 15·? 이미지와 검증은 이전 아트 단계 기록이다.

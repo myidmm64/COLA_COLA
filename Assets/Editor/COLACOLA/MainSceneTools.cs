@@ -393,7 +393,7 @@ namespace ColaCola.Editor
                     t.name == "PlayerInventory" || t.name == "BossInventory" || t.parent && t.parent.name.StartsWith("0"))
                     report.AppendLine($"{t.name}: position={t.position:F3} rotation={t.eulerAngles:F2} scale={t.lossyScale:F3}");
             report.AppendLine("Scope: playable single-player duel with original FPS/boss hands, live health/tokens, public pressure forecasts, burst presentation, victory/defeat, restart and escalating boss health. In-turn ordering supplies 11 adopted consumables as Cube props. Boss strength selection is provisional random choice unless modified by an item.");
-            File.WriteAllText(Output + "/MainScene-layout.txt", report.ToString());
+            ProjectVerificationBridge.WriteReport(Output + "/MainScene-layout.txt", report.ToString());
         }
 
         public static void Verify()
@@ -480,7 +480,8 @@ namespace ColaCola.Editor
                 if (duel)
                     report = report.Replace("six authored test item models per participant, twelve instances, no remaining item Cube placeholders", "playable single-player duel; item props/light hidden and automatic hand preview disabled")
                         .Replace("sample physical readouts and pressure selection/confirmation prototype. Boss AI, damage, token awards, item effects and shop flow are not implemented.", "live health/token readouts, alternating pressure actions, in-hand cola burst presentation, victory/defeat/retry and escalating boss health. In-turn ordering and 11 adopted consumables with runtime Cube inventory are covered by the separate item Play-mode report.");
-                File.WriteAllText(Output + "/MainScene-validation.txt", report);
+                Directory.CreateDirectory(ProjectVerificationBridge.Root + "/scene-layout");
+                ProjectVerificationBridge.WriteReport(ProjectVerificationBridge.Root + "/scene-layout/MainScene-validation.txt", report);
                 Debug.Log("COLA_MAIN_SCENE_VALIDATION_PASS");
                 EditorApplication.isPlaying = false;
                 if (Application.isBatchMode) EditorApplication.Exit(0);
@@ -525,7 +526,7 @@ namespace ColaCola.Editor
                         report.AppendLine($"BONE {t.name} position={t.position:F4} localEuler={t.localEulerAngles:F2}");
                 UnityEngine.Object.DestroyImmediate(instance);
             }
-            File.WriteAllText(Output + "/asset-inspection.txt", report.ToString());
+            ProjectVerificationBridge.WriteReport(Output + "/asset-inspection.txt", report.ToString());
             Debug.Log("COLA_LAYOUT_INSPECTION_COMPLETE");
         }
     }

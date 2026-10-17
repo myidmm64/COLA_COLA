@@ -43,7 +43,7 @@ namespace ColaCola.Editor
                 Validate(root, Camera.main);
                 AssetDatabase.SaveAssets();
                 if (!EditorSceneManager.SaveScene(scene, MainSceneTools.ScenePath)) throw new IOException("MainScene save failed.");
-                File.WriteAllText(Output + "/Placement-preservation.txt",
+                ProjectVerificationBridge.WriteReport(Output + "/Placement-preservation.txt",
                     $"PASS: {preserved.Count} unrelated transforms keep their world position, rotation and local scale.\n" +
                     "Camera/FOV, table, cola, characters, Idles, all three devices, lighting and pressure interaction are preserved.\n" +
                     "Replaced four item Cube placeholders and the two former boss display props with six items per side.\n");
@@ -169,7 +169,7 @@ namespace ColaCola.Editor
             report.AppendLine($"PASS: all twelve items rest on the tray floors, stay within the table/trays and fixed camera, and have at least 12 mm physical separation.");
             report.AppendLine($"PASS: {trayGap * 100:F1} cm clearance between the two trays. No new item colliders interfere with button/cola raycasts.");
             Directory.CreateDirectory(Output);
-            File.WriteAllText(Output + "/Item-layout-validation.txt", report.ToString());
+            ProjectVerificationBridge.WriteReport(Output + "/Item-layout-validation.txt", report.ToString());
         }
 
         private static Bounds BoundsOf(Transform node)
@@ -292,7 +292,7 @@ namespace ColaCola.Editor
                 }
                 report.AppendLine("PASS: all twelve props retain at least 90% of their isolated projected pixels in the full scene; none is hidden behind another item, character or device.");
                 report.AppendLine("Mask materials, renderer enable states, fog and camera settings are temporary and restored after capture.");
-                File.WriteAllText(Output + "/Rendered-visibility-validation.txt", report.ToString());
+                ProjectVerificationBridge.WriteReport(Output + "/Rendered-visibility-validation.txt", report.ToString());
             }
             finally
             {

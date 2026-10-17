@@ -16,7 +16,7 @@ namespace ColaCola.Editor
     public static class ColaItemVerification
     {
         private const string Key = "COLA_COLA.ItemVerification";
-        internal const string Output = "output/cola-items/Playmode-validation.txt";
+        internal const string Output = "output/verification/latest/cola-items/Playmode-validation.txt";
         static ColaItemVerification() { if (SessionState.GetBool(Key, false)) Hook(); }
         public static void Begin()
         {
@@ -43,7 +43,7 @@ namespace ColaCola.Editor
         internal static void Complete(string report, Exception failure = null)
         {
             Directory.CreateDirectory(Path.GetDirectoryName(Output));
-            File.WriteAllText(Output, report + (failure == null ? "" : "\nFAIL: " + failure));
+            ProjectVerificationBridge.WriteReport(Output, report + (failure == null ? "" : "\nFAIL: " + failure));
             SessionState.SetBool(Key + ".Passed", failure == null);
             if (failure == null) Debug.Log("COLA_ITEMS_PLAYMODE_PASS\n" + report);
             else Debug.LogException(failure);
@@ -58,7 +58,7 @@ namespace ColaCola.Editor
             if (!SessionState.GetBool(Key + ".Passed", false))
             { if (Application.isBatchMode) EditorApplication.Exit(2); return; }
             // Existing full duel/rig regression also runs in Play, then checks saved-scene bindings in another Play entry.
-            EditorApplication.delayCall += PlayableDuelVerification.Begin;
+            ProjectVerificationBridge.Schedule(PlayableDuelVerification.Begin);
         }
     }
 
@@ -246,7 +246,9 @@ namespace ColaCola.Editor
             yield return WaitIdle();
             Check(match.State == ColaDuelController.DuelState.Won && !items.CanAct && !items.TryPurchase(ColaItemId.IceCup) &&
                 !items.TryUseSlot(retained), "Victory must disable ordering and consumption.");
-            Check(match.ContinueToNextBoss() && match.PlayerTokens == tokens && items.ItemAt(retained) == ColaItemId.PizzaSlice &&
+            Check(match.ContinueToNextBoss(), "Next boss transition did not begin.");
+            yield return WaitIdle();
+            Check(match.PlayerTokens == tokens && items.ItemAt(retained) == ColaItemId.PizzaSlice &&
                 !items.SafetyReady && !items.ForceThreeReady && items.CanAct, "Next boss must carry inventory/currency but clear pending effects.");
             Use(ColaItemId.DoubleStamp);
             interaction.BeginBottle(1);

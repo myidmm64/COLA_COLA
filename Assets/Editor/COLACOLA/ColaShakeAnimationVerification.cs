@@ -15,7 +15,7 @@ namespace ColaCola.Editor
     [InitializeOnLoad]
     public static class ColaShakeAnimationVerification
     {
-        public const string Output = "output/shake-animation";
+        public const string Output = "output/verification/latest/shake-animation";
         private const string Running = "COLACOLA.ColaShakeAnimation.Verify";
         private const string Initialized = Running + ".Initialized";
         private const string Error = Running + ".Error";
@@ -340,7 +340,7 @@ namespace ColaCola.Editor
                             "Cancelled automatic boss action emitted a stale callback or restarted.");
                         report.AppendLine("PASS: disabling interaction during a real automatic boss turn cancels both hand and delayed callbacks and restores normal input.");
                         report.AppendLine("Scope: live Play-mode state/input/bone and CPU skinning checks; no Game-view visual confirmation or preview rendering. Original FPS/boss hand playback and a basic alternating turn loop. Health, rewards, items, shop and boss tactics remain separate.");
-                        File.WriteAllText(Output + "/Playmode-validation.txt", report.ToString());
+                        ProjectVerificationBridge.WriteReport(Output + "/Playmode-validation.txt", report.ToString());
                         SessionState.SetBool(Completed, true);
                         Debug.Log("COLA_SHAKE_ANIMATION_PLAYMODE_PASS\n" + report);
                         phase = 10;
@@ -440,7 +440,7 @@ namespace ColaCola.Editor
                 if (Application.isBatchMode) EditorApplication.Exit(2);
                 return;
             }
-            EditorApplication.delayCall += () =>
+            ProjectVerificationBridge.Schedule(() =>
             {
                 try
                 {
@@ -448,7 +448,7 @@ namespace ColaCola.Editor
                     PressureInteractionSceneTools.Verify();
                 }
                 catch (Exception exception) { Fail(exception); }
-            };
+            });
         }
 
         private static void Check(bool condition, string message)
@@ -459,7 +459,7 @@ namespace ColaCola.Editor
         private static void Fail(Exception exception)
         {
             Directory.CreateDirectory(Output);
-            File.WriteAllText(Output + "/Playmode-error.txt", exception.ToString());
+            ProjectVerificationBridge.WriteReport(Output + "/Playmode-error.txt", exception.ToString());
             SessionState.SetString(Error, exception.ToString());
             Debug.LogException(exception);
             EditorApplication.update -= Tick;

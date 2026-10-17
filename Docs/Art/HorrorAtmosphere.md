@@ -73,8 +73,8 @@
 
 `HorrorSceneTools.Verify`는 저장된 MainScene을 다시 열고 Play 모드에서 실제 Cinemachine 활성 카메라, 기존 구도, HDR·후처리, URP가 평가한 Volume, 형광등의 밝기 변화를 확인한다. 첫 렌더의 셰이더 준비 시간을 거친 뒤 `Time.timeAsDouble`로 게임 시간 18초 이상을 측정해 17초 조명 주기의 어두워지는 구간을 포함한다. 결과는 다음 파일을 기준으로 확인한다.
 
-- `output/horror-atmosphere/Placement-validation.txt`: 조명·연출 그룹 외 기존 카메라·모델·본의 배치 보존.
-- `output/horror-atmosphere/Horror-validation.txt`: 저장본 재열기와 실제 Play 모드의 검증 결과.
+- `output/verification/latest/horror-atmosphere/Placement-validation.txt`: 조명·연출 그룹 외 기존 카메라·모델·본의 배치 보존.
+- `output/verification/latest/horror-atmosphere/Horror-validation.txt`: 저장본 재열기와 실제 Play 모드의 검증 결과.
 - `output/horror-atmosphere/Before.png`: 적용 전 화면.
 - `output/horror-atmosphere/MainScene-Horror.png`: 적용 후 실제 Unity 렌더.
 - `output/horror-atmosphere/frames`: 실제 Play 모드의 연속 렌더.
@@ -92,16 +92,16 @@ Unity 6000.6.4f1에서 저장본을 다시 열어 Cinemachine `6.6.0 (BuiltIn)`�
 
 그레인을 Thin2로 바꾸고 강도를 0.26으로 조정했다. 카메라의 출력 Dithering도 활성화했다. 검정 레벨·대비·화이트밸런스를 함께 조정하여 조명 색과 저폴리 윤곽을 유지하면서 살짝 바랜 필름 느낌을 더했다. 효과는 `PizzeriaHorror.asset`에 저장되며 `HorrorSceneTools.Apply` 및 전체 씬 재생성에도 같은 값이 적용된다.
 
-이 버전은 실제 Play 게임 시간 18초 동안 확인했고, 게임 시간 3~7초 구간에서 질감 확인용 프레임 46장을 캡처했다. 셰이더 준비 후 약 0.08초 간격으로 캡처하며, 실제 간격은 `output/horror-atmosphere/frame-times.txt`에 기록한다. URP에서 평가된 Thin2·강도 0.26·Response 0.60과 Lift·Dithering 활성 상태를 검증했다.
+이 버전은 실제 Play 게임 시간 18초 동안 확인했고, 게임 시간 3~7초 구간에서 질감 확인용 프레임 46장을 캡처했다. 셰이더 준비 후 약 0.08초 간격으로 캡처하며, 실제 간격은 `output/verification/latest/horror-atmosphere/frame-times.txt`에 기록한다. URP에서 평가된 Thin2·강도 0.26·Response 0.60과 Lift·Dithering 활성 상태를 검증했다.
 
 무손실 애니메이션 WebP에는 실제 캡처 46장과 4.026초가 들어 있다. 정지한 테이블 영역에서도 인접 프레임의 평균 차이가 8비트 기준 1.4049로 측정되어 움직이는 질감을 확인했다. 공용 설정 8개와 두 Idle 클립의 파일 해시는 조정 전과 동일하다.
 
 - 조정 전 씬·프로필·렌더: `output/indie-look/MainScene-before-indie.unity`, `PizzeriaHorror-before-indie.asset`, `Before.png`.
 - 조정 후 실제 렌더: `output/indie-look/MainScene-Indie.png`.
 - 실제 프레임을 그대로 묶은 움직이는 미리보기: `output/indie-look/Indie-grain-preview.webp`.
-- 검증: `output/indie-look/Indie-validation.txt`, `Preview-validation.json`, `preserved-files.json`.
+- 검증: `output/verification/latest/indie-look/Indie-validation.txt`, `Preview-validation.json`, `preserved-files.json`.
 
-별도의 Unity 실행에서 저장본을 다시 열고 검증했다. 조명 메시를 포함한 Renderer 81개의 재질·셰이더 참조, 남은 아이템 Cube 4개, 두 캐릭터의 Idle Controller와 첫 시작 씬 등록이 유지되었다. 결과는 `output/scene-layout/MainScene-validation.txt`에 있다.
+별도의 Unity 실행에서 저장본을 다시 열고 검증했다. 조명 메시를 포함한 Renderer 81개의 재질·셰이더 참조, 남은 아이템 Cube 4개, 두 캐릭터의 Idle Controller와 첫 시작 씬 등록이 유지되었다. 결과는 `output/verification/latest/scene-layout/MainScene-validation.txt`에 있다.
 
 기존 `SampleScene.unity`, `URPProjectSettings.asset`, `QualitySettings.asset`, `EditorSettings.asset`, `PC_RPAsset.asset`, `PC_Renderer.asset`, `DefaultVolumeProfile.asset`, `SampleSceneProfile.asset`의 SHA-256은 작업 전 기록과 동일했다. 공용 렌더 파이프라인·프로필을 수정하지 않고 MainScene의 전용 Volume으로 연출을 구성했다.
 
@@ -109,7 +109,7 @@ Unity 6000.6.4f1에서 저장본을 다시 열어 Cinemachine `6.6.0 (BuiltIn)`�
 
 압력계 전용 보조광 `Horror_Gauge_Readability`를 강도 0.16에서 0.035로, 범위를 1.1m에서 0.8m로 줄였다. 다이얼의 기본색은 (0.56, 0.54, 0.44)에서 (0.42, 0.405, 0.33), 안쪽 테두리는 (0.49, 0.48, 0.40)에서 (0.36, 0.35, 0.29)로 낮췄다. 두 재질의 직접광 반사 하이라이트와 환경 반사를 끄고 거칠게 조정했다. 눈금·숫자·바늘과 중앙 콜라 조명·카메라 노출은 유지한다.
 
-재적용은 `COLA_COLA > Reduce Gauge Glare` 메뉴다. 같은 값은 조명·재질 생성 도구에도 반영하여 다시 생성해도 유지한다. 검증은 프리뷰 캡처 없이 Play 모드에서 수행하고 `output/gauge-focus/Glare-playmode-validation.txt`와 `unity-glare-playmode.log`에 기록한다. 자동 검사는 조명·재질·바인딩·입력 상태를 확인하며 실제 Game 뷰의 시각적 확인을 대신하지 않는다.
+재적용은 `COLA_COLA > Reduce Gauge Glare` 메뉴다. 같은 값은 조명·재질 생성 도구에도 반영하여 다시 생성해도 유지한다. 검증은 프리뷰 캡처 없이 Play 모드에서 수행하고 `output/verification/latest/gauge-focus/Glare-playmode-validation.txt`와 `unity-glare-playmode.log`에 기록한다. 자동 검사는 조명·재질·바인딩·입력 상태를 확인하며 실제 Game 뷰의 시각적 확인을 대신하지 않는다.
 
 ## 실제 Play 화면의 콘솔 백색 번짐 수정
 

@@ -16,8 +16,8 @@
 - 호러 조명 적용 후 렌더: `output/horror-atmosphere/MainScene-Horror.png`
 - Cinemachine·호러 조명·후처리 구성: `Docs/Art/HorrorAtmosphere.md`
 - 누락 모델과 Cube 대체 목록: `Docs/Art/MainScene-MissingModels.md`
-- 실제 배치값: `output/scene-layout/MainScene-layout.txt`
-- 엔진 재열기 검증 기록: `output/scene-layout/MainScene-validation.txt`
+- 실제 배치값: `output/verification/latest/scene-layout/MainScene-layout.txt`
+- 엔진 재열기 검증 기록: `output/verification/latest/scene-layout/MainScene-validation.txt`
 
 이 씬은 보스와의 1대1 경기, 실제 체력·토큰을 표시하는 3D 단말기, 강도 선택·압력/폭발 확률 미리보기·중앙 콜라 클릭 확정을 포함한다. 양쪽 체력 3·토큰 0으로 시작하며 승패·재시작·다음 난이도를 연결했다. 아이템 그룹과 해당 보조광은 숨겼고 폭발 연출·상점은 제외한다. 현재 규칙은 `Docs/Gameplay/PlayableDuel.md`를 따른다.
 
@@ -54,7 +54,7 @@ Unity의 `COLA_COLA > Open Main Scene` 메뉴로 열 수 있다. Game 뷰는 **1
 | `ShakeConsole` | `(-0.34, 0.90, -0.10)` | 약 `345.34°` |
 | `HeroCola_ExistingModel` | `(0, 0.835, -0.07)` | `180°` |
 
-실제 저장값은 `output/scene-layout/MainScene-layout.txt`, 카메라에서 본 좌우 순서와 단말기 방향은 `output/status-terminal/StatusTerminal-validation.txt`를 기준으로 한다.
+실제 저장값은 `output/verification/latest/scene-layout/MainScene-layout.txt`, 카메라에서 본 좌우 순서와 단말기 방향은 `output/verification/latest/status-terminal/StatusTerminal-validation.txt`를 기준으로 한다.
 
 압력계는 중앙 콜라에 시선을 모으기 위해 18% 축소하고, 다이얼·금속 테두리의 밝기와 반사를 낮췄다. 장착 받침 위치를 유지하며 약 3.8cm 낮췄고 버튼 콘솔은 유지한다. 압력계 보조광은 줄이고 콜라 라벨 보조광은 보강했다. 적용 메뉴는 `COLA_COLA > Balance Gauge and Cola Focus`, 세부 값은 `Docs/Art/PressureGauge.md`를 따른다.
 
@@ -95,21 +95,21 @@ Unity 6000.6.4f1을 사용한다. 저장본의 카메라·AudioListener·재질�
 
 실제 Play 프레임 150장으로 만든 30초 Idle 제작 당시 미리보기는 `output/scene-layout/MainScene-natural-idle-preview.gif`이며, `MainScene-idle-preview.gif`도 같은 기록이다. 당시 장치 근접 렌더는 `ShakeConsole-closeup.png`다. 실제 경기 규칙·독립 실행 빌드는 이 아트 작업의 검증 범위에 포함하지 않는다.
 
-호러 연출 작업의 배치 보존은 `output/horror-atmosphere/Placement-validation.txt`, Cinemachine 활성 상태·기존 구도·URP Volume 평가·형광등 밝기 변화의 실제 Play 검증은 `Horror-validation.txt`에 기록한다. 적용 후 렌더는 `MainScene-Horror.png`이며, `output/scene-layout/MainScene-preview.png`도 최신 화면으로 갱신한다.
+호러 연출 작업의 배치 보존은 `output/verification/latest/horror-atmosphere/Placement-validation.txt`, Cinemachine 활성 상태·기존 구도·URP Volume 평가·형광등 밝기 변화의 실제 Play 검증은 `Horror-validation.txt`에 기록한다. 적용 후 렌더는 `MainScene-Horror.png`이며, `output/scene-layout/MainScene-preview.png`도 최신 화면으로 갱신한다.
 
 호러 연출 검증에서는 게임 시간 18.00초와 연속 렌더 50장을 기록했고, Cinemachine `6.6.0 (BuiltIn)`의 `CM_SeatedDuel`이 기존 구도를 유지했다. HDR·카메라 후처리·Global Volume이 활성 상태이며, 배경 형광등 강도 `0.6092~0.8726`과 일정한 테이블 키 라이트를 확인했다. 기존 카메라·모델·본의 월드 자세 269개를 보존했고, 공용 파이프라인·Volume과 기존 설정 파일 8개의 해시는 작업 전과 동일했다. 파일 목록은 `output/horror-atmosphere/original-file-hashes.json`에 있다.
 
-호러 연출 적용 당시 저장본을 다시 열어 조명 메시 포함 Renderer 81개, 재질·셰이더 참조, 카메라·AudioListener 각 1개, 누락 스크립트 0개, 아이템 Cube 4개와 두 캐릭터의 반복 Idle Controller를 확인했다. 이 Renderer 수는 단말기 추가 전 기록이다. 현재 저장본의 수치는 `output/scene-layout/MainScene-validation.txt`를 기준으로 한다.
+호러 연출 적용 당시 저장본을 다시 열어 조명 메시 포함 Renderer 81개, 재질·셰이더 참조, 카메라·AudioListener 각 1개, 누락 스크립트 0개, 아이템 Cube 4개와 두 캐릭터의 반복 Idle Controller를 확인했다. 이 Renderer 수는 단말기 추가 전 기록이다. 현재 저장본의 수치는 `output/verification/latest/scene-layout/MainScene-validation.txt`를 기준으로 한다.
 
 이후 인디 화면 질감으로 Film Grain을 Thin2 / 0.26 / Response 0.60으로 조정하고, 약한 검정 레벨 상승·출력 Dithering·완화한 대비와 비네트를 적용했다. 해당 작업 당시 화면은 `output/indie-look/MainScene-Indie.png`, 움직이는 질감은 `Indie-grain-preview.webp`에서 볼 수 있다. 상세 값은 `Docs/Art/HorrorAtmosphere.md`의 인디 화면 질감 항목을 따른다.
 
-단말기 최초 적용 시 무관한 월드 Transform 235개와 설정·패키지·Volume·Idle 관련 파일 21개를 보존했다. 단말기 실제 Play 검증에서 상태값·체력 비율·음수·숫자 표시 범위·피해/토큰 피드백·비활성화 초기화와 기존 Idle 지속을 확인했다. 결과는 `output/status-terminal/Placement-preservation.txt`, `preserved-files-after.json`, `Display-playmode-validation.txt`에 있다. 최신 전체 화면은 `output/status-terminal/MainScene-StatusTerminal.png`, 근접 화면은 `StatusTerminal-closeup.png`다.
+단말기 최초 적용 시 무관한 월드 Transform 235개와 설정·패키지·Volume·Idle 관련 파일 21개를 보존했다. 단말기 실제 Play 검증에서 상태값·체력 비율·음수·숫자 표시 범위·피해/토큰 피드백·비활성화 초기화와 기존 Idle 지속을 확인했다. 결과는 `output/verification/latest/status-terminal/Placement-preservation.txt`, `preserved-files-after.json`, `Display-playmode-validation.txt`에 있다. 최신 전체 화면은 `output/status-terminal/MainScene-StatusTerminal.png`, 근접 화면은 `StatusTerminal-closeup.png`다.
 
 테스트 아이템 배치 당시의 전체 화면은 `output/item-layout/MainScene-Items.png`다. 플레이어·보스 각 6개, 총 12개의 3D 소품과 서빙 쟁반을 저장했다. 고정 카메라의 실제 가림 검사에서 모든 소품이 단독 렌더 대비 91.1% 이상 보이며, 기존 강도 선택·콜라 클릭 확정·병 초기화와 Idle 지속을 실제 Play에서 재확인했다. 상세 기록은 `Docs/Art/TestItemLayout.md`와 `output/item-layout`을 따른다.
 
 최신 화면은 압력계를 18% 축소하고 다이얼·테두리와 국소 조명의 시선 균형을 조정한 `output/gauge-focus/MainScene-Focus.png`다. `output/scene-layout/MainScene-preview.png`도 갱신했다. 압력계 받침 접촉점·다른 Transform 369개·보호 파일 32개를 보존했고 기존 버튼·콜라 입력을 실제 Play에서 재검증했다. 화면 경계 면적은 기존의 65.2%다.
 
-플레이어·보스의 강도별 콜라 흔들기는 캐릭터와 병의 클립 총 12개로 구성된다. 추가했던 소매 보조 메시를 제거하고 원래 FPS 팔 모델을 사용한다. 보스는 일반 플레이의 다음 차례에 자동으로 흔들도록 연결했다. 자세한 내용은 `Docs/Art/ColaShakeAnimations.md`, 동작 검증은 Play 모드에서 진행하며 `output/shake-animation/Playmode-validation.txt`에 상태 검사 결과를 기록한다. 시각적 확인은 실제 Game 뷰에서 한다.
+플레이어·보스의 강도별 콜라 흔들기는 캐릭터와 병의 클립 총 12개로 구성된다. 추가했던 소매 보조 메시를 제거하고 원래 FPS 팔 모델을 사용한다. 보스는 일반 플레이의 다음 차례에 자동으로 흔들도록 연결했다. 자세한 내용은 `Docs/Art/ColaShakeAnimations.md`, 동작 검증은 Play 모드에서 진행하며 `output/verification/latest/shake-animation/Playmode-validation.txt`에 상태 검사 결과를 기록한다. 시각적 확인은 실제 Game 뷰에서 한다.
 
 플레이어의 `Wrist.R`와 보스의 `hand.R`를 명시적으로 연결했다. 병은 잡은 손의 위치·회전을 따라가고 기다리는 상대의 양손은 테이블에 둔 Idle을 유지한다. 원본 FBX 스킨 메시의 실제 정점 이동과 자동 보스 응답까지 확인하며, 검증 시 원본 모델·프리팹·텍스처도 해시로 비교한다.
 

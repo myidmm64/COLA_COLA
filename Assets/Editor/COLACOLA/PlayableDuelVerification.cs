@@ -16,7 +16,7 @@ namespace ColaCola.Editor
     public static class PlayableDuelVerification
     {
         private const string Key = "COLA_COLA.PlayableDuelVerification";
-        private const string Output = "output/playable-duel/Playmode-validation.txt";
+        private const string Output = "output/verification/latest/playable-duel/Playmode-validation.txt";
         private static ColaDuelController match;
         private static ShakeSelectionInteraction interaction;
         private static ColaShakeAnimator driver;
@@ -209,6 +209,13 @@ namespace ColaCola.Editor
                               match.PlayerTokens == 1 && match.IsPlayerTurn && interaction.InputEnabled && interaction.automaticBossTurns,
                             "The next encounter must increase boss health, heal the player and retain player tokens.");
                         CheckTerminal();
+                        Check(interaction.IsBusy && interaction.burstPresentation.BlackoutOpacity == 1 && !Click(2),
+                            "Next difficulty must begin under black with input locked.");
+                        phase = 30;
+                        break;
+                    case 30:
+                        if (interaction.IsBusy) return;
+                        Check(interaction.burstPresentation.BlackoutOpacity == 0, "Next difficulty failed to fade in.");
                         report.AppendLine("PASS: safe player then guaranteed boss burst awards 1/5 tokens and wins; continuation is busy-gated, then advances to level 2 with boss 2/2, player healed and player tokens retained.");
                         ResetObservations();
                         interaction.BeginBottle(999);
@@ -268,7 +275,7 @@ namespace ColaCola.Editor
                         report.AppendLine("PASS: disabling the match mid-player-grip cancels pending work; re-enabling starts a fresh run and receives no stale reward callback.");
                         Check(interaction.SelectStrength(3) && interaction.Model.SelectedStrength == 3,
                             "The no-scene-reload Play re-entry probe must leave strength 3 selected before exiting Play.");
-                        File.WriteAllText(Output, report.ToString());
+                        ProjectVerificationBridge.WriteReport(Output, report.ToString());
                         SessionState.SetInt(Key + ".Stage", 1);
                         SessionState.SetBool(Key + ".Initialized", false);
                         SessionState.SetBool(Key + ".BetweenPlayEntries", true);
@@ -297,7 +304,7 @@ namespace ColaCola.Editor
                         CheckBootState();
                         report.AppendLine("PASS: a second complete Play entry reuses the existing scene with no reopen/reload; the previously selected strength-3 key and both other keys return to their original positions, health/level/tokens/input reset, and one real fatal action awards exactly 5 tokens once.");
                         report.AppendLine("Scope: automated live Play-mode state, physics input, original hand-bone movement, turn, health, token and physical readout checks. No Game-view visual confirmation, preview renders, frame captures or standalone build.");
-                        File.WriteAllText(Output, report.ToString());
+                        ProjectVerificationBridge.WriteReport(Output, report.ToString());
                         SessionState.SetBool(Key + ".Completed", true);
                         Debug.Log("COLA_PLAYABLE_DUEL_PASS\n" + report);
                         interaction.ShakeResolved -= OnResolved;
@@ -466,7 +473,7 @@ namespace ColaCola.Editor
             }
             if (SessionState.GetInt(Key + ".Stage", 0) == 1 && !SessionState.GetBool(Key + ".Completed", false))
             {
-                EditorApplication.delayCall += () =>
+                ProjectVerificationBridge.Schedule(() =>
                 {
                     try
                     {
@@ -475,7 +482,7 @@ namespace ColaCola.Editor
                         EditorApplication.isPlaying = true;
                     }
                     catch (Exception exception) { Fail(exception); }
-                };
+                });
                 return;
             }
             if (!SessionState.GetBool(Key + ".Completed", false))
@@ -484,11 +491,11 @@ namespace ColaCola.Editor
                 return;
             }
             Unhook();
-            EditorApplication.delayCall += () =>
+            ProjectVerificationBridge.Schedule(() =>
             {
                 try { MainSceneTools.Verify(); }
                 catch (Exception exception) { Fail(exception); }
-            };
+            });
         }
 
         private static void Unhook()
@@ -506,7 +513,7 @@ namespace ColaCola.Editor
         private static void Fail(Exception exception)
         {
             Directory.CreateDirectory(Path.GetDirectoryName(Output));
-            File.WriteAllText(Output, (report?.ToString() ?? "") + "FAIL: " + exception);
+            ProjectVerificationBridge.WriteReport(Output, (report?.ToString() ?? "") + "FAIL: " + exception);
             SessionState.SetString(Key + ".Error", exception.ToString());
             Debug.LogException(exception);
             EditorApplication.update -= Tick;

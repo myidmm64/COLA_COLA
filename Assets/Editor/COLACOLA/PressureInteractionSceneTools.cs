@@ -57,7 +57,7 @@ namespace ColaCola.Editor
                         "Unrelated transform changed: " + entry.Key);
                 Check(EditorSceneManager.SaveScene(scene, MainSceneTools.ScenePath), "Scene save failed.");
                 AssetDatabase.SaveAssets();
-                File.WriteAllText(Output + "/Placement-preservation.txt", $"PASS: {preserved.Count} pre-existing non-gauge transforms preserved.\nCamera, cola, console, terminal, characters and lighting keep their saved placement.\n");
+                ProjectVerificationBridge.WriteReport(Output + "/Placement-preservation.txt", $"PASS: {preserved.Count} pre-existing non-gauge transforms preserved.\nCamera, cola, console, terminal, characters and lighting keep their saved placement.\n");
                 StartVerification();
             }
             catch (Exception exception) { Fail(exception); }
@@ -164,7 +164,7 @@ namespace ColaCola.Editor
                 "Probabilistic bursting below the public limit did not work.");
             Check(PressureGaugeDisplay.FormatProbability(1) == "100%" &&
                 PressureGaugeDisplay.FormatProbability(.00001) == "<0.1%", "Probability readout rounding is misleading.");
-            File.WriteAllText(Output + "/Core-validation.txt", "PASS: selecting and comparing strengths never increases pressure or consumes RNG.\nPASS: one cola confirmation applies exactly one pressure increase and roll, using the forecast probability.\nPASS: unselected/duplicate actions rejected; probability rises with pressure; probabilistic bursts below limit and provisional 100% at limit.\nPASS: dynamic bottle reset and safe probability formatting.\n");
+            ProjectVerificationBridge.WriteReport(Output + "/Core-validation.txt", "PASS: selecting and comparing strengths never increases pressure or consumes RNG.\nPASS: one cola confirmation applies exactly one pressure increase and roll, using the forecast probability.\nPASS: unselected/duplicate actions rejected; probability rises with pressure; probabilistic bursts below limit and provisional 100% at limit.\nPASS: dynamic bottle reset and safe probability formatting.\n");
         }
 
         private static ShakeSelectionInteraction ValidateSavedScene()
@@ -177,7 +177,7 @@ namespace ColaCola.Editor
             Check(root.GetComponentsInChildren<Transform>(true).Sum(t => GameObjectUtility.GetMonoBehavioursWithMissingScriptCount(t.gameObject)) == 0, "Missing script references.");
             Check(root.GetComponentsInChildren<Renderer>(true).All(r => r.sharedMaterials.All(m => m && m.shader)), "Missing materials/shaders.");
             var meshes = interaction.gauge.GetComponentsInChildren<MeshFilter>(true);
-            File.WriteAllText(Output + "/Scene-validation.txt",
+            ProjectVerificationBridge.WriteReport(Output + "/Scene-validation.txt",
                 "PASS: saved MainScene reopens with public bottle-limit digits, probability readout and separate pressure/forecast needles.\n" +
                 "PASS: all three physical key colliders, central cola collider, input component and settings asset are bound.\n" +
                 "PASS: old ? and fixed 15 inscriptions are absent from the scene.\n" +
@@ -282,7 +282,7 @@ namespace ColaCola.Editor
                     report.AppendLine("PASS: disable cancels in-flight feedback without a stale result; existing character Idles continue.");
                     report.AppendLine($"Temporary probability exponent: {interaction.settings.probabilityExponent}; new-bottle limits {interaction.settings.minimumBottleLimit}..{interaction.settings.maximumBottleLimit}.");
                     report.AppendLine("Scope: pressure-selection/confirmation prototype. AI, damage, token awards and shop logic are not simulated.");
-                    File.WriteAllText(Output + "/Playmode-validation.txt", report.ToString());
+                    ProjectVerificationBridge.WriteReport(Output + "/Playmode-validation.txt", report.ToString());
                     phase = 3;
                     EditorApplication.isPlaying = false;
                 }

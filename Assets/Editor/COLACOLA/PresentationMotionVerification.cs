@@ -33,7 +33,7 @@ namespace ColaCola.Editor
 
         public static void Begin()
         {
-            Directory.CreateDirectory("output/presentation-motion");
+            Directory.CreateDirectory("output/verification/latest/presentation-motion");
             SessionState.SetBool(Running, true);
             SessionState.SetBool(Running + ".Ready", false);
             SessionState.SetBool(Running + ".Complete", false);
@@ -166,7 +166,7 @@ namespace ColaCola.Editor
                             "Restart retained an in-flight forecast.");
                         Report.AppendLine("PASS: disabling breathing restores the original camera pose; restart clears forecast animation with no delayed callbacks.");
                         Report.AppendLine("Scope: live Play-mode Animator, Cinemachine output, mesh-readout, input and rule-state checks. No preview render, screen capture or Game-view visual confirmation.");
-                        File.WriteAllText("output/presentation-motion/Playmode-validation.txt", Report.ToString());
+                        ProjectVerificationBridge.WriteReport("output/verification/latest/presentation-motion/Playmode-validation.txt", Report.ToString());
                         Debug.Log("COLA_PRESENTATION_MOTION_PLAYMODE_PASS\n" + Report);
                         SessionState.SetBool(Running + ".Complete", true);
                         EditorApplication.isPlaying = false;
@@ -177,7 +177,7 @@ namespace ColaCola.Editor
             catch (Exception exception)
             {
                 Debug.LogException(exception);
-                File.WriteAllText("output/presentation-motion/Playmode-error.txt", exception.ToString());
+                ProjectVerificationBridge.WriteReport("output/verification/latest/presentation-motion/Playmode-error.txt", exception.ToString());
                 SessionState.SetBool(Running, false);
                 EditorApplication.update -= Tick;
                 if (Application.isBatchMode) EditorApplication.Exit(2);
@@ -219,7 +219,7 @@ namespace ColaCola.Editor
             SessionState.SetBool(Running, false);
             EditorApplication.update -= Tick;
             EditorApplication.playModeStateChanged -= PlayChanged;
-            if (SessionState.GetBool(Running + ".Complete", false)) EditorApplication.delayCall += MainSceneTools.Verify;
+            if (SessionState.GetBool(Running + ".Complete", false)) ProjectVerificationBridge.Schedule(MainSceneTools.Verify);
             else if (Application.isBatchMode) EditorApplication.Exit(2);
         }
 

@@ -52,7 +52,7 @@ namespace ColaCola.Editor
                 EditorSceneManager.SaveScene(scene, MainSceneTools.ScenePath);
                 AssetDatabase.SaveAssets();
                 MainSceneTools.WriteReport(root, camera);
-                File.WriteAllText(Output + "/Placement-validation.txt", "PASS: " + protectedPoses.Count + " existing camera/model/bone world poses retained.\n");
+                ProjectVerificationBridge.WriteReport(Output + "/Placement-validation.txt", "PASS: " + protectedPoses.Count + " existing camera/model/bone world poses retained.\n");
                 StartVerification();
             }
             catch (Exception exception) { Fail(exception); }
@@ -403,7 +403,7 @@ namespace ColaCola.Editor
                 report.AppendLine($"PASS: indie grain {liveGrain.type.value}, intensity={liveGrain.intensity.value:F2}, response={liveGrain.response.value:F2}; gentle black lift and output dithering active.");
                 report.AppendLine($"PASS: background practical intensity varies {minPractical:F4} to {maxPractical:F4}; table key remains steady.");
                 report.AppendLine($"PASS: real Play mode {elapsed:F2}s, {captureCount} runtime preview frames, one render camera/listener, no missing scripts.");
-                File.WriteAllText(Output + "/Horror-validation.txt", report.ToString());
+                ProjectVerificationBridge.WriteReport(Output + "/Horror-validation.txt", report.ToString());
                 File.WriteAllLines(Output + "/frame-times.txt", captureTimes.Select(t => t.ToString("F5", System.Globalization.CultureInfo.InvariantCulture)));
                 Debug.Log("COLA_HORROR_PLAYMODE_PASS\n" + report);
                 SessionState.SetBool(Running + ".Passed", true);
@@ -428,7 +428,7 @@ namespace ColaCola.Editor
         {
             Debug.LogException(exception);
             Directory.CreateDirectory(Output);
-            File.WriteAllText(Output + "/Horror-error.txt", exception.ToString());
+            ProjectVerificationBridge.WriteReport(Output + "/Horror-error.txt", exception.ToString());
             stopping = true;
             SessionState.SetBool(Running + ".Passed", false);
             if (EditorApplication.isPlaying) EditorApplication.isPlaying = false;

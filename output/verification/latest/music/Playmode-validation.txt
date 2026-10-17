@@ -1,0 +1,4 @@
+PASS: Pizzeria_Night_Base, 48s stereo, peak 0.531, RMS 0.152; bounded level and continuous loop seam.
+PASS: Pizzeria_Night_Tension, 48s stereo, peak 0.536, RMS 0.122; bounded level and continuous loop seam.
+PASS: synchronized scheduled playback and real sample-clock wrap; pressure raises the tension stem; rupture ducks music and fade-in restores it; restart retains one score and two original sources.
+Scope: actual Unity Play-mode source/sample state, PCM levels, loop seam, pressure mix and rupture/fade behavior. Speaker listening is not verified.

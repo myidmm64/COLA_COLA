@@ -15,7 +15,7 @@ namespace ColaCola.Presentation
         public void Fire(bool boss)
         {
             started = Time.unscaledTime;
-            strength = boss ? .42f : 1;
+            strength = boss ? .62f : 1;
         }
 
         public void Clear()
@@ -31,11 +31,11 @@ namespace ColaCola.Presentation
             float t = Time.unscaledTime - started;
             CurrentOffset = CurrentEuler = Vector3.zero;
             if (t < 0 || t >= .85f) return;
-            float decay = Mathf.Exp(-t * 7) * (1 - Mathf.SmoothStep(0, 1, Mathf.InverseLerp(.6f, .85f, t)));
+            float decay = Mathf.Exp(-t * 8.5f) * (1 - Mathf.SmoothStep(0, 1, Mathf.InverseLerp(.5f, .85f, t)));
             float kick = (1 - Mathf.Exp(-t * 100)) * decay * strength;
-            CurrentOffset = new Vector3(Mathf.Sin(t * 83) * .008f, -.011f, -.028f) * kick;
-            CurrentEuler = new Vector3(-2.2f + Mathf.Sin(t * 62) * .65f,
-                Mathf.Sin(t * 83) * .6f, Mathf.Sin(t * 49 + .4f) * 1.1f) * kick;
+            CurrentOffset = new Vector3(Mathf.Sin(t * 83) * .018f, -.024f, -.072f) * kick;
+            CurrentEuler = new Vector3(-5.5f + Mathf.Sin(t * 62) * 1.1f,
+                Mathf.Sin(t * 83) * 1.4f, Mathf.Sin(t * 49 + .4f) * 2.4f) * kick;
             state.PositionCorrection += state.GetCorrectedOrientation() * CurrentOffset;
             state.OrientationCorrection *= Quaternion.Euler(CurrentEuler);
         }

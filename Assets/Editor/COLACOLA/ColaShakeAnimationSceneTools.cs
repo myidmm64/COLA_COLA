@@ -94,7 +94,7 @@ namespace ColaCola.Editor
                         if (driver.IsPlaying || !driver.playerAnimator.enabled ||
                             !driver.playerAnimator.GetCurrentAnimatorStateInfo(0).IsName("Idle"))
                             throw new InvalidOperationException("Stopping the automatic preview did not restore Idle.");
-                        File.WriteAllText(Output + "/Automatic-preview-validation.txt",
+                        ProjectVerificationBridge.WriteReport(Output + "/Automatic-preview-validation.txt",
                             "PASS: entering Play automatically starts the player hand preview without clicks or menu actions.\n" +
                             "PASS: two preview cycles use a live Animator/PlayableGraph and the original right hand stays on the bottle's right side.\n" +
                             "PASS: stop returns the actor and bottle to Idle; the saved scene keeps previewPlayerOnPlay enabled.\n");
@@ -161,7 +161,7 @@ namespace ColaCola.Editor
                         throw new InvalidOperationException("Authored rest placement changed: " + pair.Key);
                 AssetDatabase.SaveAssets();
                 if (!EditorSceneManager.SaveScene(scene, MainSceneTools.ScenePath)) throw new IOException("MainScene save failed.");
-                File.WriteAllText(Output + "/Placement-preservation.txt",
+                ProjectVerificationBridge.WriteReport(Output + "/Placement-preservation.txt",
                     $"PASS: {preserved.Count} existing transforms, root scales, seated poses, camera, cola, devices, inventories and lighting preserved.\n" +
                     "Updated own-hand bindings and six actor/bottle clip pairs. Original Idle clips/controllers and imported FBX assets are unchanged.\n");
                 MainSceneTools.WriteReport(root, Camera.main);
@@ -232,7 +232,7 @@ namespace ColaCola.Editor
         private static Transform Find(GameObject root, string name) => root.GetComponentsInChildren<Transform>(true).Single(t => t.name == name);
         private static void Fail(Exception exception)
         {
-            Directory.CreateDirectory(Output); File.WriteAllText(Output + "/Animation-error.txt", exception.ToString());
+            Directory.CreateDirectory(Output); ProjectVerificationBridge.WriteReport(Output + "/Animation-error.txt", exception.ToString());
             Debug.LogException(exception);
             if (Application.isBatchMode) EditorApplication.Exit(2);
             else throw new InvalidOperationException("Cola shake animation authoring failed.", exception);

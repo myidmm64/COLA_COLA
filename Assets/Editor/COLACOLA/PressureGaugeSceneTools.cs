@@ -112,7 +112,7 @@ namespace ColaCola.Editor
             report.AppendLine("World bounds size: " + bounds.size.ToString("F4"));
             report.AppendLine("Dynamic readouts: public bottle limit on final tick; expected burst probability in the former 15 window.");
             report.AppendLine("Strength selection previews only; the central cola collider confirms the pressure action.");
-            File.WriteAllText(ReportPath, report.ToString());
+            ProjectVerificationBridge.WriteReport(ReportPath, report.ToString());
         }
 
         private static void CaptureCloseup(GameObject gauge)

@@ -84,7 +84,7 @@ namespace ColaCola.Editor
             }
             finally { bottleRest.Apply(bottle); }
             AssetDatabase.SaveAssets();
-            File.WriteAllText("output/shake-animation/Animation-authoring-validation.txt", report.ToString());
+            ProjectVerificationBridge.WriteReport("output/shake-animation/Animation-authoring-validation.txt", report.ToString());
         }
 
         public static string ActorClipPath(bool boss, int strength) => Folder + "/" + (boss ? "Boss" : "Player") + "_ColaShake_" + strength + ".anim";
@@ -96,7 +96,7 @@ namespace ColaCola.Editor
             BuildActor(Find(sceneRoot.transform, CharacterIdleFactory.ArmsName),
                 Find(sceneRoot.transform, "HeroCola_ExistingModel"), false, report);
             AssetDatabase.SaveAssets();
-            File.WriteAllText("output/shake-animation/Player-RightSide-authoring.txt", report.ToString());
+            ProjectVerificationBridge.WriteReport("output/shake-animation/Player-RightSide-authoring.txt", report.ToString());
         }
 
         private static void BuildActor(Transform actor, Transform bottle, bool boss, StringBuilder report)

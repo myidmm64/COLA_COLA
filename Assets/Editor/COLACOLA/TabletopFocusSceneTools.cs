@@ -112,7 +112,7 @@ namespace ColaCola.Editor
                 Require(match && match.interaction.SelectStrength(3) && match.interaction.gauge.HasPrediction,
                     "The pressure forecast must still work with the new materials.");
                 match.RestartRun(123);
-                File.WriteAllText(Output + "/Glare-playmode-validation.txt",
+                ProjectVerificationBridge.WriteReport(Output + "/Glare-playmode-validation.txt",
                     "PASS: live Play-mode gauge point light disabled, intensity 0.\n" +
                     "PASS: original gauge dial plus ALL active console/key materials are non-emissive and have specular/environment reflections disabled.\n" +
                     "PASS: live Play-mode Volume profile has Bloom intensity 0; authored clamp 2. Film grain, colour grading and exposure retained.\n" +
@@ -175,7 +175,7 @@ namespace ColaCola.Editor
                 report.AppendLine($"PASS: {untouched.Count} unrelated transforms, including camera, cola, three keys, both inventories, actors and lights, are preserved.");
                 report.AppendLine("Gauge/console use matte materials without specular/environment reflections; the local gauge fill is disabled and scene Bloom intensity is zero.");
                 report.AppendLine("Existing cola label light: intensity 0.55 -> 0.90, cone 40 -> 46 degrees, warmer tint. No new lights or glow materials.");
-                File.WriteAllText(Output + "/Focus-validation.txt", report.ToString());
+                ProjectVerificationBridge.WriteReport(Output + "/Focus-validation.txt", report.ToString());
                 AssetDatabase.SaveAssets();
                 Require(EditorSceneManager.SaveScene(scene, MainSceneTools.ScenePath), "Could not save MainScene.");
                 MainSceneTools.WriteReport(root, camera);

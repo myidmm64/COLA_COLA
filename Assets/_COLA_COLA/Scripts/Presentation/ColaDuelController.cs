@@ -46,7 +46,7 @@ namespace ColaCola.Presentation
             interaction.ShakeResolved += OnShakeResolved;
         }
 
-        public void RestartRun(int? seed = null)
+        public void RestartRun(int? seed = null, bool fadeIn = false)
         {
             if (!Application.IsPlaying(gameObject) || !isActiveAndEnabled || !interaction || !terminal) return;
             Subscribe();
@@ -56,6 +56,7 @@ namespace ColaCola.Presentation
             Items.ResetRun(seed);
             GetComponent<ColaBossItemAI>().ResetDecisions(seed);
             BeginDuel(seed);
+            if (fadeIn) interaction.RevealNewRound();
         }
 
         public bool ContinueToNextBoss()
@@ -68,6 +69,7 @@ namespace ColaCola.Presentation
             Items.ResetBossInventory();
             GetComponent<ColaBossItemAI>().ResetDecisions();
             BeginDuel();
+            interaction.RevealNewRound();
             return true;
         }
 
@@ -75,6 +77,7 @@ namespace ColaCola.Presentation
         {
             TabletopReadability.Apply(transform.root);
             ColaCameraBreathing.EnsureFor(transform.root);
+            ColaDuelMusic.EnsureFor(this);
             playerMaxHealth = Mathf.Clamp(playerMaxHealth, 1, 99);
             bossBaseHealth = Mathf.Clamp(bossBaseHealth, 1, 99);
             PlayerHealth = playerMaxHealth;
@@ -163,11 +166,11 @@ namespace ColaCola.Presentation
                 terminal.SetActiveParticipant(IsPlayerTurn);
             var keyboard = Keyboard.current;
             if (keyboard == null) return;
-            if (keyboard.rKey.wasPressedThisFrame) RestartRun();
+            if (keyboard.rKey.wasPressedThisFrame) RestartRun(fadeIn: State != DuelState.Playing);
             else if (State != DuelState.Playing && !interaction.IsBusy && keyboard.enterKey.wasPressedThisFrame)
             {
                 if (State == DuelState.Won) ContinueToNextBoss();
-                else RestartRun();
+                else RestartRun(fadeIn: true);
             }
         }
 

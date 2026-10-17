@@ -8,4 +8,4 @@
 
 `PressureGaugeDisplay.ProbabilityText`는 정확한 목표값이고 `DisplayedProbabilityText`는 현재 실제 메시 숫자 표시값이다. `DisplayedPreviewAngle`, `DisplayedProbability`, `IsPreviewAnimating`으로 전환 상태를 확인한다. 실시간 전환은 `forecastTransitionSeconds`로 조정한다.
 
-적용 메뉴는 `COLA_COLA > Apply Livelier Idle and Animated Forecast`다. 검증은 Play 모드에서 전체 Idle 반복, 손 지지, Cinemachine의 실제 출력 위치·회전, 버튼 1→3→2의 연속 선택과 중간 표시값, 확정 후 보스 차례 및 재시작을 검사한다. 결과는 `output/presentation-motion/Playmode-validation.txt`다. 프리뷰 카메라·별도 렌더·연속 캡처는 생성하지 않는다. 자동 상태 검사 결과를 Game 뷰의 시각 검증으로 표현하지 않는다.
+적용 메뉴는 `COLA_COLA > Apply Livelier Idle and Animated Forecast`다. 검증은 Play 모드에서 전체 Idle 반복, 손 지지, Cinemachine의 실제 출력 위치·회전, 버튼 1→3→2의 연속 선택과 중간 표시값, 확정 후 보스 차례 및 재시작을 검사한다. 결과는 `output/verification/latest/presentation-motion/Playmode-validation.txt`다. 프리뷰 카메라·별도 렌더·연속 캡처는 생성하지 않는다. 자동 상태 검사 결과를 Game 뷰의 시각 검증으로 표현하지 않는다.

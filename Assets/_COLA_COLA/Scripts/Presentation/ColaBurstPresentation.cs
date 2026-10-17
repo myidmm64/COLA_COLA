@@ -10,25 +10,31 @@ namespace ColaCola.Presentation
     [DisallowMultipleComponent, DefaultExecutionOrder(2000)]
     public sealed class ColaBurstPresentation : MonoBehaviour
     {
-        public enum BurstStage { Idle, Strain, Rupture, Recovery }
+        public enum BurstStage { Idle, Strain, Rupture, Recovery, Blackout, FadeIn }
         [Range(0, 1)] public float soundVolume = .72f;
         public BurstStage Stage { get; private set; }
         public int BurstCount { get; private set; }
         public bool LastBurstWasBoss { get; private set; }
         public bool HasFlyingCap => flyingCap && flyingCap.activeSelf;
-        public int LiveParticles => (liquid ? liquid.particleCount : 0) + (foam ? foam.particleCount : 0) + (mist ? mist.particleCount : 0);
+        public int LiveParticles => (liquid ? liquid.particleCount : 0) + (foam ? foam.particleCount : 0) + (mist ? mist.particleCount : 0) +
+            (blastCloud ? blastCloud.particleCount : 0) + (fragments ? fragments.particleCount : 0);
         public int EmittedParticleCount { get; private set; }
         public float LensOpacity { get; private set; }
+        public float FlashOpacity { get; private set; }
+        public float BlackoutOpacity { get; private set; }
+        public float ShockwaveRadius { get; private set; }
         public float MaximumAudioSample { get; private set; }
         public ColaBurstCameraImpulse CameraImpulse { get; private set; }
 
         private ShakeSelectionInteraction owner;
-        private GameObject runtimeRoot, flyingCap;
-        private ParticleSystem liquid, foam, mist;
+        private GameObject runtimeRoot, flyingCap, shockwave;
+        private ParticleSystem liquid, foam, mist, blastCloud, fragments;
+        private Light blastLight;
         private AudioSource fluidAudio, impactAudio, capAudio;
         private AudioClip strainSound, ruptureSound, capSound;
         private Material sprayMaterial, dropMaterial;
-        private Mesh dropMesh, puddleMesh;
+        private Mesh dropMesh, puddleMesh, shockwaveMesh;
+        private Color[] shockwaveColors;
         private Texture2D sprayTexture, vignetteTexture;
         private readonly List<Renderer> capRenderers = new List<Renderer>();
         private readonly List<bool> capVisibility = new List<bool>();
@@ -91,6 +97,7 @@ namespace ColaCola.Presentation
             if (CameraImpulse) CameraImpulse.Fire(boss);
             LaunchCap();
             EmitSpray(boss);
+            EmitBlast();
             CreatePuddles();
             lensSpots.Clear();
             if (!boss)
@@ -105,17 +112,59 @@ namespace ColaCola.Presentation
             {
                 if (version != generation) yield break;
                 float t = Time.unscaledTime - impactAt;
+                // Cover the authored set-down jump and all bottle/health resets before revealing the table.
+                BlackoutOpacity = Mathf.SmoothStep(0, 1, Mathf.InverseLerp(.34f, .56f, t));
                 if (t >= nextSpurt && t < .43f)
                 {
                     nextSpurt += .05f;
                     EmitJetSpurt(boss);
                 }
-                Stage = t < .15f ? BurstStage.Rupture : BurstStage.Recovery;
-                if (owner.shakeAnimator) owner.shakeAnimator.SetBurstRecoil((1 - Mathf.Exp(-t * 90)) * Mathf.Exp(-t * 4));
+                Stage = BlackoutOpacity >= 1 ? BurstStage.Blackout : t < .15f ? BurstStage.Rupture : BurstStage.Recovery;
+                if (owner.shakeAnimator) owner.shakeAnimator.SetBurstRecoil((1 - Mathf.Exp(-t * 110)) * Mathf.Exp(-t * 5.5f));
                 yield return null;
             }
             if (owner.shakeAnimator) owner.shakeAnimator.SetBurstRecoil(0);
+            BlackoutOpacity = 1;
+            Stage = BurstStage.Blackout;
+        }
+
+        /// <summary>Called only after the original hands, new bottle and rule callback are restored under black.</summary>
+        public IEnumerator RevealAfterBurst()
+        {
+            EnsureResources();
+            int version = generation;
+            BlackoutOpacity = 1;
+            Stage = BurstStage.Blackout;
+            ClearImpactVisuals();
+            // Let the live Animator, Cinemachine and terminal settle without showing their reset.
+            float started = Time.unscaledTime;
+            while (Time.unscaledTime - started < .22f)
+            { if (version != generation) yield break; yield return null; }
+            Stage = BurstStage.FadeIn;
+            started = Time.unscaledTime;
+            while (Time.unscaledTime - started < .82f)
+            {
+                if (version != generation) yield break;
+                BlackoutOpacity = 1 - Mathf.SmoothStep(0, 1, (Time.unscaledTime - started) / .82f);
+                yield return null;
+            }
+            if (version != generation) yield break;
+            BlackoutOpacity = 0;
             Stage = BurstStage.Idle;
+        }
+
+        private void ClearImpactVisuals()
+        {
+            impactAt = -100;
+            LensOpacity = FlashOpacity = ShockwaveRadius = 0;
+            if (CameraImpulse) CameraImpulse.Clear();
+            if (blastLight) blastLight.enabled = false;
+            if (shockwave) shockwave.SetActive(false);
+            foreach (var particles in new[] { liquid, foam, mist, blastCloud, fragments })
+                if (particles) particles.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            if (flyingCap) flyingCap.SetActive(false);
+            foreach (var puddle in puddles) if (puddle) Release(puddle.gameObject);
+            puddles.Clear(); lensSpots.Clear();
         }
 
         public void FinishShake()
@@ -133,19 +182,13 @@ namespace ColaCola.Presentation
             Stage = BurstStage.Idle;
             anticipation = 0;
             shaking = false;
-            impactAt = -100;
-            LensOpacity = 0;
+            BlackoutOpacity = 0;
+            ClearImpactVisuals();
             if (owner && owner.shakeAnimator) owner.shakeAnimator.SetBurstRecoil(0);
             if (CameraImpulse) CameraImpulse.Clear();
             if (fluidAudio) fluidAudio.Stop();
             if (impactAudio) impactAudio.Stop();
             if (capAudio) capAudio.Stop();
-            if (liquid) liquid.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
-            if (foam) foam.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
-            if (mist) mist.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
-            if (flyingCap) flyingCap.SetActive(false);
-            foreach (var puddle in puddles) if (puddle) Release(puddle.gameObject);
-            puddles.Clear(); lensSpots.Clear();
             RestoreCap();
             if (owner && owner.bottle && bottleScale.sqrMagnitude > 0) owner.bottle.localScale = bottleScale;
         }
@@ -154,6 +197,25 @@ namespace ColaCola.Presentation
         {
             if (!owner || !owner.bottle || !runtimeRoot) return;
             float t = Time.unscaledTime - impactAt;
+            FlashOpacity = t < 0 || t > .17f ? 0 : .88f * Mathf.Exp(-t * 26);
+            if (blastLight)
+            {
+                blastLight.enabled = t >= 0 && t < .16f;
+                blastLight.intensity = 7 * Mathf.Exp(-Mathf.Max(0, t) * 32);
+            }
+            if (shockwave)
+            {
+                bool live = t >= 0 && t < .30f;
+                shockwave.SetActive(live);
+                if (live)
+                {
+                    ShockwaveRadius = Mathf.Lerp(.04f, 1.35f, 1 - Mathf.Pow(1 - t / .30f, 2));
+                    shockwave.transform.localScale = Vector3.one * ShockwaveRadius;
+                    float alpha = .66f * Mathf.Pow(1 - t / .30f, 2);
+                    for (int i = 0; i < shockwaveColors.Length; i++) shockwaveColors[i] = new Color(.95f, .74f, .39f, alpha);
+                    shockwaveMesh.colors = shockwaveColors;
+                }
+            }
             if (anticipation > 0)
                 owner.bottle.localScale = Vector3.Scale(bottleScale,
                     new Vector3(1 + anticipation * .035f, 1 - anticipation * .008f, 1 + anticipation * .035f));
@@ -295,6 +357,41 @@ namespace ColaCola.Presentation
             }
         }
 
+        private void EmitBlast()
+        {
+            Vector3 origin = MouthPosition();
+            blastLight.transform.position = origin;
+            shockwave.transform.SetPositionAndRotation(origin, owner.playerCamera.transform.rotation);
+            blastCloud.Play(); fragments.Play();
+            // A dense hot pressure core punches out first, followed by darker rolling vapour.
+            for (int i = 0; i < 72; i++)
+            {
+                Vector3 direction = new Vector3(Range(-1, 1), Range(-.25f, 1), Range(-1, 1)).normalized;
+                bool core = i < 24;
+                blastCloud.Emit(new ParticleSystem.EmitParams
+                {
+                    position = origin + direction * .025f,
+                    velocity = direction * (core ? Range(2, 4.5f) : Range(.7f, 2.0f)),
+                    startLifetime = core ? Range(.08f, .18f) : Range(.45f, .9f),
+                    startSize = core ? Range(.15f, .32f) : Range(.18f, .38f),
+                    startColor = core ? new Color(1, .77f, .30f, .85f) : new Color(.24f, .19f, .13f, .58f)
+                }, 1);
+                EmittedParticleCount++;
+            }
+            for (int i = 0; i < 28; i++)
+            {
+                fragments.Emit(new ParticleSystem.EmitParams
+                {
+                    position = origin,
+                    velocity = new Vector3(Range(-3.2f, 3.2f), Range(.4f, 4.4f), Range(-2.8f, 2.8f)),
+                    startLifetime = Range(.3f, .85f), startSize = Range(.018f, .055f),
+                    rotation3D = new Vector3(Range(0, 360), Range(0, 360), Range(0, 360)),
+                    startColor = i % 3 == 0 ? new Color(.70f, .14f, .045f, 1) : new Color(.18f, .22f, .12f, 1)
+                }, 1);
+                EmittedParticleCount++;
+            }
+        }
+
         private void EmitJetSpurt(bool boss)
         {
             for (int i = 0; i < 12; i++)
@@ -336,6 +433,33 @@ namespace ColaCola.Presentation
             liquid = ParticleLayer("Brown ballistic droplets", .8f, true);
             foam = ParticleLayer("Cream foam beads", .55f, false);
             mist = ParticleLayer("Fine spray cloud", .05f, false);
+            blastCloud = ParticleLayer("Explosive pressure core and vapour", -.06f, false);
+            fragments = ParticleLayer("PET and label fragments", 1, true);
+            var spin = fragments.rotationOverLifetime; spin.enabled = true; spin.separateAxes = true;
+            spin.x = 7; spin.y = 11; spin.z = 9;
+            var lightObject = new GameObject("Single rupture light pulse"); lightObject.transform.SetParent(runtimeRoot.transform, false);
+            blastLight = lightObject.AddComponent<Light>(); blastLight.type = LightType.Point;
+            blastLight.color = new Color(1, .71f, .33f); blastLight.range = 3; blastLight.shadows = LightShadows.None;
+            blastLight.enabled = false;
+            shockwave = new GameObject("Expanding pressure shock ring", typeof(MeshFilter), typeof(MeshRenderer));
+            shockwave.transform.SetParent(runtimeRoot.transform, false);
+            const int ringSegments = 40;
+            var ringVertices = new Vector3[ringSegments * 2]; var ringTriangles = new int[ringSegments * 6];
+            shockwaveColors = new Color[ringVertices.Length];
+            for (int i = 0; i < ringSegments; i++)
+            {
+                float a = i * Mathf.PI * 2 / ringSegments; Vector3 radial = new Vector3(Mathf.Cos(a), Mathf.Sin(a), 0);
+                ringVertices[i * 2] = radial * .94f; ringVertices[i * 2 + 1] = radial;
+                int next = (i + 1) % ringSegments * 2, at = i * 6;
+                ringTriangles[at] = i * 2; ringTriangles[at + 1] = next; ringTriangles[at + 2] = i * 2 + 1;
+                ringTriangles[at + 3] = i * 2 + 1; ringTriangles[at + 4] = next; ringTriangles[at + 5] = next + 1;
+            }
+            shockwaveMesh = new Mesh { name = "Low poly expanding blast ring", hideFlags = HideFlags.DontSave,
+                vertices = ringVertices, triangles = ringTriangles, colors = shockwaveColors };
+            shockwaveMesh.RecalculateBounds();
+            shockwave.GetComponent<MeshFilter>().sharedMesh = shockwaveMesh;
+            var ringRenderer = shockwave.GetComponent<MeshRenderer>(); ringRenderer.sharedMaterial = dropMaterial;
+            ringRenderer.shadowCastingMode = ShadowCastingMode.Off; shockwave.SetActive(false);
             fluidAudio = Source("Fluid and PET strain", .7f);
             impactAudio = Source("Rupture and pressure tail", .35f);
             capAudio = Source("Cap table impact", 1);
@@ -351,7 +475,7 @@ namespace ColaCola.Presentation
             var plane = new GameObject("Tabletop liquid collision plane");
             plane.transform.SetParent(runtimeRoot.transform, false);
             plane.transform.position = Vector3.up * tableY;
-            foreach (var particles in new[] { liquid, foam })
+            foreach (var particles in new[] { liquid, foam, fragments })
             {
                 var collision = particles.collision;
                 collision.enabled = true; collision.type = ParticleSystemCollisionType.Planes;
@@ -439,13 +563,21 @@ namespace ColaCola.Presentation
         private void OnGUI()
         {
             float t = Time.unscaledTime - impactAt;
-            if (!runtimeRoot || t < 0 || t > 2.25f || Event.current.type != EventType.Repaint) return;
-            Color previous = GUI.color; int depth = GUI.depth; GUI.depth = -2;
-            GUI.color = new Color(.05f, .025f, .012f, (LastBurstWasBoss ? .1f : .42f) * Mathf.Exp(-t * 2.8f));
-            GUI.DrawTexture(new Rect(0, 0, Screen.width, Screen.height), vignetteTexture);
-            GUI.color = new Color(.24f, .10f, .025f, LensOpacity);
-            foreach (var spot in lensSpots)
-                GUI.DrawTexture(new Rect(spot.x * Screen.width, (spot.y + t * .015f) * Screen.height, spot.width * Screen.width, spot.height * Screen.height), sprayTexture);
+            if (!runtimeRoot || Event.current.type != EventType.Repaint) return;
+            Color previous = GUI.color; int depth = GUI.depth; GUI.depth = -10000;
+            var screen = new Rect(0, 0, Screen.width, Screen.height);
+            if (t >= 0 && t <= 2.25f)
+            {
+                GUI.color = new Color(.05f, .025f, .012f, (LastBurstWasBoss ? .1f : .42f) * Mathf.Exp(-t * 2.8f));
+                GUI.DrawTexture(screen, vignetteTexture);
+                GUI.color = new Color(.24f, .10f, .025f, LensOpacity);
+                foreach (var spot in lensSpots)
+                    GUI.DrawTexture(new Rect(spot.x * Screen.width, (spot.y + t * .015f) * Screen.height, spot.width * Screen.width, spot.height * Screen.height), sprayTexture);
+                GUI.color = new Color(1, .89f, .65f, FlashOpacity);
+                GUI.DrawTexture(screen, Texture2D.whiteTexture);
+            }
+            GUI.color = new Color(0, 0, 0, BlackoutOpacity);
+            GUI.DrawTexture(screen, Texture2D.whiteTexture);
             GUI.color = previous; GUI.depth = depth;
         }
 
@@ -463,7 +595,7 @@ namespace ColaCola.Presentation
         {
             CancelAndRestore();
             foreach (var resource in new UnityEngine.Object[] { runtimeRoot, sprayMaterial, dropMaterial, sprayTexture, vignetteTexture,
-                dropMesh, puddleMesh, strainSound, ruptureSound, capSound }) Release(resource);
+                dropMesh, puddleMesh, shockwaveMesh, strainSound, ruptureSound, capSound }) Release(resource);
         }
     }
 }

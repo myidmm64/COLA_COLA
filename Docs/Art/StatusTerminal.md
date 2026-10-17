@@ -8,7 +8,7 @@
 
 몸체는 URP Lit, CRT 내용은 URP Unlit 재질을 사용한다. 화면의 그림자 투사·수신은 꺼서 작은 글자가 주변 조명에 묻히지 않게 했다. 문자·체력 칸·주사선은 평면 픽셀 메시이며, 저장된 예시 값 기준 메시 인스턴스 56개와 삼각형 3,470개다. 재생성 시 기존 메시를 직접 갱신하고 GPU 버퍼도 갱신하여 에셋 GUID와 화면 표시를 유지한다.
 
-플레이어 화면에서 왼쪽부터 **단말기 → 압력계 → 중앙 콜라** 순서로 배치했다. 저장된 단말기 위치는 `(-1.05, 0.833, 0.45)`, Y 회전은 `330.422°`다. 버튼 콘솔은 `(-0.34, 0.90, -0.10)`, 압력계는 `(-0.3602, 1.1522, -0.0226)`이며 둘의 Y 회전은 약 `345.34°`다. 압력계는 시선 균형 조정에서 배율 `0.82`로 줄이고 받침 접촉 위치를 유지하도록 낮췄다. 단말기·콘솔·카메라·캐릭터·기존 Idle은 보존했다. 정확한 저장값은 `output/scene-layout/MainScene-layout.txt`를 따른다.
+플레이어 화면에서 왼쪽부터 **단말기 → 압력계 → 중앙 콜라** 순서로 배치했다. 저장된 단말기 위치는 `(-1.05, 0.833, 0.45)`, Y 회전은 `330.422°`다. 버튼 콘솔은 `(-0.34, 0.90, -0.10)`, 압력계는 `(-0.3602, 1.1522, -0.0226)`이며 둘의 Y 회전은 약 `345.34°`다. 압력계는 시선 균형 조정에서 배율 `0.82`로 줄이고 받침 접촉 위치를 유지하도록 낮췄다. 단말기·콘솔·카메라·캐릭터·기존 Idle은 보존했다. 정확한 저장값은 `output/verification/latest/scene-layout/MainScene-layout.txt`를 따른다.
 
 ## 저장 파일
 
@@ -64,9 +64,9 @@ terminal.SetActiveParticipant(isPlayerTurn);
 | 메인 카메라 미리보기 | `output/status-terminal/MainScene-StatusTerminal.png` |
 | 단말기 근접 이미지 | `output/status-terminal/StatusTerminal-closeup.png` |
 | 실제 값 변경 예시 | `output/status-terminal/MainScene-ReadoutChange.png` |
-| 저장본·배치·바인딩 검사 | `output/status-terminal/StatusTerminal-validation.txt` |
-| 다른 오브젝트 배치 보존 | `output/status-terminal/Placement-preservation.txt` |
-| 실제 Play 검사 | `output/status-terminal/Display-playmode-validation.txt` |
+| 저장본·배치·바인딩 검사 | `output/verification/latest/status-terminal/StatusTerminal-validation.txt` |
+| 다른 오브젝트 배치 보존 | `output/verification/latest/status-terminal/Placement-preservation.txt` |
+| 실제 Play 검사 | `output/verification/latest/status-terminal/Display-playmode-validation.txt` |
 
 공용 씬 미리보기 `output/scene-layout/MainScene-preview.png`도 적용 결과로 갱신된다.
 

@@ -24,7 +24,7 @@ MainScene의 압력계와 1·2·3 버튼 콘솔을 플레이어가 앉은 방향
 
 `Assets/Editor/COLACOLA/PlayerFacingDeviceLayout.cs`가 장치의 로컬 정면 **-Z**를 플레이어 카메라 방향으로 맞춘다. 콘솔의 중심을 회전 피벗으로 사용하고 압력계의 상대 위치도 같은 각도로 돌린다. 기존 상판 경사·장착 높이·압력계와 콘솔 사이 간격을 유지한다. 이미 정렬된 장치에 다시 실행해도 회전이 누적되지 않는다.
 
-현재 압력계 위치는 `(-0.3602, 1.1522, -0.0226)`, 배율은 `0.82`다. 중앙 콜라와의 시선 균형을 위해 압력계만 축소하고 받침 접촉 위치를 유지하도록 낮췄으며, 콘솔과 키의 크기·위치는 유지했다. 정확한 저장 좌표·회전은 `output/scene-layout/MainScene-layout.txt`, 압력계 조정은 `Docs/Art/PressureGauge.md`를 따른다.
+현재 압력계 위치는 `(-0.3602, 1.1522, -0.0226)`, 배율은 `0.82`다. 중앙 콜라와의 시선 균형을 위해 압력계만 축소하고 받침 접촉 위치를 유지하도록 낮췄으며, 콘솔과 키의 크기·위치는 유지했다. 정확한 저장 좌표·회전은 `output/verification/latest/scene-layout/MainScene-layout.txt`, 압력계 조정은 `Docs/Art/PressureGauge.md`를 따른다.
 
 ### 버튼 피벗과 눌림
 
@@ -65,11 +65,11 @@ Animator는 Root Motion을 끄고 `Always Animate`로 설정한다. Idle 상태�
 
 | 출력 | 경로 |
 |---|---|
-| 콘솔 구조·기본 포즈·클립 곡선 검사 | `output/scene-layout/ConsoleIdle-assets-validation.txt` |
-| 장치 방향·조립 간격 검사 | `output/scene-layout/PlayerFacingDevices-validation.txt` |
-| 접지된 손·새 포즈 제작 검사 | `output/scene-layout/NaturalIdle-authoring-validation.txt` |
-| 실제 Play 모드 자동 재생 검사 | `output/scene-layout/Idle-playmode-validation.txt` |
-| 저장본 씬 검사 | `output/scene-layout/MainScene-validation.txt` |
+| 콘솔 구조·기본 포즈·클립 곡선 검사 | `output/verification/latest/scene-layout/ConsoleIdle-assets-validation.txt` |
+| 장치 방향·조립 간격 검사 | `output/verification/latest/scene-layout/PlayerFacingDevices-validation.txt` |
+| 접지된 손·새 포즈 제작 검사 | `output/verification/latest/scene-layout/NaturalIdle-authoring-validation.txt` |
+| 실제 Play 모드 자동 재생 검사 | `output/verification/latest/scene-layout/Idle-playmode-validation.txt` |
+| 저장본 씬 검사 | `output/verification/latest/scene-layout/MainScene-validation.txt` |
 | 압력계와 콘솔 근접 렌더 | `output/scene-layout/ShakeConsole-closeup.png` |
 | 메인 카메라 렌더 | `output/scene-layout/MainScene-preview.png` |
 | Idle 재생 중 렌더 | `output/scene-layout/MainScene-idle-playing.png` |
@@ -89,4 +89,4 @@ Animator는 Root Motion을 끄고 `Always Animate`로 설정한다. Idle 상태�
 
 저장본 재열기 검사에서 Renderer 77개의 재질·셰이더 참조, 카메라·AudioListener 각 1개, 누락 스크립트 0개, 아이템 Cube 4개를 확인했다. `SampleScene.unity`, `URPProjectSettings.asset`, `QualitySettings.asset`, `EditorSettings.asset`의 파일 해시도 작업 전후 동일했다. 상세 결과는 위 검증 기록과 `output/scene-layout/preserved-files-natural-idle.json`에 있다.
 
-단말기 최초 적용에서는 압력계·콘솔 배치 외 월드 Transform 235개와 설정·패키지·Volume·Idle 관련 파일 21개를 보존했다. 실제 Play에서도 두 캐릭터의 기존 Idle이 계속 재생됨을 확인했다. 최신 검증은 `output/status-terminal/Placement-preservation.txt`, `preserved-files-after.json`, `Display-playmode-validation.txt`를 따른다.
+단말기 최초 적용에서는 압력계·콘솔 배치 외 월드 Transform 235개와 설정·패키지·Volume·Idle 관련 파일 21개를 보존했다. 실제 Play에서도 두 캐릭터의 기존 Idle이 계속 재생됨을 확인했다. 최신 검증은 `output/verification/latest/status-terminal/Placement-preservation.txt`, `preserved-files-after.json`, `Display-playmode-validation.txt`를 따른다.

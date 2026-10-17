@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text;
 using ColaCola.Core;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -14,17 +15,22 @@ namespace ColaCola.Presentation
         private Font font;
         private readonly List<Material> ownedMaterials = new();
         private readonly List<Mesh> ownedMeshes = new();
+        private readonly List<Renderer> detailedPrint = new();
         private readonly Collider[] purchaseTargets = new Collider[11];
         private readonly Collider[] nameTargets = new Collider[11];
         private readonly Renderer[] purchaseRenderers = new Renderer[11];
         private readonly GameObject[] itemRows = new GameObject[11];
         private readonly Collider[] removeTargets = new Collider[11];
         private readonly TextMesh[] priceTexts = new TextMesh[11];
+        private readonly TextMesh[] itemNameTexts = new TextMesh[11];
+        private readonly TextMesh[] numberTexts = new TextMesh[11];
+        private readonly Renderer[] rowRenderers = new Renderer[11];
+        private readonly Renderer[] removeRenderers = new Renderer[11];
         private readonly List<ColaItemId> cart = new(ColaItemController.Capacity);
-        private Material available, unavailable;
+        private Material available, unavailable, selectedKey, checkoutReady, rowOdd, rowEven, rowSelected;
         private Collider openTarget, closeTarget, checkoutTarget;
         private Renderer checkoutRenderer;
-        private TextMesh balanceText, statusText, descriptionText, checkoutText;
+        private TextMesh balanceText, inventoryText, descriptionText, descriptionTitle, checkoutText, titleText;
         private bool returning;
         private readonly Vector3 restPosition = new(.37f, .848f, -.37f);
         private readonly Quaternion restRotation = Quaternion.Euler(90, 0, -8);
@@ -79,7 +85,7 @@ namespace ColaCola.Presentation
             if (!CanOpen || returning) return false;
             IsOpen = true;
             IsSettled = false;
-            descriptionText.text = "가격: 담기 / -: 수량 빼기\n아래 주문 확정으로 한 번에 결제";
+            ClearDescription();
             return true;
         }
 
@@ -157,14 +163,21 @@ namespace ColaCola.Presentation
                 (target.Kind == ColaOrderTarget.Action.Buy || target.Kind == ColaOrderTarget.Action.Inspect ||
                     target.Kind == ColaOrderTarget.Action.Remove))
             { ShowDescription(target.Item); return true; }
-            descriptionText.text = "가격: 담기 / -: 수량 빼기\n아래 주문 확정으로 한 번에 결제";
+            ClearDescription();
             return false;
         }
 
         private void ShowDescription(ColaItemId id)
         {
             var definition = ColaItemCatalog.Get(id);
-            descriptionText.text = Wrap(definition.Name + " / " + definition.Effect, 27);
+            descriptionTitle.text = definition.Name;
+            descriptionText.text = Wrap(definition.Effect, 22);
+        }
+
+        private void ClearDescription()
+        {
+            descriptionTitle.text = "";
+            descriptionText.text = "";
         }
 
         public void RefreshAvailability()
@@ -186,18 +199,19 @@ namespace ColaCola.Presentation
         private void Refresh()
         {
             if (!items || !modelRoot) return;
-            bool used = items.ShopUsed();
-            bool canOrder = items.OrderAvailable();
-            balanceText.text = "TOKENS " + items.match.PlayerTokens.ToString("0000") + "   ITEMS " + items.InventoryCount + "/6";
-            statusText.text = used ? "ORDERED  0 / 1" : canOrder ? "ONE ORDER PER COLA" : "ORDERS CLOSED";
-            statusText.color = canOrder ? new Color(.13f, .25f, .17f) : new Color(.50f, .13f, .09f);
-            if (!IsOpen) descriptionText.text = "COLA_COLA PIZZERIA\n새 콜라가 오면 다시 주문";
-            else if (string.IsNullOrEmpty(descriptionText.text) || descriptionText.text.StartsWith("COLA_COLA"))
-                descriptionText.text = "가격: 담기 / -: 수량 빼기\n아래 주문 확정으로 한 번에 결제";
+            // Fine world text aliases at the tabletop's grazing angle. Only draw it while held for reading.
+            foreach (var renderer in detailedPrint) if (renderer) renderer.enabled = IsOpen;
+            titleText.text = IsOpen ? "ORDER MENU" : "ORDER";
+            titleText.characterSize = IsOpen ? .0030f : .006f;
+            titleText.anchor = IsOpen ? TextAnchor.MiddleLeft : TextAnchor.MiddleCenter;
+            titleText.transform.localPosition = IsOpen ? new Vector3(-.128f, .141f, -.009f) : new Vector3(0, .025f, -.009f);
+            balanceText.text = "TOKENS  " + items.match.PlayerTokens.ToString("00");
+            inventoryText.text = "ITEMS  " + items.InventoryCount + " / 6";
+            if (!IsOpen) ClearDescription();
             closeTarget.enabled = IsOpen;
             checkoutTarget.enabled = IsVisible && IsOpen && IsSettled && items.CanPurchaseBatch(cart);
-            checkoutText.text = "ORDER " + cart.Count + "  /  " + CartTotal + " T";
-            checkoutRenderer.sharedMaterial = items.CanPurchaseBatch(cart) ? available : unavailable;
+            checkoutText.text = cart.Count == 0 ? "주문" : "주문   " + cart.Count + "개  /  " + CartTotal + " T";
+            checkoutRenderer.sharedMaterial = items.CanPurchaseBatch(cart) ? checkoutReady : unavailable;
             for (int i = 0; i < purchaseTargets.Length; i++)
             {
                 int menuRow = -1;
@@ -205,12 +219,19 @@ namespace ColaCola.Presentation
                     if (items.BottleMenu[slot] == (ColaItemId)i) { menuRow = slot; break; }
                 bool offered = menuRow >= 0;
                 itemRows[i].SetActive(offered);
-                if (offered) itemRows[i].transform.localPosition = new Vector3(0, .103f - menuRow * .032f, 0);
+                if (offered)
+                {
+                    itemRows[i].transform.localPosition = new Vector3(0, .093f - menuRow * .029f, 0);
+                    numberTexts[i].text = (menuRow + 1).ToString();
+                }
                 purchaseTargets[i].enabled = offered && IsVisible && IsOpen && IsSettled;
                 nameTargets[i].enabled = offered && IsVisible && IsOpen && IsSettled;
                 removeTargets[i].enabled = offered && IsVisible && IsOpen && IsSettled && CartQuantity((ColaItemId)i) > 0;
-                purchaseRenderers[i].sharedMaterial = CanAdd((ColaItemId)i) ? available : unavailable;
                 int quantity = CartQuantity((ColaItemId)i);
+                purchaseRenderers[i].sharedMaterial = CanAdd((ColaItemId)i) ? quantity > 0 ? selectedKey : available : unavailable;
+                removeRenderers[i].sharedMaterial = quantity > 0 ? available : unavailable;
+                rowRenderers[i].sharedMaterial = quantity > 0 ? rowSelected : menuRow % 2 == 0 ? rowEven : rowOdd;
+                itemNameTexts[i].text = ColaItemCatalog.Get((ColaItemId)i).Name;
                 priceTexts[i].text = ColaItemCatalog.Get((ColaItemId)i).Price + " T" + (quantity > 0 ? " x" + quantity : "");
             }
         }
@@ -243,8 +264,19 @@ namespace ColaCola.Presentation
             part.transform.localPosition = position;
             part.transform.localScale = size;
             part.GetComponent<MeshRenderer>().sharedMaterial = material;
+            if (name.StartsWith("OrderKey_") || name.StartsWith("RemoveKey_") || name.StartsWith("Print") ||
+                name == "ConfirmOrder" || name == "ReturnClipboard") detailedPrint.Add(part.GetComponent<MeshRenderer>());
             if (!collider) Destroy(part.GetComponent<Collider>());
             return part;
+        }
+
+        private GameObject Key(string name, Vector3 position, Vector2 size, Material material)
+        {
+            var key = MeshPart(name, Plate(size.x, size.y, .0025f, .004f), material, position);
+            var hit = key.AddComponent<BoxCollider>();
+            hit.size = new Vector3(size.x, size.y, .004f);
+            detailedPrint.Add(key.GetComponent<MeshRenderer>());
+            return key;
         }
 
         private TextMesh Text(string name, string text, Vector3 position, int size, float characterSize, Color color, TextAnchor anchor = TextAnchor.MiddleLeft)
@@ -260,6 +292,7 @@ namespace ColaCola.Presentation
             result.anchor = anchor;
             result.color = color;
             ColaWorldText.Bind(result);
+            if (name != "ReceiptTitle") detailedPrint.Add(part.GetComponent<MeshRenderer>());
             return result;
         }
 
@@ -268,12 +301,20 @@ namespace ColaCola.Presentation
             modelRoot = new GameObject("Pizzeria_OrderClipboard_Runtime") { hideFlags = HideFlags.DontSave };
             modelRoot.transform.SetParent(items.transform.root, false);
             font = Font.CreateDynamicFontFromOSFont(new[] { "Malgun Gothic", "Noto Sans CJK KR", "Arial" }, 64);
-            var board = Surface("Receipt_AgedBoard", new Color(.10f, .16f, .13f));
-            var paper = Surface("Receipt_WarmPaper", new Color(.90f, .84f, .68f));
+            var board = Surface("Receipt_AgedBoard", new Color(.085f, .12f, .105f));
+            var paper = Surface("Receipt_WarmPaper", new Color(.92f, .87f, .73f));
             var metal = Surface("Receipt_Clip", new Color(.24f, .26f, .22f));
-            var rule = Surface("Receipt_PrintRules", new Color(.26f, .29f, .21f));
-            available = Surface("Receipt_OrderKey", new Color(.17f, .30f, .22f));
-            unavailable = Surface("Receipt_DisabledKey", new Color(.27f, .27f, .23f));
+            var rule = Surface("Receipt_PrintRules", new Color(.48f, .44f, .33f));
+            var red = Surface("Receipt_TomatoInk", new Color(.40f, .14f, .095f));
+            var chip = Surface("Receipt_BalanceChip", new Color(.84f, .80f, .65f));
+            var detailPaper = Surface("Receipt_DetailPanel", new Color(.85f, .81f, .66f));
+            available = Surface("Receipt_OrderKey", new Color(.18f, .25f, .19f));
+            unavailable = Surface("Receipt_DisabledKey", new Color(.38f, .39f, .32f));
+            selectedKey = Surface("Receipt_AddedKey", new Color(.40f, .17f, .11f));
+            checkoutReady = red;
+            rowEven = Surface("Receipt_RowEven", new Color(.94f, .90f, .77f));
+            rowOdd = Surface("Receipt_RowOdd", new Color(.89f, .84f, .70f));
+            rowSelected = Surface("Receipt_RowAdded", new Color(.86f, .79f, .61f));
             MeshPart("BeveledClipboard", Plate(.318f, .392f, .018f, .014f), board, new Vector3(0, 0, .007f));
             MeshPart("ReceiptPaper", Plate(.294f, .356f, .006f, .0015f), paper, new Vector3(0, 0, -.005f));
             var fold = new Mesh { name = "ReceiptFoldedCorner", hideFlags = HideFlags.DontSave };
@@ -288,13 +329,21 @@ namespace ColaCola.Presentation
             box.size = new Vector3(.318f, .392f, .020f);
             modelRoot.AddComponent<ColaOrderTarget>().Bind(ColaOrderTarget.Action.Open);
             openTarget = box;
-            Color ink = new(.10f, .15f, .11f), keyInk = new(.84f, .82f, .68f);
-            Text("ReceiptTitle", "PIZZERIA / ORDER", new Vector3(-.128f, .151f, -.009f), 64, .0025f, ink);
-            balanceText = Text("OrderBalance", "", new Vector3(-.128f, .128f, -.009f), 48, .0016f, ink);
-            var close = Block("ReturnClipboard", new Vector3(.131f, .165f, -.011f), new Vector3(.025f, .020f, .006f), board, true);
+            Color ink = new(.10f, .15f, .11f), keyInk = new(.96f, .91f, .77f), redInk = new(.40f, .14f, .095f);
+            Text("RestaurantBrand", "COLA COLA / PIZZERIA", new Vector3(-.128f, .164f, -.009f), 48, .0013f, redInk);
+            titleText = Text("ReceiptTitle", "ORDER MENU", new Vector3(-.128f, .141f, -.009f), 64, .0030f, ink);
+            Block("PrintTokenChip", new Vector3(-.080f, .119f, -.0068f), new Vector3(.100f, .017f, .001f), chip, false);
+            Block("PrintInventoryChip", new Vector3(.079f, .119f, -.0068f), new Vector3(.100f, .017f, .001f), chip, false);
+            balanceText = Text("OrderBalance", "", new Vector3(-.122f, .119f, -.009f), 48, .0016f, ink);
+            inventoryText = Text("OrderInventory", "", new Vector3(.038f, .119f, -.009f), 48, .0016f, ink);
+            Block("PrintHeaderRule", new Vector3(0, .107f, -.007f), new Vector3(.260f, .002f, .001f), red, false);
+            for (int i = 0; i < 8; i++)
+                Block("PrintHeaderCheck_" + i, new Vector3(.032f + i * .009f, .155f, -.007f),
+                    new Vector3(.008f, .006f, .001f), i % 2 == 0 ? red : chip, false);
+            var close = Key("ReturnClipboard", new Vector3(.131f, .166f, -.012f), new Vector2(.022f, .022f), board);
             close.AddComponent<ColaOrderTarget>().Bind(ColaOrderTarget.Action.Close);
             closeTarget = close.GetComponent<Collider>();
-            Text("CloseMark", "X", new Vector3(.131f, .165f, -.015f), 48, .002f, keyInk, TextAnchor.MiddleCenter);
+            Text("CloseMark", "X", new Vector3(.131f, .166f, -.015f), 48, .0019f, keyInk, TextAnchor.MiddleCenter);
             for (int i = 0; i < ColaItemCatalog.All.Count; i++)
             {
                 var definition = ColaItemCatalog.All[i];
@@ -302,43 +351,64 @@ namespace ColaCola.Presentation
                 row.transform.SetParent(modelRoot.transform, false);
                 itemRows[i] = row;
                 float y = 0;
-                var itemName = Text("OrderItem_" + (i + 1), (i + 1).ToString("00") + "  " + definition.Name,
-                    new Vector3(-.128f, y, -.009f), 64, .0022f, ink);
+                var background = Block("PrintRow_" + i, new Vector3(0, y, -.0067f), new Vector3(.270f, .027f, .001f), rowEven, false);
+                background.transform.SetParent(row.transform, false); rowRenderers[i] = background.GetComponent<Renderer>();
+                var badge = Block("PrintNumberBadge_" + i, new Vector3(-.118f, y, -.0085f), new Vector3(.022f, .020f, .001f), red, false);
+                badge.transform.SetParent(row.transform, false);
+                numberTexts[i] = Text("MenuNumber_" + i, "", new Vector3(-.118f, y, -.010f), 48, .0019f, keyInk, TextAnchor.MiddleCenter);
+                numberTexts[i].transform.SetParent(row.transform, false);
+                var itemName = Text("OrderItem_" + (i + 1), definition.Name,
+                    new Vector3(-.098f, y, -.009f), 64, .0022f, ink);
+                itemNameTexts[i] = itemName;
                 itemName.transform.SetParent(row.transform, false);
                 var nameHit = itemName.gameObject.AddComponent<BoxCollider>();
-                nameHit.center = new Vector3(.097f, 0, 0);
+                nameHit.center = new Vector3(.067f, 0, 0);
                 nameHit.size = new Vector3(.194f, .024f, .001f);
                 itemName.gameObject.AddComponent<ColaOrderTarget>().Bind(ColaOrderTarget.Action.Inspect, definition.Id);
                 nameTargets[i] = nameHit;
-                var key = Block("OrderKey_" + (i + 1), new Vector3(.095f, y, -.011f), new Vector3(.037f, .024f, .006f), available, true);
+                var key = Key("OrderKey_" + (i + 1), new Vector3(.092f, y, -.012f), new Vector2(.041f, .024f), available);
                 key.transform.SetParent(row.transform, false);
                 key.AddComponent<ColaOrderTarget>().Bind(ColaOrderTarget.Action.Buy, definition.Id);
                 purchaseTargets[i] = key.GetComponent<Collider>();
                 purchaseRenderers[i] = key.GetComponent<Renderer>();
-                priceTexts[i] = Text("OrderPrice_" + (i + 1), definition.Price + " T", new Vector3(.095f, y, -.015f), 48, .0015f,
+                priceTexts[i] = Text("OrderPrice_" + (i + 1), definition.Price + " T", new Vector3(.092f, y, -.015f), 48, .0017f,
                     keyInk, TextAnchor.MiddleCenter);
                 priceTexts[i].transform.SetParent(row.transform, false);
-                var minus = Block("RemoveKey_" + (i + 1), new Vector3(.127f, y, -.011f), new Vector3(.018f, .024f, .006f), unavailable, true);
+                var minus = Key("RemoveKey_" + (i + 1), new Vector3(.127f, y, -.012f), new Vector2(.019f, .024f), unavailable);
                 minus.transform.SetParent(row.transform, false);
                 minus.AddComponent<ColaOrderTarget>().Bind(ColaOrderTarget.Action.Remove, definition.Id);
                 removeTargets[i] = minus.GetComponent<Collider>();
+                removeRenderers[i] = minus.GetComponent<Renderer>();
                 Text("RemoveMark_" + (i + 1), "-", new Vector3(.127f, y, -.015f), 48, .0018f, keyInk,
                     TextAnchor.MiddleCenter).transform.SetParent(row.transform, false);
-                Block("PrintRule_" + (i + 1), new Vector3(0, y - .015f, -.006f), new Vector3(.26f, .0005f, .0002f), rule,
+                Block("PrintRule_" + (i + 1), new Vector3(0, y - .014f, -.0075f), new Vector3(.26f, .0004f, .0002f), rule,
                     false).transform.SetParent(row.transform, false);
             }
-            descriptionText = Text("ReceiptDescription", "", new Vector3(-.128f, -.102f, -.009f), 48, .0013f, ink);
-            var checkout = Block("ConfirmOrder", new Vector3(0, -.145f, -.011f), new Vector3(.19f, .025f, .006f), available, true);
+            Block("PrintDetailsPanel", new Vector3(0, -.104f, -.0068f), new Vector3(.270f, .066f, .001f), detailPaper, false);
+            Block("PrintDetailsAccent", new Vector3(-.134f, -.104f, -.0075f), new Vector3(.002f, .066f, .001f), red, false);
+            descriptionTitle = Text("ReceiptDescriptionTitle", "", new Vector3(-.122f, -.081f, -.009f), 48, .0017f, redInk);
+            descriptionText = Text("ReceiptDescription", "", new Vector3(-.122f, -.093f, -.009f), 48, .0021f, ink, TextAnchor.UpperLeft);
+            descriptionText.lineSpacing = .95f;
+            var checkout = Key("ConfirmOrder", new Vector3(0, -.154f, -.012f), new Vector2(.254f, .027f), unavailable);
             checkout.AddComponent<ColaOrderTarget>().Bind(ColaOrderTarget.Action.Checkout);
             checkoutTarget = checkout.GetComponent<Collider>(); checkoutRenderer = checkout.GetComponent<Renderer>();
-            checkoutText = Text("ConfirmOrderText", "", new Vector3(0, -.145f, -.015f), 48, .0018f, keyInk, TextAnchor.MiddleCenter);
-            statusText = Text("OrderAllowanceStamp", "", new Vector3(0, -.171f, -.009f), 48, .0012f, ink, TextAnchor.MiddleCenter);
+            checkoutText = Text("ConfirmOrderText", "", new Vector3(0, -.154f, -.015f), 48, .002f, keyInk, TextAnchor.MiddleCenter);
         }
 
         private static string Wrap(string text, int length)
         {
-            for (int at = length; at < text.Length; at += length + 1) text = text.Insert(at, "\n");
-            return text;
+            var result = new StringBuilder();
+            int used = 0;
+            foreach (string word in text.Split(' '))
+            {
+                if (used > 0)
+                {
+                    if (used + 1 + word.Length > length) { result.Append(" \n"); used = 0; }
+                    else { result.Append(' '); used++; }
+                }
+                result.Append(word); used += word.Length;
+            }
+            return result.ToString();
         }
 
         private static Mesh Plate(float width, float height, float corner, float depth)

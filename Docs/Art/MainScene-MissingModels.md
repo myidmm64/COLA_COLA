@@ -18,9 +18,9 @@
 
 | 모델 | 파일 | 완료 범위 |
 |---|---|---|
-| 탁상 압력계 | `Assets/_COLA_COLA/Art/Prefabs/PressureGauge.prefab` | 12각 청록 몸체·이중 테두리·공개 한계 숫자·예상 폭발 확률. 현재 압력 빨간 바늘과 주황색 예측 바늘을 분리했다. 현재 메시 수와 검증은 `output/pressure-interaction/Scene-validation.txt` 참고. |
+| 탁상 압력계 | `Assets/_COLA_COLA/Art/Prefabs/PressureGauge.prefab` | 12각 청록 몸체·이중 테두리·공개 한계 숫자·예상 폭발 확률. 현재 압력 빨간 바늘과 주황색 예측 바늘을 분리했다. 현재 메시 수와 검증은 `output/verification/latest/pressure-interaction/Scene-validation.txt` 참고. |
 | 흔들기 강도 콘솔 | `Assets/_COLA_COLA/Art/Prefabs/ShakeConsole.prefab` | 청록색 경사 몸체, 금속 테두리·소켓, 크림색 1·2 키와 붉은색 3 키, 돌출 픽셀 숫자. 커스텀 메시 18개, 1,808 triangles, 재질 7개. 기존 콘솔 Cube와 버튼 Cube 3개를 교체했다. 각 키는 별도 Transform과 Collider를 갖는다. 저장본 재열기·카메라 렌더를 확인했다. |
-| 체력·토큰 단말기 | `Assets/_COLA_COLA/Art/Prefabs/StatusTerminal.prefab` | 청록색 금속 외장·크림색 베젤·나사·통풍구·전원선과 분리된 CRT 화면. BOSS/PLAYER의 분절형 체력바·HP 숫자·토큰을 실제 메시로 표시한다. 표시 API와 피해/토큰 피드백 포함. 메시·삼각형 수는 `output/status-terminal/StatusTerminal-validation.txt` 참조. |
+| 체력·토큰 단말기 | `Assets/_COLA_COLA/Art/Prefabs/StatusTerminal.prefab` | 청록색 금속 외장·크림색 베젤·나사·통풍구·전원선과 분리된 CRT 화면. BOSS/PLAYER의 분절형 체력바·HP 숫자·토큰을 실제 메시로 표시한다. 표시 API와 피해/토큰 피드백 포함. 메시·삼각형 수는 `output/verification/latest/status-terminal/StatusTerminal-validation.txt` 참조. |
 | 테스트 아이템 6종·서빙 쟁반 | `Assets/_COLA_COLA/Art/Prefabs/TestItems/` | 밸브·냉각팩·접힌 쿠폰·포장 사탕·팽창 뚜껑·스포이트 병을 각각 별도 메시로 제작했다. 양쪽에 같은 소품 6개씩과 실물 쟁반을 배치한다. 효과·클릭 처리는 없는 공간 확인용이다. |
 
 압력계는 `Docs/Art/PressureGauge.md`, 콘솔과 Idle은 `Docs/Art/ShakeConsole-And-Idle.md`, 단말기는 `Docs/Art/StatusTerminal.md`에 정리했다. 압력 선택·미리보기·콜라 클릭 확정과 기본 자동 보스 응답은 `Docs/Gameplay/PressureSelection.md`, `Docs/Art/ColaShakeAnimations.md`를 따른다. 피해·토큰 연동은 아직 없고 단말기의 체력·토큰 값은 예시다.
@@ -68,8 +68,8 @@
 
 이 문서는 컨셉 이미지·생성 프롬프트, 프로젝트 모델 파일 목록, 피자리아 프리팹의 오브젝트 이름과 씬·모델 생성 도구를 기준으로 작성했다. 메인 씬 대상 경로는 `Assets/Scenes/MainScene.unity`다. 모든 메시의 세부 형상, 동작의 자연스러움, 최종 카메라에서의 가림·비율·조명은 목록 조사만으로 검증되지 않는다. 씬 생성·배치·렌더·재생 검증의 완료 여부는 실제 씬과 검증 결과를 기준으로 판단한다.
 
-MainScene 저장·재열기와 카메라 렌더의 기준 기록은 `output/scene-layout/MainScene-validation.txt`, 실제 화면은 `output/scene-layout/MainScene-preview.png`, 배치 설명은 `Docs/Art/MainScene-Layout.md`에 있다. 콘솔 제작 당시의 아이템 Cube 4개는 이번 12개 소품 배치로 교체했다. 실제 Play 모드를 31.01초 실행해 두 캐릭터의 기본 Idle 자동 시작과 30초 경계를 넘는 반복 재생을 확인한 이전 기록은 `output/scene-layout/Idle-playmode-validation.txt`에 있다. 30초 미리보기는 `output/scene-layout/MainScene-natural-idle-preview.gif`다. 콜라 흔들기와 입력·취소·Idle 복귀의 실제 Play 검증은 `output/shake-animation/Playmode-validation.txt`, 구현 설명은 `Docs/Art/ColaShakeAnimations.md`를 따른다.
+MainScene 저장·재열기와 카메라 렌더의 기준 기록은 `output/verification/latest/scene-layout/MainScene-validation.txt`, 실제 화면은 `output/scene-layout/MainScene-preview.png`, 배치 설명은 `Docs/Art/MainScene-Layout.md`에 있다. 콘솔 제작 당시의 아이템 Cube 4개는 이번 12개 소품 배치로 교체했다. 실제 Play 모드를 31.01초 실행해 두 캐릭터의 기본 Idle 자동 시작과 30초 경계를 넘는 반복 재생을 확인한 이전 기록은 `output/verification/latest/scene-layout/Idle-playmode-validation.txt`에 있다. 30초 미리보기는 `output/scene-layout/MainScene-natural-idle-preview.gif`다. 콜라 흔들기와 입력·취소·Idle 복귀의 실제 Play 검증은 `output/verification/latest/shake-animation/Playmode-validation.txt`, 구현 설명은 `Docs/Art/ColaShakeAnimations.md`를 따른다.
 
-단말기 적용 후 왼쪽부터 단말기·압력계·중앙 콜라 순서를 저장본에서 확인했다. 카메라·캐릭터·기존 Idle을 유지했으며 현재 배치는 `output/scene-layout/MainScene-layout.txt`, 단말기 렌더·바인딩·실제 Play 검증은 `output/status-terminal`의 이미지와 보고서를 따른다. 기존 Idle 미리보기는 단말기 추가 전의 제작 검증 기록이다.
+단말기 적용 후 왼쪽부터 단말기·압력계·중앙 콜라 순서를 저장본에서 확인했다. 카메라·캐릭터·기존 Idle을 유지했으며 현재 배치는 `output/verification/latest/scene-layout/MainScene-layout.txt`, 단말기 렌더·바인딩·실제 Play 검증은 `output/status-terminal`의 이미지와 보고서를 따른다. 기존 Idle 미리보기는 단말기 추가 전의 제작 검증 기록이다.
 
 테스트 아이템 12개를 배치한 최신 화면은 `output/item-layout/MainScene-Items.png`다. 아이템 개수·테이블 접촉·간격·가림 검사와 장치 입력 재검증은 `Docs/Art/TestItemLayout.md` 및 `output/item-layout`의 최종 기록을 기준으로 한다.

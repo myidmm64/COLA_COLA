@@ -53,7 +53,7 @@ namespace ColaCola.Editor
             Build(sceneRoot.GetComponentsInChildren<Transform>(true).Single(t => t.name == BossName).gameObject, "Boss_SeatedIdle", true, report);
             Build(sceneRoot.GetComponentsInChildren<Transform>(true).Single(t => t.name == ArmsName).gameObject, "PlayerArms_TableIdle", false, report);
             AssetDatabase.SaveAssets();
-            File.WriteAllText(MainSceneTools.Output + "/NaturalIdle-authoring-validation.txt", report.ToString());
+            ProjectVerificationBridge.WriteReport(MainSceneTools.Output + "/NaturalIdle-authoring-validation.txt", report.ToString());
         }
 
         public static void RebuildBossOnly(GameObject sceneRoot)
@@ -63,7 +63,7 @@ namespace ColaCola.Editor
                 "Boss_SeatedIdle", true, report);
             AssetDatabase.SaveAssets();
             Directory.CreateDirectory("output/presentation-motion");
-            File.WriteAllText("output/presentation-motion/Boss-authoring.txt", report.ToString());
+            ProjectVerificationBridge.WriteReport("output/presentation-motion/Boss-authoring.txt", report.ToString());
         }
 
         private static Transform Bone(GameObject root, string name)
@@ -107,7 +107,7 @@ namespace ColaCola.Editor
                         support.target += Vector3.up * (TableHeight + .003f - HandMinimumY(character, support.wrist));
                         support.Solve();
                     }
-                    File.WriteAllText(referencePath, JsonUtility.ToJson(Snapshot(character), true));
+                    ProjectVerificationBridge.WriteReport(referencePath, JsonUtility.ToJson(Snapshot(character), true));
                 }
                 return;
             }
@@ -159,7 +159,7 @@ namespace ColaCola.Editor
                 support.target += Vector3.up * adjustment;
                 support.Solve();
             }
-            File.WriteAllText(referencePath, JsonUtility.ToJson(Snapshot(character), true));
+            ProjectVerificationBridge.WriteReport(referencePath, JsonUtility.ToJson(Snapshot(character), true));
             foreach (var bone in character.GetComponentsInChildren<Transform>(true))
                 PrefabUtility.RecordPrefabInstancePropertyModifications(bone);
             AssetDatabase.Refresh();

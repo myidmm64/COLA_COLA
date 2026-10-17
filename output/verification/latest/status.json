@@ -1,0 +1,24 @@
+{
+    "id": "9616fa870b974d029090af282f574b6e",
+    "suite": "music",
+    "phase": "passed",
+    "message": "All requested Play checks passed. Original scene setup restored; Editor left open.",
+    "startedUtc": "2026-10-17T09:33:58.2517770Z",
+    "heartbeatUtc": "2026-10-17T09:34:22.6436407Z",
+    "editorProcessId": 26788,
+    "batchMode": false,
+    "success": true,
+    "playMode": false,
+    "frameCount": 0,
+    "passed": [
+        "COLA_MUSIC_PLAYMODE_PASS",
+        "COLA_MAIN_SCENE_VALIDATION_PASS"
+    ],
+    "scenes": [
+        {
+            "path": "Assets/Scenes/MainScene.unity",
+            "isLoaded": true,
+            "isActive": true
+        }
+    ]
+}
