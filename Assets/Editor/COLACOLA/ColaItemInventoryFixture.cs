@@ -9,6 +9,22 @@ namespace ColaCola.Editor
     /// <summary>Editor-only stock earned across earlier bottles. It does not simulate a current-bottle purchase.</summary>
     public static class ColaItemInventoryFixture
     {
+        public static void EnsureMenu(ColaItemController items, params ColaItemId[] required)
+        {
+            if (!Application.isPlaying || items.match.interaction.IsBusy)
+                throw new InvalidOperationException("Menu setup requires an idle Play-mode interaction.");
+            var interaction = items.match.interaction;
+            int limit = interaction.Model.Limit, pressure = interaction.Model.Pressure;
+            for (int attempt = 0; attempt < 2048; attempt++)
+            {
+                bool found = true;
+                foreach (var id in required) if (!items.IsOnMenu(id)) { found = false; break; }
+                if (found) return;
+                interaction.BeginBottle(limit, pressure);
+            }
+            throw new InvalidOperationException("No matching random-menu fixture was found.");
+        }
+
         public static void Clear(ColaItemController items)
         {
             if (!Application.isPlaying) throw new InvalidOperationException("Inventory fixtures require Play mode.");

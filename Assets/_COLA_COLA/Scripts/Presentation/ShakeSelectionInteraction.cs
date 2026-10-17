@@ -165,7 +165,6 @@ namespace ColaCola.Presentation
                 model.SelectStrength(items.ForcedStrength(boss));
             var modifiers = items ? items.PreviewAction(boss) : ItemActionModifiers.None;
             if (!model.TryCommit(() => random.NextDouble(), out result, modifiers.PressureBonus, modifiers.ProbabilityReduction)) return false;
-            if (items) items.EndOrderWindow(boss);
             LastItemModifiers = items ? items.CaptureAction(boss) : modifiers;
             CommittedActionCount++;
             LastResult = result;
@@ -225,6 +224,8 @@ namespace ColaCola.Presentation
             else gauge.Show(model.Pressure, model.Limit, null, null, immediate);
             for (int i = 0; i < 3; i++)
                 strengthButtons[i].localPosition = buttonRest[i] - Vector3.up * (model.SelectedStrength == i + 1 ? .012f : 0);
+            // Coroutine turn completion happens after Update; show the fresh menu with the refreshed controls.
+            if (items) items.GetComponent<ColaOrderSheet>()?.RefreshAvailability();
         }
 
         private bool IsCurrent(int version) => version == sessionVersion && isActiveAndEnabled;
@@ -241,7 +242,6 @@ namespace ColaCola.Presentation
             var sheet = items ? items.GetComponent<ColaOrderSheet>() : null;
             if (sheet && sheet.BlocksGameplay) return false;
             if (!InputEnabled || !HasBindings || !Application.IsPlaying(gameObject) || !isActiveAndEnabled || IsBusy || IsBossTurn) return false;
-            if (items) items.EndOrderWindow(false);
             model.ClearSelection();
             ReleaseButtons();
             RefreshView();
@@ -262,6 +262,7 @@ namespace ColaCola.Presentation
                 IsBossTurn = true;
                 BossPassedTurn = false;
                 BossItemPhase = true;
+                RefreshView();
                 int strength = items && items.ForcedStrength(true) > 0 ? items.ForcedStrength(true) : bossChoiceRandom.Next(1, 4);
                 PlannedBossStrength = strength;
                 yield return new WaitForSecondsRealtime(Mathf.Max(0, bossThinkSeconds));
@@ -285,7 +286,6 @@ namespace ColaCola.Presentation
         public bool PassBossTurn()
         {
             if (!items || !items.CanBossAct) return false;
-            items.EndOrderWindow(true);
             BossPassedTurn = true;
             model.ClearSelection();
             return true;

@@ -252,17 +252,19 @@ namespace ColaCola.Editor
             Shake(1);
             yield return WaitIdle();
             Check(bossResults.Count == 0 && items.BossPurchaseCount == 0 && match.BossTokens == 200, "Skipping a boss turn must skip its shopping/AI too.");
-            Check(!items.OrderAvailable(true), "A skipped first boss opportunity must expire for this bottle.");
+            Check(items.OrderAvailable(true), "A skipped boss turn must preserve its unused same-bottle order.");
             interaction.BeginBottle(999);
+            ColaItemInventoryFixture.EnsureMenu(items, ColaItemId.CarbonationSyrup);
             Shake(1);
             float deadline = Time.unscaledTime + 20;
             while (items.BossPurchaseCount == 0 && Time.unscaledTime < deadline) yield return null;
-            Check(items.BossInventoryCount == 1 && interaction.BossItemPhase, "Cancellation probe must stop during actual visible acquisition.");
+            Check(items.LastBossOrderCount > 0 && items.BossInventoryCount == items.LastBossOrderCount && interaction.BossItemPhase,
+                "Cancellation probe must stop during actual visible batch acquisition.");
             match.RestartRun(5);
             yield return new WaitForSecondsRealtime(3);
             Check(items.BossInventoryCount == 2 && items.InventoryCount == 2 && items.BossPurchaseCount == 0 && match.BossTokens == 0 &&
                 match.PlayerTokens == 0 && !interaction.IsBusy && !interaction.BossItemPhase && !items.HasSkip(false), "Restart must cancel delayed AI use, items, coins, notices and turn flags.");
-            report.AppendLine("PASS: player's skip suppresses boss AI/spending and expires its first opportunity; restart during the purchase display delay cancels all pending boss decisions and restores starter inventories/effects/accounts.");
+            report.AppendLine("PASS: player's skip suppresses boss AI/spending while preserving its unused same-bottle order; restart during the batch purchase display delay cancels all pending boss decisions and restores starter inventories/effects/accounts.");
 
             Fixture();
             int retained = Stock(ColaItemId.IceCup, false);
@@ -319,12 +321,15 @@ namespace ColaCola.Editor
         {
             if (items.BossPurchaseCount <= purchasesSeen) return;
             purchasesSeen = items.BossPurchaseCount;
-            spent += ColaItemCatalog.Get(items.LastBossPurchased.Value).Price;
+            spent += items.LastBossOrderCost;
             for (int i = 0; i < 6; i++) if (items.ItemAt(i, true).HasValue && display.CubeCollider(i, true)) acquiredCubeSeen = true;
         }
         private void BeginBoss(int limit, int pressure = 0)
         {
             interaction.BeginBottle(limit, pressure);
+            // Controlled offers for effect/AI fixtures; the final zero-token economy probe uses unfiltered random menus.
+            ColaItemInventoryFixture.EnsureMenu(items, ColaItemId.PizzaSlice, ColaItemId.Bill,
+                ColaItemId.SafetyCap, ColaItemId.CarbonationSyrup);
             Check(interaction.PassPlayerTurn() && items.CanBossAct && interaction.BossItemPhase, "Boss preparation window did not open.");
         }
         private int Stock(ColaItemId id, bool boss)

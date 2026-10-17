@@ -1,0 +1,9 @@
+PASS: two starter items each (ice/safety), zero starting tokens; all 11 Notion prices; unaffordable/busy purchase rejection; normal alternating original-hand shakes still award strength tokens.
+PASS: six live Cube slots are in the camera viewport and individually reachable by physics ray; menu blocks world clicks; full inventory is charge-free; ice keeps selection/turn and clamps at zero.
+PASS: safety -30 percentage points updates animated gauge and actual roll equally; duplicate armed effects retain their cube; low final risk gives no tip; stamp/insurance/tip consume on next own shake.
+PASS: 100% limit remains fatal with safety; hot sauce adds damage exactly once to the actual burst actor; stamp includes burst 5→10; new bottle removes hot sauce; pizza heals one and retains at maximum HP.
+PASS: tip checks actual final probability >=50% and safe outcome; double stamp doubles the complete one-action reward including the tip.
+PASS: bill passes without player roll/reward; boss-turn input locked; spicy order+syrup use actual +5 but reward 3; own buffs survive passes; ticket skips only one boss turn; later boss pressure returns to normal.
+PASS: candy adds four then passes; pressure modification alone never rolls even over limit; next boss shake takes the 2-HP burst and 5-token boss reward.
+PASS: victory locks all item actions; next boss retains player cubes/tokens and clears effects; restart during a real hand action cancels delayed reward/damage and restores starter inventory.
+Scope: automated actual Unity Play-mode rules, physics input, original-hand motion, physical forecast and terminal state. Test-only currency/health and pre-stocked inventory fixtures used for coverage; production starts at zero. No Game-view visual confirmation, preview renders or screenshots.

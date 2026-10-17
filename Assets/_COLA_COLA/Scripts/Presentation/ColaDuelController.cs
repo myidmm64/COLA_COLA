@@ -53,7 +53,7 @@ namespace ColaCola.Presentation
             Level = 1;
             PlayerTokens = BossTokens = 0;
             Items = ColaItemController.EnsureFor(this);
-            Items.ResetRun();
+            Items.ResetRun(seed);
             GetComponent<ColaBossItemAI>().ResetDecisions(seed);
             BeginDuel(seed);
         }

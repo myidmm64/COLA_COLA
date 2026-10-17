@@ -87,120 +87,181 @@ namespace ColaCola.Editor
             Check(Application.isPlaying, "Use actual Play mode.");
             match = FindAnyObjectByType<ColaDuelController>();
             interaction = match.interaction; items = match.Items; sheet = match.GetComponent<ColaOrderSheet>();
-            Check(items.InventoryCount == 2 && items.BossInventoryCount == 2 && items.ItemAt(0) == ColaItemId.IceCup &&
-                items.ItemAt(1) == ColaItemId.SafetyCap && items.ItemAt(0, true) == ColaItemId.IceCup &&
-                items.ItemAt(1, true) == ColaItemId.SafetyCap, "Both actors must start with ice and safety, exactly two cubes each.");
-            report.AppendLine("PASS: production Play entry starts both actors with exactly two free items (ice cup and safety cap), zero tokens.");
-            Reset(0);
-            Check(sheet && sheet.ModelRoot && !sheet.ModelRoot.GetComponentInChildren<Canvas>() &&
-                sheet.ModelRoot.Find("ReceiptPaper").GetComponent<MeshFilter>().sharedMesh.vertexCount > 24,
-                "A custom 3D paper/clipboard model must replace the screen menu.");
-            CheckView(sheet.OpenCollider);
-            Check(Click(sheet.OpenCollider) && sheet.IsOpen, "The tabletop model must open through physics input.");
-            yield return WaitSheet(true);
+            Check(items.InventoryCount == 2 && items.BossInventoryCount == 2, "Keep two starter items each.");
+            Reset(0); yield return null; CheckMenu();
+            Check(!sheet.IsVisible && !sheet.Toggle() && !sheet.BlocksGameplay, "Hide unaffordable menu.");
+            Credit(false, 100);
+            string menu = MenuSignature();
+            Check(Click(sheet.OpenCollider), "Physical pickup failed."); yield return WaitSheet(true);
             CheckView(sheet.OpenCollider, true);
-            foreach (var id in ColaItemCatalog.All) CheckView(sheet.PurchaseCollider(id.Id));
-            foreach (var definition in ColaItemCatalog.All)
+            foreach (var id in items.BottleMenu)
             {
-                Check(sheet.HoverPointer(ScreenPoint(sheet.NameCollider(definition.Id))) &&
-                    sheet.Description.Replace("\n", "").Contains(definition.Effect), "Name-hover explanation missing: " + definition.Name);
-                Check(sheet.HoverPointer(ScreenPoint(sheet.PurchaseCollider(definition.Id))) &&
-                    sheet.Description.Replace("\n", "").Contains(definition.Effect), "Price-hover explanation missing: " + definition.Name);
-                Check(Click(sheet.NameCollider(definition.Id)) && items.InventoryCount == 0 && !items.ShopUsed(),
-                    "Clicking a name should inspect without ordering or consuming quota.");
+                var effect = ColaItemCatalog.Get(id).Effect;
+                Check(sheet.HoverPointer(ScreenPoint(sheet.NameCollider(id))) && sheet.Description.Replace("\n", "").Contains(effect), "Name explanation failed.");
+                Check(sheet.HoverPointer(ScreenPoint(sheet.PurchaseCollider(id))) && sheet.Description.Replace("\n", "").Contains(effect), "Price explanation failed.");
+                Check(Click(sheet.NameCollider(id)) && sheet.CartCount == 0, "Name must only inspect.");
             }
             CheckWorldMaterials();
-            report.AppendLine("PASS: all 11 names and prices show their correct explanation through live physics hover; name inspection never buys; paper is opaque, warm unlit; all receipt/tray/cube glyphs use depth-tested world text with current font atlas.");
-            Check(!interaction.SelectStrength(1) && !interaction.ConfirmShake(), "Holding the sheet must lock gameplay shortcuts.");
-            Check(!Click(sheet.PurchaseCollider(ColaItemId.PizzaSlice)) && !items.ShopUsed() && items.InventoryCount == 0 && sheet.IsOpen,
-                "An unaffordable physical checkout must preserve tokens, inventory and this bottle's order.");
-            Check(Click(sheet.CloseCollider), "Physical return button failed.");
-            yield return WaitSheet(false);
-            Check(!items.ShopUsed() && Click(sheet.OpenCollider), "Inspecting and closing must not consume a shop visit.");
-            yield return WaitSheet(true);
-            Credit(false, 100);
-            Check(Click(sheet.PurchaseCollider(ColaItemId.SafetyCap)), "Physical price button must place an order.");
-            yield return WaitSheet(false);
-            Check(items.ShopUsed() && !items.ShopUsed(true) && match.PlayerTokens == 96 && items.ItemAt(0) == ColaItemId.SafetyCap,
-                "One successful purchase must debit four and consume only the player's current-bottle order.");
-            Check(!Click(sheet.OpenCollider) && !items.TryPurchase(ColaItemId.IceCup) && match.PlayerTokens == 96,
-                "Reopening and direct API calls must not bypass the one-order quota.");
-            Check(items.TryUseSlot(0) && items.ShopUsed(), "Using a purchased item must not replenish shopping quota.");
-            report.AppendLine("PASS: actual beveled clipboard, paper, fold, clip and 11 physical price keys replace the GUI shop; tabletop open/close/checkout raycasts, viewport fit and gameplay lock; inspection/failed checkout preserve quota; successful purchase consumes exactly one order and cannot be bypassed.");
+            var first = items.BottleMenu[0]; var second = items.BottleMenu[1];
+            int pairPrice = ColaItemCatalog.Get(first).Price + ColaItemCatalog.Get(second).Price;
+            Check(!Click(sheet.CheckoutCollider), "Empty cart cannot order.");
+            Check(Click(sheet.PurchaseCollider(first)) && Click(sheet.PurchaseCollider(first)) && Click(sheet.PurchaseCollider(second)), "Cart quantity addition failed.");
+            CheckView(sheet.CheckoutCollider);
+            Check(sheet.CartCount == 3 && sheet.CartQuantity(first) == 2 && match.PlayerTokens == 100 && items.InventoryCount == 0 && !items.ShopUsed(), "Adding must reserve neither tokens nor the order.");
+            Check(Click(sheet.RemoveCollider(first)) && sheet.CartCount == 2 && sheet.CartQuantity(first) == 1 && sheet.CartTotal == pairPrice, "Physical minus key failed.");
+            Check(Click(sheet.CloseCollider), "Cancel failed."); yield return WaitSheet(false);
+            Check(sheet.CartCount == 0 && match.PlayerTokens == 100 && !items.ShopUsed() && MenuSignature() == menu, "Cancel must clear the cart without consuming order or rerolling.");
+            Check(Click(sheet.OpenCollider), "Reopen failed."); yield return WaitSheet(true);
+            Check(!interaction.SelectStrength(1) && !interaction.ConfirmShake(), "Held paper must lock cola input.");
+            Check(Click(sheet.CloseCollider), "Second cancel failed."); yield return WaitSheet(false);
+            report.AppendLine("PASS: six stable random offers; live name/price explanations; price keys add quantities, physical minus removes one, empty checkout rejects; cancel clears cart without any payment/order consumption or menu reroll; held paper blocks cola input.");
 
-            interaction.automaticBossTurns = false;
-            Check(interaction.SelectStrength(3) && interaction.ConfirmShake(), "Player safe shake failed.");
-            yield return WatchAction(false);
-            Check(items.ShopUsed() && !interaction.LastResult.Burst, "A safe shake must retain the spent current-bottle order.");
-            Reset(100);
-            interaction.automaticBossTurns = false;
-            Check(items.OrderAvailable() && interaction.SelectStrength(1) && items.OrderAvailable(), "Previewing strengths must preserve the new-bottle window.");
-            Check(interaction.ConfirmShake(), "Unused shop-window shake failed.");
-            yield return WatchAction(false);
-            Check(!items.ShopUsed() && !items.OrderAvailable() && !Click(sheet.OpenCollider) && !items.TryPurchase(ColaItemId.IceCup),
-                "The first safe action must expire an unused shop window, including direct purchase bypasses.");
-            interaction.BeginBottle(999);
-            Check(items.OrderAvailable() && items.OrderAvailable(true) && !items.ShopUsed() && !items.ShopUsed(true), "New bottle must restore both independent initial opportunities.");
-            Credit(true, 100);
-            interaction.automaticBossTurns = true;
-            Check(interaction.PassPlayerTurn() && items.CanBossAct && items.TryPurchase(ColaItemId.CarbonationSyrup, true), "Boss must get its own one-order opportunity.");
-            int balance = match.BossTokens;
-            Check(items.ShopUsed(true) && !items.ShopUsed() && !items.TryPurchase(ColaItemId.SpicyOrder, true) && match.BossTokens == balance,
-                "Boss may buy once without consuming the player's opportunity.");
-            yield return WatchAction(false);
-            Check(!items.OrderAvailable() && !items.ShopUsed(), "Passing the first player turn must expire an unused order.");
-            Check(interaction.PassPlayerTurn() && !items.TryPurchase(ColaItemId.IceCup, true), "A later boss turn on the same bottle must not reset its quota.");
-            match.RestartRun(Seed());
-            match.GetComponent<ColaBossItemAI>().automaticItemUse = false;
-            Check(!items.ShopUsed() && !items.ShopUsed(true) && !sheet.BlocksGameplay, "Restart must reset both quotas and the held model.");
-            ColaItemInventoryFixture.Clear(items);
-            report.AppendLine("PASS: first safe shake/pass expires an unused order window; strength previews preserve it; both original hands perform safe actions with no COLA audio source playing; each actor has one first-action opportunity per bottle; a later boss turn cannot buy again; restart restores quotas and sheet state.");
-
-            Credit(false, 100); Credit(true, 100);
-            interaction.BeginBottle(1);
-            Check(Click(sheet.OpenCollider), "Burst reset probe could not pick up the model.");
-            yield return WaitSheet(true);
-            Check(Click(sheet.PurchaseCollider(ColaItemId.IceCup)), "Player order before burst failed.");
-            yield return WaitSheet(false);
-            Check(interaction.PassPlayerTurn() && items.TryPurchase(ColaItemId.SafetyCap, true) && items.TryUseSlot(0, true) && interaction.PassBossTurn(),
-                "Boss order/pass fixture failed.");
-            yield return WaitIdle();
-            Check(items.ShopUsed() && items.ShopUsed(true), "Both quotas must remain consumed before the burst.");
-            interaction.automaticBossTurns = false;
+            interaction.automaticBossTurns = false; interaction.BeginBottle(999); menu = MenuSignature();
             int bottle = interaction.BottleNumber;
-            Check(interaction.SelectStrength(1) && interaction.ConfirmShake() && interaction.LastResult.Burst, "Guaranteed player burst failed.");
-            yield return WatchAction(true);
-            Check(ruptureHeard && interaction.BottleNumber == bottle + 1 && !items.ShopUsed() && !items.ShopUsed(true),
-                "Burst audio/replacement mismatch: playing=" + ruptureHeard + ", bottles=" + bottle + "->" + interaction.BottleNumber +
-                ", used=" + items.ShopUsed() + "/" + items.ShopUsed(true));
-            report.AppendLine("PASS: shake-loop audio is absent for both actors; actual explosion still plays rupture audio; replacing the exploded bottle restores both order quotas without clearing stored items.");
+            for (int action = 0; action < 2; action++)
+            { Check(interaction.SelectStrength(1) && interaction.ConfirmShake(), "Safe action failed."); yield return WatchAction(false); }
+            Check(interaction.PassPlayerTurn(), "Voluntary pass failed."); yield return WaitIdle();
+            Check(items.OrderAvailable() && !items.ShopUsed() && sheet.IsVisible && interaction.BottleNumber == bottle && MenuSignature() == menu,
+                "Safe actions and passing must preserve the unused same-bottle order.");
+            first = items.BottleMenu[0]; second = items.BottleMenu[1];
+            pairPrice = ColaItemCatalog.Get(first).Price + ColaItemCatalog.Get(second).Price;
+            int before = match.PlayerTokens;
+            Check(Click(sheet.OpenCollider), "Late ordering pickup failed."); yield return WaitSheet(true);
+            Check(Click(sheet.PurchaseCollider(first)) && Click(sheet.PurchaseCollider(second)) && Click(sheet.CheckoutCollider), "Late multi-item checkout failed.");
+            yield return WaitSheet(false);
+            Check(items.InventoryCount == 2 && items.ItemAt(0) == first && items.ItemAt(1) == second &&
+                match.PlayerTokens == before - pairPrice && items.ShopUsed() && !sheet.IsVisible && !sheet.BlocksGameplay,
+                "One checkout must charge exact sum once and deliver both items.");
+            Check(!items.TryPurchase(first) && !items.TryPurchaseBatch(new[] { first, second }) && !sheet.Toggle(), "A completed order cannot be repeated.");
+            Check(interaction.SelectStrength(1) && interaction.ConfirmShake(), "Post-order action failed."); yield return WatchAction(false);
+            Check(items.ShopUsed() && !sheet.IsVisible, "Further turns cannot replenish a completed order.");
+            report.AppendLine("PASS: the player can wait for later turns on the same bottle, then purchase multiple items in one atomic checkout; exact total debited once; subsequent actions cannot restore a completed order.");
 
+            Reset(100); first = items.BottleMenu[0];
+            ColaItemId omitted = default;
+            foreach (var definition in ColaItemCatalog.All) if (!items.IsOnMenu(definition.Id)) { omitted = definition.Id; break; }
+            Check(!items.TryPurchaseBatch(new[] { first, omitted }) && !items.TryPurchaseBatch(new[] { (ColaItemId)999 }) &&
+                !items.TryPurchaseBatch(null) && !items.TryPurchaseBatch(new ColaItemId[0]) &&
+                match.PlayerTokens == 100 && items.InventoryCount == 0 && !items.ShopUsed(), "Invalid batches must be atomic and leave the opportunity unused.");
+            first = items.BottleMenu[0]; second = items.BottleMenu[1]; pairPrice = ColaItemCatalog.Get(first).Price + ColaItemCatalog.Get(second).Price;
+            Check(Click(sheet.OpenCollider), "Budget pickup failed."); yield return WaitSheet(true);
+            Check(Click(sheet.PurchaseCollider(first)) && Click(sheet.PurchaseCollider(second)), "Budget cart setup failed.");
+            Credit(false, pairPrice - 1);
+            Check(!Click(sheet.CheckoutCollider) && !items.TryPurchaseBatch(new[] { first, second }) &&
+                items.InventoryCount == 0 && !items.ShopUsed() && sheet.CartCount == 2, "Insufficient full-cart budget must never partially charge or deliver.");
+            Check(Click(sheet.RemoveCollider(second)) && Click(sheet.CheckoutCollider), "Reducing cart to affordable total failed.");
+            yield return WaitSheet(false);
+            Check(match.PlayerTokens == ColaItemCatalog.Get(second).Price - 1 && items.InventoryCount == 1, "Reduced-cart debit mismatch.");
+
+            Reset(100); first = items.BottleMenu[0];
+            Check(Click(sheet.OpenCollider), "Capacity pickup failed."); yield return WaitSheet(true);
+            for (int i = 0; i < 6; i++) Check(Click(sheet.PurchaseCollider(first)), "Same-item quantity addition failed.");
+            Check(!Click(sheet.PurchaseCollider(first)) && sheet.CartCount == 6 && match.PlayerTokens == 100, "Cart must reject a seventh item without charging.");
+            int sixCost = 6 * ColaItemCatalog.Get(first).Price;
+            Check(Click(sheet.CheckoutCollider), "Six-item checkout failed."); yield return WaitSheet(false);
+            Check(items.InventoryCount == 6 && match.PlayerTokens == 100 - sixCost, "Six-item batch did not fill exactly six slots.");
+            interaction.BeginBottle(999, 12);
+            Check(!sheet.IsVisible && items.OrderAvailable(), "Full inventory must hide the menu without spending the fresh order.");
+            report.AppendLine("PASS: invalid/off-menu/null/empty batches and insufficient total budget never partially charge, deliver or consume the order; minus edits repair an unaffordable cart; repeated item quantities are supported; six-slot capacity enforced before payment.");
+
+            Reset(100); Credit(true, 100); interaction.BeginBottle(999);
+            first = items.BottleMenu[0]; second = items.BottleMenu[1];
+            pairPrice = ColaItemCatalog.Get(first).Price + ColaItemCatalog.Get(second).Price;
+            Check(interaction.PassPlayerTurn() && items.CanBossAct, "Boss order phase failed.");
+            Check(!sheet.IsVisible && items.TryPurchaseBatch(new[] { first, second }, true) &&
+                items.BossInventoryCount == 2 && items.LastBossOrderCount == 2 && items.LastBossOrderCost == pairPrice &&
+                items.BossPurchaseCount == 1 && match.BossTokens == 100 - pairPrice && match.PlayerTokens == 100 && interaction.PassBossTurn(),
+                "Boss batch must have an independent single order and account.");
+            yield return WaitIdle();
+            Check(items.OrderAvailable() && items.ShopUsed(true) && sheet.IsVisible, "Passing through the boss turn must keep the player's unused order available.");
+            report.AppendLine("PASS: boss supports multiple items in one checkout, exactly one order counter and exact aggregate spending; accounts/opportunities remain independent; player's menu returns on its later turn.");
+
+            Reset(100); Credit(true, 100);
+            for (int slot = 0; slot < 6; slot++)
+            { ColaItemInventoryFixture.Stock(items, ColaItemId.IceCup); ColaItemInventoryFixture.Stock(items, ColaItemId.IceCup, true); }
+            CheckStorageModels();
+            interaction.BeginBottle(999, 12); Check(items.TryUseSlot(0), "Free-slot test failed.");
+            yield return null;
+            Check(sheet.IsVisible, "A free slot must restore an unused order later on the same bottle.");
+            Check(Click(sheet.OpenCollider), "Invalidation pickup failed."); yield return WaitSheet(true);
+            Check(Click(sheet.PurchaseCollider(items.BottleMenu[0])), "Invalidation cart setup failed.");
+            Credit(false, 0); yield return null;
+            Check(!sheet.IsVisible && !sheet.BlocksGameplay && sheet.CartCount == 0 && items.OrderAvailable(), "An unavailable held menu must cancel unpaid cart and release input.");
+            Credit(false, 100); match.enabled = false; yield return null;
+            Check(!sheet.IsVisible && !sheet.BlocksGameplay, "Disabled match must hide the menu.");
+            match.enabled = true; yield return null;
+            Check(items.InventoryCount == 2 && items.BossInventoryCount == 2 && !sheet.IsVisible, "Restart must restore starters and clear the zero-token menu.");
+            report.AppendLine("PASS: custom teal serving tray with front U-handle and red delivery crate with metal handles/pizza emblem replace owner text; both retain six lined compartments/raised rear shelves; all 12 actual cube centers are visible and unobstructed by solid storage colliders; invalidation cancels unpaid cart without input lock.");
+
+            Reset(100); var variants = new HashSet<string>();
+            for (int draw = 0; draw < 32; draw++) { interaction.BeginBottle(999); CheckMenu(); variants.Add(MenuSignature()); }
+            Check(variants.Count > 1, "New bottles must vary offers.");
+            var random = new System.Random(Seed()); random.Next(interaction.settings.minimumBottleLimit, interaction.settings.maximumBottleLimit + 1);
+            double roll = random.NextDouble(); interaction.automaticBossTurns = false;
+            Check(interaction.SelectStrength(1) && interaction.ConfirmShake() && interaction.LastResult.Roll == roll, "Menu draws must not advance explosion RNG.");
+            yield return WatchAction(false);
             foreach (var definition in ColaItemCatalog.All)
             {
-                Reset(100);
-                Check(Click(sheet.OpenCollider), "Physical pickup failed for " + definition.Name);
-                yield return WaitSheet(true);
-                Check(Click(sheet.PurchaseCollider(definition.Id)), "World price-key raycast failed for " + definition.Name);
+                Reset(100); ColaItemInventoryFixture.EnsureMenu(items, definition.Id); sheet.RefreshAvailability();
+                Check(Click(sheet.OpenCollider), "Catalog pickup failed."); yield return WaitSheet(true);
+                Check(Click(sheet.PurchaseCollider(definition.Id)) && Click(sheet.CheckoutCollider), "Actual catalog checkout failed: " + definition.Name);
                 yield return WaitSheet(false);
-                Check(match.PlayerTokens == 100 - definition.Price && items.ItemAt(0) == definition.Id && items.ShopUsed(),
-                    "Physical item/price binding mismatch: " + definition.Name);
+                Check(items.ItemAt(0) == definition.Id && match.PlayerTokens == 100 - definition.Price, "Catalog binding mismatch.");
             }
-            Reset(100);
-            for (int i = 0; i < 6; i++) ColaItemInventoryFixture.Stock(items, ColaItemId.IceCup);
-            Check(Click(sheet.OpenCollider), "Full-inventory pickup failed.");
-            yield return WaitSheet(true);
-            int before = match.PlayerTokens;
-            Check(!Click(sheet.PurchaseCollider(ColaItemId.PizzaSlice)) && !items.ShopUsed() && match.PlayerTokens == before,
-                "Full inventory must preserve the one-order opportunity.");
-            match.enabled = false;
-            yield return WaitSheet(false);
-            match.enabled = true;
-            Check(!sheet.BlocksGameplay && !items.ShopUsed() && !items.ShopUsed(true) && items.InventoryCount == 2,
-                "Disable/re-enable while viewing the receipt must restore the model and fresh-run state.");
-            report.AppendLine("PASS: all 11 actual model buttons buy their correct item at its catalog price; full inventory does not charge or consume quota; disabling/re-enabling during pickup restores the tabletop model and resets the run.");
-            report.AppendLine("Scope: actual Unity Play-mode geometry, physical raycasts, animated model state, per-bottle account rules, real hand actions and AudioSource state. No Game-view visual confirmation or listening claim; no preview rendering or screenshots. Combination-effect suites use Editor-only pre-stocked inventory representing earlier-bottle purchases.");
+            Reset(100); interaction.automaticBossTurns = false; interaction.BeginBottle(1);
+            first = items.BottleMenu[0]; second = items.BottleMenu[1];
+            Check(Click(sheet.OpenCollider), "Burst setup pickup failed."); yield return WaitSheet(true);
+            Check(Click(sheet.PurchaseCollider(first)) && Click(sheet.PurchaseCollider(second)) && Click(sheet.CheckoutCollider), "Burst setup checkout failed.");
+            yield return WaitSheet(false); bottle = interaction.BottleNumber;
+            Check(interaction.SelectStrength(1) && interaction.ConfirmShake() && interaction.LastResult.Burst, "Guaranteed burst failed."); yield return WatchAction(true);
+            Check(ruptureHeard && interaction.BottleNumber == bottle + 1 && items.OrderAvailable() && sheet.IsVisible &&
+                items.InventoryCount == 2 && sheet.CartCount == 0, "Actual replacement must refresh order/menu and preserve both stored items.");
+            CheckMenu();
+            report.AppendLine("PASS: 32 distinct-subset checks and independent outcome RNG; all 11 catalog item/price bindings via real cart/checkout rays; actual burst refreshes order and six offers, preserves inventory and rupture sound; no shake-loop audio.");
+            report.AppendLine("Scope: actual Unity Play-mode state, procedural storage meshes/materials/positions, viewport and solid-collider occlusion rays, real menu/cart input, payment/effects and hand/audio state. No Game-view visual confirmation or preview capture.");
         }
 
+        private void CheckStorageModels()
+        {
+            var display = items.GetComponent<ColaItemPresentation>();
+            for (int actor = 0; actor < 2; actor++)
+            {
+                bool boss = actor == 1; var root = display.StorageRoot(boss);
+                var shell = root.Find(boss ? "DeliveryCrateShell" : "ServingTrayShell");
+                Check(shell && shell.GetComponent<MeshFilter>().sharedMesh.vertexCount > 24 &&
+                    root.Find(boss ? "PizzaSliceEmblem" : "ServingTrayHandle"), "Distinct storage geometry is missing.");
+                var color = shell.GetComponent<Renderer>().sharedMaterial.GetColor("_BaseColor");
+                Check(boss ? color.r > color.g : color.g > color.r, "Owner storage palette mismatch.");
+                foreach (var text in root.GetComponentsInChildren<TextMesh>(true))
+                    Check(text.text != "BOSS" && text.text != "YOU", "Owner lettering must be replaced by the model.");
+                for (int slot = 0; slot < 6; slot++)
+                {
+                    Check(root.Find("CompartmentLiner_" + slot), "Six physical compartments must remain.");
+                    var cube = display.CubeCollider(slot, boss); Physics.SyncTransforms(); CheckView(cube);
+                    Check(Physics.Raycast(interaction.playerCamera.ScreenPointToRay(ScreenPoint(cube)), out var hit, 8,
+                        ~0, QueryTriggerInteraction.Ignore) && hit.collider == cube,
+                        "Storage occludes slot " + boss + "/" + slot + ": " + (hit.collider ? hit.collider.name : "none"));
+                }
+            }
+        }
+        private string MenuSignature() => string.Join(",", items.BottleMenu);
+        private void CheckMenu()
+        {
+            var unique = new HashSet<ColaItemId>(items.BottleMenu);
+            Check(items.BottleMenu.Count == 6 && unique.Count == 6, "A bottle must offer exactly six distinct items.");
+            int visibleNames = 0;
+            foreach (var definition in ColaItemCatalog.All)
+            {
+                bool onMenu = unique.Contains(definition.Id);
+                var name = sheet.NameCollider(definition.Id);
+                var key = sheet.PurchaseCollider(definition.Id);
+                Check(name.gameObject.activeInHierarchy == (sheet.IsVisible && onMenu) &&
+                    key.gameObject.activeInHierarchy == (sheet.IsVisible && onMenu), "Rendered rows disagree with available offers.");
+                if (name.gameObject.activeInHierarchy) visibleNames++;
+                if (!onMenu) Check(!name.enabled && !key.enabled, "Omitted rows must not have enabled input targets.");
+            }
+            Check(visibleNames == (sheet.IsVisible ? 6 : 0), "Unexpected visible row count: " + visibleNames);
+        }
         private void Reset(int tokens)
         {
             match.RestartRun(Seed());
@@ -223,11 +284,13 @@ namespace ColaCola.Editor
             typeof(ColaDuelController).GetField(boss ? "<BossTokens>k__BackingField" : "<PlayerTokens>k__BackingField", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(match, amount);
             match.terminal.SetPlayerState(match.PlayerHealth, match.playerMaxHealth, match.PlayerTokens, false);
             match.terminal.SetBossState(match.BossHealth, match.BossMaxHealth, match.BossTokens, false);
+            sheet.RefreshAvailability();
         }
         private bool Click(Collider target)
         {
             Physics.SyncTransforms();
-            return target && target.enabled && interaction.HandlePointer(interaction.playerCamera.WorldToScreenPoint(target.bounds.center));
+            return target && target.enabled && target.gameObject.activeInHierarchy &&
+                interaction.HandlePointer(interaction.playerCamera.WorldToScreenPoint(target.bounds.center));
         }
         private Vector2 ScreenPoint(Collider target)
         {
@@ -245,7 +308,8 @@ namespace ColaCola.Editor
                 var text = glyph.GetComponent<TextMesh>();
                 var material = glyph.GetComponent<Renderer>().sharedMaterial;
                 Check(material.shader.name == "COLA_COLA/WorldText" && material.GetFloat("_ZTest") == 4 &&
-                    !UnityEditor.ShaderUtil.ShaderHasError(material.shader) && material.mainTexture == text.font.material.mainTexture,
+                    !UnityEditor.ShaderUtil.ShaderHasError(material.shader) &&
+                    (!glyph.gameObject.activeInHierarchy || material.mainTexture == text.font.material.mainTexture),
                     "World glyph must respect opaque depth and current dynamic atlas: " + glyph.name);
                 labels++;
             }

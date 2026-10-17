@@ -1,0 +1,12 @@
+PASS: Saved MainScene reopened in Unity 6000.6.4f1
+PASS: one MainCamera and one AudioListener
+PASS: 347 renderers with material/shader references
+PASS: no missing scripts
+PASS: playable single-player duel; item props/light hidden and automatic hand preview disabled
+PASS: custom PressureGauge model and NeedlePivot replace the gauge Cube
+PASS: custom ShakeConsole with three independent numbered keys replaces console/button Cubes
+PASS: physical StatusTerminal with complete health/token readout bindings
+PASS: both character Animators have enabled looping Idle controllers without root motion
+PASS: MainScene is first enabled build scene
+PASS: hero bottle center viewport=(0.500, 0.479, 1.360)
+Scope: 3D staging, test item props, character Idle, live health/token readouts, alternating pressure actions, in-hand cola burst presentation, victory/defeat/retry and escalating boss health. In-turn ordering and 11 adopted consumables with runtime Cube inventory are covered by the separate item Play-mode report.

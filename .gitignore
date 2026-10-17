@@ -107,8 +107,3 @@ InitTestScene*.unity*
 
 # Auto-generated cache in Assets folder
 /[Aa]ssets/[Ss]ceneDependencyCache*
-
-# Generated scene previews, validation copies, reports and caches.
-# Keep authored concept art in version control.
-/output/*
-!/output/concept-art/

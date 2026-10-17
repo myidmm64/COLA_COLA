@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Text;
 using ColaCola.Core;
 using UnityEngine;
@@ -10,7 +11,13 @@ namespace ColaCola.Presentation
     public sealed class ColaItemController : MonoBehaviour
     {
         public const int Capacity = 6;
+        public const int MenuSize = 6;
         public ColaDuelController match;
+        private readonly List<ColaItemId> bottleMenu = new(MenuSize);
+        private IReadOnlyList<ColaItemId> menuView;
+        private System.Random menuRandom;
+        public IReadOnlyList<ColaItemId> BottleMenu => menuView ??= bottleMenu.AsReadOnly();
+        public bool IsOnMenu(ColaItemId id) => bottleMenu.Contains(id);
         private readonly ColaItemId?[] inventory = new ColaItemId?[Capacity];
         private readonly ColaItemId?[] bossInventory = new ColaItemId?[Capacity];
         private sealed class Effects
@@ -20,15 +27,8 @@ namespace ColaCola.Presentation
         }
         private readonly Effects playerEffects = new(), bossEffects = new();
         private bool playerShopUsed, bossShopUsed;
-        private bool playerOrderWindow, bossOrderWindow;
         public bool ShopUsed(bool boss = false) => boss ? bossShopUsed : playerShopUsed;
-        // Each actor has until their first committed action on this bottle to place one order.
-        public bool OrderAvailable(bool boss = false) => (boss ? bossOrderWindow : playerOrderWindow) && !ShopUsed(boss);
-        public void EndOrderWindow(bool boss)
-        {
-            if (boss) bossOrderWindow = false;
-            else playerOrderWindow = false;
-        }
+        public bool OrderAvailable(bool boss = false) => !ShopUsed(boss);
         public event Action InventoryChanged;
         public bool SafetyReady => playerEffects.Safety;
         public bool DoubleReady => playerEffects.Double;
@@ -40,6 +40,8 @@ namespace ColaCola.Presentation
         public string BossNotice { get; private set; } = "";
         public float BossNoticeUntil { get; private set; }
         public int BossPurchaseCount { get; private set; }
+        public int LastBossOrderCost { get; private set; }
+        public int LastBossOrderCount { get; private set; }
         public int BossUseCount { get; private set; }
         public ColaItemId? LastBossUsed { get; private set; }
         public ColaItemId? LastBossPurchased { get; private set; }
@@ -85,25 +87,49 @@ namespace ColaCola.Presentation
 
         public bool CanPurchase(ColaItemId id, bool boss = false)
         {
-            return Enum.IsDefined(typeof(ColaItemId), id) && CanActFor(boss) && OrderAvailable(boss) && InventoryCountFor(boss) < Capacity &&
+            return Enum.IsDefined(typeof(ColaItemId), id) && IsOnMenu(id) && CanActFor(boss) && OrderAvailable(boss) && InventoryCountFor(boss) < Capacity &&
                 (boss ? match.BossTokens : match.PlayerTokens) >= ColaItemCatalog.Get(id).Price;
         }
 
         public bool TryPurchase(ColaItemId id, bool boss = false)
+            => TryPurchaseBatch(new[] { id }, boss);
+
+        public bool CanPurchaseBatch(IReadOnlyList<ColaItemId> order, bool boss = false)
         {
-            if (!Enum.IsDefined(typeof(ColaItemId), id) || !CanActFor(boss)) return false;
-            if (!OrderAvailable(boss)) return Reject("주문 시간이 끝났습니다. 새 콜라에서 첫 행동 전에 주문하세요.", boss);
-            if (InventoryCountFor(boss) == Capacity) return Reject("아이템 공간이 가득 찼습니다.", boss);
-            var definition = ColaItemCatalog.Get(id);
-            if (!match.TrySpendTokens(definition.Price, boss)) return Reject("주문할 토큰이 부족합니다.", boss);
+            if (!CanActFor(boss) || !OrderAvailable(boss) || order == null || order.Count == 0 ||
+                order.Count > Capacity - InventoryCountFor(boss)) return false;
+            int total = 0;
+            foreach (var id in order)
+            {
+                if (!Enum.IsDefined(typeof(ColaItemId), id) || !IsOnMenu(id)) return false;
+                total += ColaItemCatalog.Get(id).Price;
+            }
+            return (boss ? match.BossTokens : match.PlayerTokens) >= total;
+        }
+
+        public bool TryPurchaseBatch(IReadOnlyList<ColaItemId> order, bool boss = false)
+        {
+            if (!CanPurchaseBatch(order, boss))
+                return Reject("주문 불가: 이번 콜라의 주문 여부, 메뉴, 토큰과 빈 칸을 확인하세요.", boss);
+            // Snapshot before notifying the presentation: successful checkout clears its cart.
+            var purchase = new ColaItemId[order.Count];
+            int total = 0;
+            for (int i = 0; i < purchase.Length; i++)
+            { purchase[i] = order[i]; total += ColaItemCatalog.Get(order[i]).Price; }
+            if (!match.TrySpendTokens(total, boss)) return false;
             if (boss) bossShopUsed = true;
             else playerShopUsed = true;
-            EndOrderWindow(boss);
             var owned = InventoryFor(boss);
+            int next = 0;
             for (int i = 0; i < Capacity; i++)
-                if (!owned[i].HasValue) { owned[i] = id; break; }
-            if (boss) { BossPurchaseCount++; LastBossPurchased = id; AnnounceBoss("주문: " + definition.Name); }
-            else match.SetActionMessage(definition.Name + " 주문 완료. 테이블의 큐브를 눌러 사용.");
+                if (!owned[i].HasValue && next < purchase.Length) owned[i] = purchase[next++];
+            if (boss)
+            {
+                BossPurchaseCount++; LastBossPurchased = purchase[purchase.Length - 1];
+                LastBossOrderCost = total; LastBossOrderCount = purchase.Length;
+                AnnounceBoss("주문 " + purchase.Length + "개 / " + total + "토큰");
+            }
+            else match.SetActionMessage(purchase.Length + "개 주문 완료 / " + total + "토큰. 보관함의 아이템을 눌러 사용.");
             InventoryChanged?.Invoke();
             return true;
         }
@@ -217,7 +243,6 @@ namespace ColaCola.Presentation
             var target = EffectsFor(boss);
             if (!target.Skip) return false;
             target.Skip = false;
-            EndOrderWindow(boss);
             if (boss) match.SetActionMessage("대기 번호표: 상대 턴을 건너뜁니다. 내 턴.");
             else AnnounceBoss("대기 번호표: 플레이어 턴을 건너뜁니다.");
             return true;
@@ -227,9 +252,25 @@ namespace ColaCola.Presentation
         {
             HotSauceReady = false;
             playerShopUsed = bossShopUsed = false;
-            playerOrderWindow = bossOrderWindow = true;
+            DrawBottleMenu();
             var sheet = GetComponent<ColaOrderSheet>();
-            if (sheet) sheet.Close();
+            if (sheet) { sheet.Close(); sheet.RefreshAvailability(); }
+        }
+
+        private void DrawBottleMenu()
+        {
+            // Menu draws never consume the pressure/outcome or boss-decision RNG.
+            menuRandom ??= new System.Random();
+            var pool = new ColaItemId[ColaItemCatalog.All.Count];
+            for (int i = 0; i < pool.Length; i++) pool[i] = ColaItemCatalog.All[i].Id;
+            bottleMenu.Clear();
+            for (int i = 0; i < Mathf.Min(MenuSize, pool.Length); i++)
+            {
+                int selected = menuRandom.Next(i, pool.Length);
+                (pool[i], pool[selected]) = (pool[selected], pool[i]);
+                bottleMenu.Add(pool[i]);
+            }
+            bottleMenu.Sort((a, b) => ((int)a).CompareTo((int)b));
         }
 
         public void ResetEffects()
@@ -254,16 +295,18 @@ namespace ColaCola.Presentation
             owned[1] = ColaItemId.SafetyCap;
         }
 
-        public void ResetRun()
+        public void ResetRun(int? seed = null)
         {
+            menuRandom = seed.HasValue ? new System.Random(seed.Value ^ 0x6C0A) : new System.Random();
+            bottleMenu.Clear();
             Array.Clear(inventory, 0, inventory.Length);
             Array.Clear(bossInventory, 0, bossInventory.Length);
             GiveStartingItems(inventory);
             GiveStartingItems(bossInventory);
             ResetEffects();
             BossPurchaseCount = BossUseCount = 0;
+            LastBossOrderCost = LastBossOrderCount = 0;
             playerShopUsed = bossShopUsed = false;
-            playerOrderWindow = bossOrderWindow = true;
             LastBossUsed = null;
             LastBossPurchased = null;
             InventoryChanged?.Invoke();

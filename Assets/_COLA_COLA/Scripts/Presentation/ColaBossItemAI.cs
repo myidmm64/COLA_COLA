@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using ColaCola.Core;
 using UnityEngine;
 
@@ -10,6 +11,7 @@ namespace ColaCola.Presentation
     {
         public bool automaticItemUse = true;
         [Range(1, 3)] public int maximumUsesPerTurn = 2;
+        [Range(1, 6)] public int maximumItemsPerOrder = 3;
         [Min(.1f)] public float purchaseDisplaySeconds = .8f;
         [Min(.1f)] public float useDisplaySeconds = .65f;
         private ColaItemController items;
@@ -21,7 +23,7 @@ namespace ColaCola.Presentation
         public IEnumerator PrepareTurn(int strength)
         {
             if (decisions == null) ResetDecisions();
-            int used = 0, bought = 0;
+            int used = 0;
             while (Active && used < Mathf.Clamp(maximumUsesPerTurn, 1, 3))
             {
                 int slot = -1;
@@ -40,17 +42,25 @@ namespace ColaCola.Presentation
                     yield return new WaitForSecondsRealtime(Mathf.Max(.1f, useDisplaySeconds));
                     continue;
                 }
-                if (bought > 0 || SavingForRecovery(strength)) yield break;
-                ColaItemId? choice = null;
-                best = 0;
-                foreach (var item in ColaItemCatalog.All)
+                if (!items.OrderAvailable(true) || SavingForRecovery(strength)) yield break;
+                var order = new List<ColaItemId>();
+                int budget = items.match.BossTokens;
+                int capacity = Mathf.Min(maximumItemsPerOrder, ColaItemController.Capacity - items.BossInventoryCount);
+                while (order.Count < capacity)
                 {
-                    if (!items.CanPurchase(item.Id, true)) continue;
-                    float score = Score(item.Id, strength) * Variation();
-                    if (score > best) { best = score; choice = item.Id; }
+                    ColaItemId? choice = null;
+                    best = 0;
+                    foreach (var id in items.BottleMenu)
+                    {
+                        if (order.Contains(id) || !items.CanPurchase(id, true) || ColaItemCatalog.Get(id).Price > budget) continue;
+                        float score = Score(id, strength) * Variation();
+                        if (score > best) { best = score; choice = id; }
+                    }
+                    if (!choice.HasValue) break;
+                    order.Add(choice.Value);
+                    budget -= ColaItemCatalog.Get(choice.Value).Price;
                 }
-                if (!choice.HasValue || !items.TryPurchase(choice.Value, true)) yield break;
-                bought++;
+                if (order.Count == 0 || !items.TryPurchaseBatch(order, true)) yield break;
                 // Keep the acquired Cube visible before it is consumed, so the player can follow the decision.
                 yield return new WaitForSecondsRealtime(Mathf.Max(.1f, purchaseDisplaySeconds));
             }

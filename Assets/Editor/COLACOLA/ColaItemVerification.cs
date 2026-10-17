@@ -124,11 +124,12 @@ namespace ColaCola.Editor
             for (int i = 0; i < 6; i++) Stock(ColaItemId.IceCup);
             int tokens = match.PlayerTokens;
             Check(!items.TryPurchase(ColaItemId.PizzaSlice) && match.PlayerTokens == tokens && items.InventoryCount == 6, "Full inventory must not charge tokens.");
-            Check(display.ToggleOrders() && display.OrderOpen, "In-turn menu did not open.");
+            Check(!display.ToggleOrders() && !display.OrderOpen, "Full inventory must hide and reject the menu.");
+            for (int i = 0; i < 6; i++) ClickCube(i);
+            Check(display.ToggleOrders() && display.OrderOpen, "Free inventory must allow the fresh-bottle menu.");
             var firstKey = interaction.strengthButtons[0].GetComponent<Collider>();
             Check(!interaction.HandlePointer(interaction.playerCamera.WorldToScreenPoint(firstKey.bounds.center)), "Open physical order slip must swallow gameplay clicks.");
             display.ToggleOrders();
-            for (int i = 0; i < 6; i++) ClickCube(i);
             Check(interaction.Model.Pressure == 7 && interaction.Model.SelectedStrength == 2 && items.InventoryCount == 0 &&
                 interaction.CommittedActionCount == 0 && !interaction.IsBusy && match.PlayerTokens == tokens, "Six physical ice cubes must reduce pressure without resolving a turn or rewarding tokens.");
             interaction.Model.AdjustPressure(-999);
