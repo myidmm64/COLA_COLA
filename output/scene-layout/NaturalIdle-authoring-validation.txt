@@ -1,5 +1,0 @@
-Natural seated Idle: 30 seconds, six unequal breaths, supported hands, occasional attention/posture changes.
-PASS: Boss_SeatedIdle: 30s, 361 baked supported poses; hand drift 0.0004 mm, orientation drift 0.0000 degrees.
-Hands minimum world Y: 0.83300, 0.83300; tabletop Y=.83000.
-PASS: PlayerArms_TableIdle: 30s, 361 baked supported poses; hand drift 0.0003 mm, orientation drift 0.0000 degrees.
-Hands minimum world Y: 0.83300, 0.83300; tabletop Y=.83000.

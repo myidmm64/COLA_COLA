@@ -1,7 +1,0 @@
-PASS: live Play-mode gauge point light disabled, intensity 0.
-PASS: original gauge dial plus ALL active console/key materials are non-emissive and have specular/environment reflections disabled.
-PASS: live Play-mode Volume profile has Bloom intensity 0; authored clamp 2. Film grain, colour grading and exposure retained.
-Scope: batch renderer did not initialize a Volume stack; live profile verified, no rendered-frame claim.
-PASS: actual pressure forecast selection works, readout/needle bindings intact, other fixed lights unchanged. No preview cameras or image captures used.
-Scope: live component/material state checks; actual Game-view appearance has not been visually confirmed.
-Environment: isolated project copy; source script SHA-256 checks matched the original workspace. Original scene light and shared material/profile changes persisted separately; active user Editor not interrupted.

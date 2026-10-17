@@ -1,6 +1,0 @@
-PASS: actual 3D raycasts select all keys; no pressure or action count changes before cola confirmation.
-PASS: separate cola click commits once; repeated clicks and changes during feedback are rejected.
-PASS: safe shake accumulates pressure; burst replaces bottle, resets selection and publishes a different limit.
-PASS: disable cancels in-flight feedback without a stale result; existing character Idles continue.
-Temporary probability exponent: 2; new-bottle limits 18..24.
-Scope: pressure-selection/confirmation prototype. AI, damage, token awards and shop logic are not simulated.

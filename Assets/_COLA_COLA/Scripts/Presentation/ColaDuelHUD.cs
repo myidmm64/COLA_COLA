@@ -17,6 +17,7 @@ namespace ColaCola.Presentation
 
         private GUIStyle headerStyle, instructionStyle, resultStyle, titleStyle, detailStyle, buttonStyle;
         private GUISkin styledSkin;
+        private Font runtimeFont;
 
         private void OnGUI()
         {
@@ -47,7 +48,7 @@ namespace ColaCola.Presentation
                 : match.LastActionMessage;
             GUI.Label(new Rect(footer.x + padding, footer.y + 1, footer.width - padding * 2, lineHeight), message, resultStyle);
             GUI.Label(new Rect(footer.x + padding, footer.y + lineHeight - 1, footer.width - padding * 2, lineHeight),
-                "1 / 2 / 3 SELECT  |  CLICK COLA OR SPACE  |  R RESTART", instructionStyle);
+                "1 / 2 / 3 SELECT  |  CLICK COLA OR SPACE  |  CLICK ORDER SHEET / ITEM CUBE  |  R RESTART", instructionStyle);
 
             if (!playing) DrawMatchEnd(state == "Won", busy, scale, padding);
         }
@@ -88,6 +89,7 @@ namespace ColaCola.Presentation
             if (headerStyle == null || styledSkin != GUI.skin)
             {
                 styledSkin = GUI.skin;
+                if (!runtimeFont) runtimeFont = Font.CreateDynamicFontFromOSFont(new[] { "Malgun Gothic", "Noto Sans CJK KR", "Arial" }, 18);
                 headerStyle = FlatLabel(GreenColor, TextAnchor.MiddleLeft);
                 instructionStyle = FlatLabel(MutedColor, TextAnchor.MiddleLeft);
                 resultStyle = FlatLabel(CreamColor, TextAnchor.MiddleLeft);
@@ -102,6 +104,8 @@ namespace ColaCola.Presentation
                     padding = new RectOffset(3, 3, 1, 1),
                     fontStyle = FontStyle.Bold
                 };
+                foreach (var style in new[] { headerStyle, instructionStyle, resultStyle, titleStyle, detailStyle, buttonStyle })
+                    style.font = runtimeFont;
                 ConfigureButtonState(buttonStyle.normal, CreamColor);
                 ConfigureButtonState(buttonStyle.hover, Color.white);
                 ConfigureButtonState(buttonStyle.active, GreenColor);
@@ -140,6 +144,8 @@ namespace ColaCola.Presentation
             state.background = Texture2D.whiteTexture;
             state.textColor = textColor;
         }
+
+        private void OnDestroy() { if (runtimeFont) Destroy(runtimeFont); }
 
         private static Rect Inset(Rect rect, float horizontal, float vertical)
         {

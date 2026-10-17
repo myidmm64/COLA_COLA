@@ -5,6 +5,7 @@ using System.Text;
 using ColaCola.Core;
 using ColaCola.Presentation;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -42,6 +43,7 @@ namespace ColaCola.Editor
             try
             {
                 Check(!EditorApplication.isPlayingOrWillChangePlaymode, "Start duel verification from the saved edit-time scene.");
+                EditorSceneManager.OpenScene(MainSceneTools.ScenePath, OpenSceneMode.Single);
                 Directory.CreateDirectory(Path.GetDirectoryName(Output));
                 SessionState.SetBool(Key, true);
                 SessionState.SetBool(Key + ".Initialized", false);
@@ -69,6 +71,8 @@ namespace ColaCola.Editor
             Check(Application.isPlaying, "Duel verification must run in Play mode.");
             match = UnityEngine.Object.FindFirstObjectByType<ColaDuelController>();
             Check(match && match.isActiveAndEnabled, "The saved scene has no active duel controller.");
+            // Base duel fixtures assert exact action/reward counts; boss-item policy has its own live Play suite.
+            match.GetComponent<ColaBossItemAI>().automaticItemUse = false;
             interaction = match.interaction;
             terminal = match.terminal;
             driver = interaction ? interaction.shakeAnimator : null;
@@ -359,8 +363,15 @@ namespace ColaCola.Editor
             else
             {
                 playerGripSamples++;
-                Check(Vector3.Dot(hand.position - interaction.bottle.position, interaction.playerCamera.transform.right) > .06f,
-                    "The player must grip the bottle from its right side.");
+                float rightOffset = Vector3.Dot(hand.position - interaction.bottle.position, interaction.playerCamera.transform.right);
+                bool recoiling = interaction.burstPresentation &&
+                    (interaction.burstPresentation.Stage == ColaBurstPresentation.BurstStage.Rupture ||
+                     interaction.burstPresentation.Stage == ColaBurstPresentation.BurstStage.Recovery);
+                // Burst recoil rotates the attached hand/bottle pair. Keep the side invariant during recoil,
+                // and the original 6-cm clearance check during the steady grip and pressure stall.
+                Check(rightOffset > (recoiling ? 0 : .06f),
+                    "The player must grip from the right: offset=" + rightOffset.ToString("F4") +
+                    ", time=" + driver.PlaybackTime.ToString("F3") + ", recoil=" + recoiling);
             }
         }
 

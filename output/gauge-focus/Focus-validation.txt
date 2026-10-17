@@ -1,7 +1,0 @@
-Gauge visual hierarchy tuning: central cola is the primary focus.
-Gauge scale: 0.82; linear size reduced 18% from the authored model.
-Fixed-camera gauge bounds area: 0.06398 -> 0.04171 (65.2 % of previous area on this application).
-PASS: foot mounting point remains (-0.3602, 0.9800, -0.0226); gauge lowered as it shrinks, without floating above the console.
-PASS: 369 unrelated transforms, including camera, cola, three keys, both inventories, actors and lights, are preserved.
-Dial and inner bezel use darker, more matte colours; gauge fill 0.40 -> 0.16.
-Existing cola label light: intensity 0.55 -> 0.90, cone 40 -> 46 degrees, warmer tint. No new lights or glow materials.

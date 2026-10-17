@@ -19,6 +19,7 @@ namespace ColaCola.Presentation
         public Collider bottleCollider;
         public ColaShakeAnimator shakeAnimator;
         public ColaBurstPresentation burstPresentation;
+        public ColaItemController items;
         public bool automaticBossTurns = true;
         public bool InputEnabled { get; set; } = true;
         [Min(0)] public float bossThinkSeconds = .65f;
@@ -37,6 +38,10 @@ namespace ColaCola.Presentation
         public ShakeResult LastResult { get; private set; }
         public bool LastActionWasBoss { get; private set; }
         public bool IsBossTurn { get; private set; }
+        public bool BossItemPhase { get; private set; }
+        public bool BossPassedTurn { get; private set; }
+        public int PlannedBossStrength { get; private set; }
+        public ItemActionModifiers LastItemModifiers { get; private set; } = ItemActionModifiers.None;
         public event Action<ShakeResult> ShakeResolved;
 
         private void OnEnable()
@@ -83,6 +88,7 @@ namespace ColaCola.Presentation
             IsBossTurn = false;
             LastActionWasBoss = false;
             LastResult = default;
+            LastItemModifiers = ItemActionModifiers.None;
             model = new BottlePressureModel(20, settings.probabilityExponent);
             CommittedActionCount = 0;
             BottleNumber = 0;
@@ -97,6 +103,8 @@ namespace ColaCola.Presentation
             StopAllCoroutines();
             busy = false;
             IsBossTurn = false;
+            BossItemPhase = BossPassedTurn = false;
+            PlannedBossStrength = 0;
             model?.ClearSelection();
             RestorePoses();
             RefreshView(true);
@@ -114,6 +122,7 @@ namespace ColaCola.Presentation
             if (model == null) model = new BottlePressureModel(limit, settings ? settings.probabilityExponent : 2, pressure);
             else model.BeginBottle(limit, pressure);
             BottleNumber++;
+            if (items) items.OnBottleReplaced();
             RestorePoses();
             RefreshView(true);
         }
@@ -130,13 +139,19 @@ namespace ColaCola.Presentation
 
         public bool SelectStrength(int strength)
         {
-            if (!InputEnabled || !HasBindings || !Application.IsPlaying(gameObject) || !isActiveAndEnabled || IsBusy || model == null || !model.SelectStrength(strength)) return false;
+            var sheet = items ? items.GetComponent<ColaOrderSheet>() : null;
+            if (sheet && sheet.BlocksGameplay) return false;
+            if (!InputEnabled || !HasBindings || !Application.IsPlaying(gameObject) || !isActiveAndEnabled || IsBusy || model == null || strength < 1 || strength > 3) return false;
+            if (items && items.ForcedStrength(false) > 0) strength = items.ForcedStrength(false);
+            if (!model.SelectStrength(strength)) return false;
             RefreshView();
             return true;
         }
 
         public bool ConfirmShake()
         {
+            var sheet = items ? items.GetComponent<ColaOrderSheet>() : null;
+            if (sheet && sheet.BlocksGameplay) return false;
             if (!InputEnabled || !HasBindings || !Application.IsPlaying(gameObject) || !isActiveAndEnabled || IsBusy || model == null) return false;
             if (!CommitSelected(false, out var result)) return false;
             busy = true;
@@ -146,7 +161,12 @@ namespace ColaCola.Presentation
 
         private bool CommitSelected(bool boss, out ShakeResult result)
         {
-            if (!model.TryCommit(() => random.NextDouble(), out result)) return false;
+            if (model.SelectedStrength > 0 && items && items.ForcedStrength(boss) > 0)
+                model.SelectStrength(items.ForcedStrength(boss));
+            var modifiers = items ? items.PreviewAction(boss) : ItemActionModifiers.None;
+            if (!model.TryCommit(() => random.NextDouble(), out result, modifiers.PressureBonus, modifiers.ProbabilityReduction)) return false;
+            if (items) items.EndOrderWindow(boss);
+            LastItemModifiers = items ? items.CaptureAction(boss) : modifiers;
             CommittedActionCount++;
             LastResult = result;
             LastActionWasBoss = boss;
@@ -158,8 +178,14 @@ namespace ColaCola.Presentation
         public bool HandlePointer(Vector2 screenPoint)
         {
             if (!InputEnabled || !HasBindings || IsBusy || !Application.IsPlaying(gameObject)) return false;
+            var sheet = items ? items.GetComponent<ColaOrderSheet>() : null;
+            if (sheet && sheet.BlocksGameplay) return sheet.HandlePointer(screenPoint);
             Physics.SyncTransforms();
             if (!Physics.Raycast(playerCamera.ScreenPointToRay(screenPoint), out var hit, 8, ~0, QueryTriggerInteraction.Ignore)) return false;
+            var orderTarget = hit.collider.GetComponent<ColaOrderTarget>();
+            if (orderTarget && sheet) return sheet.HandleTarget(orderTarget);
+            var itemCube = hit.collider.GetComponent<ColaItemCube>();
+            if (itemCube && items) return !itemCube.IsBoss && items.TryUseSlot(itemCube.Slot);
             for (int i = 0; i < 3; i++)
                 if (hit.transform == strengthButtons[i] || hit.transform.IsChildOf(strengthButtons[i])) return SelectStrength(i + 1);
             if (hit.collider == bottleCollider || hit.transform == bottle || hit.transform.IsChildOf(bottle)) return ConfirmShake();
@@ -171,7 +197,8 @@ namespace ColaCola.Presentation
             if (!Application.IsPlaying(gameObject) || !HasBindings || !isActiveAndEnabled) return;
             if (model == null) ResetSession();
             var keyboard = Keyboard.current;
-            if (keyboard != null && InputEnabled && !IsBusy)
+            var itemDisplay = items ? items.GetComponent<ColaItemPresentation>() : null;
+            if (keyboard != null && InputEnabled && !IsBusy && (!itemDisplay || !itemDisplay.OrderOpen))
             {
                 if (keyboard.digit1Key.wasPressedThisFrame || keyboard.numpad1Key.wasPressedThisFrame) SelectStrength(1);
                 if (keyboard.digit2Key.wasPressedThisFrame || keyboard.numpad2Key.wasPressedThisFrame) SelectStrength(2);
@@ -184,12 +211,15 @@ namespace ColaCola.Presentation
                 HandlePointer(mouse.position.ReadValue());
         }
 
+        public void RefreshPrediction() => RefreshView();
+
         private void RefreshView(bool immediate = false)
         {
             if (model == null || !gauge) return;
             if (model.SelectedStrength > 0)
             {
-                var prediction = model.Predict(model.SelectedStrength);
+                var modifiers = items ? items.PreviewAction(false) : ItemActionModifiers.None;
+                var prediction = model.Predict(model.SelectedStrength, modifiers.PressureBonus, modifiers.ProbabilityReduction);
                 gauge.Show(model.Pressure, model.Limit, prediction.PressureAfter, prediction.BurstProbability, immediate);
             }
             else gauge.Show(model.Pressure, model.Limit, null, null, immediate);
@@ -203,19 +233,62 @@ namespace ColaCola.Presentation
         {
             yield return ResolveAnimation(result, false, version);
             if (!IsCurrent(version)) yield break;
-            if (automaticBossTurns)
+            yield return ResolveBossTurn(version);
+        }
+
+        public bool PassPlayerTurn()
+        {
+            var sheet = items ? items.GetComponent<ColaOrderSheet>() : null;
+            if (sheet && sheet.BlocksGameplay) return false;
+            if (!InputEnabled || !HasBindings || !Application.IsPlaying(gameObject) || !isActiveAndEnabled || IsBusy || IsBossTurn) return false;
+            if (items) items.EndOrderWindow(false);
+            model.ClearSelection();
+            ReleaseButtons();
+            RefreshView();
+            busy = true;
+            StartCoroutine(ResolveBossTurn(sessionVersion));
+            return true;
+        }
+
+        private IEnumerator ResolveBossTurn(int version)
+        {
+            while (automaticBossTurns && InputEnabled && IsCurrent(version))
             {
+                if (items && items.ConsumeBossSkip())
+                {
+                    if (items.ConsumeSkip(false)) continue;
+                    break;
+                }
                 IsBossTurn = true;
+                BossPassedTurn = false;
+                BossItemPhase = true;
+                int strength = items && items.ForcedStrength(true) > 0 ? items.ForcedStrength(true) : bossChoiceRandom.Next(1, 4);
+                PlannedBossStrength = strength;
                 yield return new WaitForSecondsRealtime(Mathf.Max(0, bossThinkSeconds));
                 if (!IsCurrent(version)) yield break;
-                int strength = bossChoiceRandom.Next(1, 4);
-                if (model.SelectStrength(strength) && CommitSelected(true, out var bossResult))
+                var ai = items ? items.GetComponent<ColaBossItemAI>() : null;
+                if (ai && ai.isActiveAndEnabled && ai.automaticItemUse && !BossPassedTurn)
+                    yield return ai.PrepareTurn(strength);
+                if (!IsCurrent(version)) yield break;
+                BossItemPhase = false;
+                if (!BossPassedTurn && model.SelectStrength(strength) && CommitSelected(true, out var bossResult))
                     yield return ResolveAnimation(bossResult, true, version);
                 if (!IsCurrent(version)) yield break;
+                if (!automaticBossTurns || !InputEnabled || !items || !items.ConsumeSkip(false)) break;
             }
             busy = false;
             IsBossTurn = false;
+            BossItemPhase = BossPassedTurn = false;
             RefreshView();
+        }
+
+        public bool PassBossTurn()
+        {
+            if (!items || !items.CanBossAct) return false;
+            items.EndOrderWindow(true);
+            BossPassedTurn = true;
+            model.ClearSelection();
+            return true;
         }
 
         private IEnumerator ResolveAnimation(ShakeResult result, bool boss, int version)
@@ -235,6 +308,7 @@ namespace ColaCola.Presentation
                     sessionVersion++;
                     busy = false;
                     IsBossTurn = false;
+                    BossItemPhase = BossPassedTurn = false;
                     burstPresentation.CancelAndRestore();
                     RestorePoses();
                     yield break;

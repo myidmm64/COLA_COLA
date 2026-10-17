@@ -13,6 +13,7 @@ namespace ColaCola.Presentation
         public StatusTerminalDisplay terminal;
         public GameObject itemRoot;
         public Light itemLight;
+        public ColaItemController Items { get; private set; }
         [Range(1, 99)] public int playerMaxHealth = 3;
         [Range(1, 99)] public int bossBaseHealth = 3;
 
@@ -51,6 +52,9 @@ namespace ColaCola.Presentation
             Subscribe();
             Level = 1;
             PlayerTokens = BossTokens = 0;
+            Items = ColaItemController.EnsureFor(this);
+            Items.ResetRun();
+            GetComponent<ColaBossItemAI>().ResetDecisions(seed);
             BeginDuel(seed);
         }
 
@@ -60,6 +64,9 @@ namespace ColaCola.Presentation
                 return false;
             Level = Mathf.Min(9999, Level + 1);
             BossTokens = 0;
+            Items.ResetEffects();
+            Items.ResetBossInventory();
+            GetComponent<ColaBossItemAI>().ResetDecisions();
             BeginDuel();
             return true;
         }
@@ -94,18 +101,22 @@ namespace ColaCola.Presentation
         {
             if (!isActiveAndEnabled || State != DuelState.Playing) return;
             bool boss = interaction.LastActionWasBoss;
+            var modifiers = interaction.LastItemModifiers;
             int reward = result.Burst ? 5 : result.Prediction.Strength;
+            if (!result.Burst && modifiers.SafeTip && result.Prediction.BurstProbability >= .5d) reward += 3;
+            reward *= modifiers.RewardMultiplier;
+            int damage = result.Burst ? modifiers.Damage : 0;
             if (boss)
             {
                 BossTokens = Mathf.Min(9999, BossTokens + reward);
-                if (result.Burst) BossHealth = Mathf.Max(0, BossHealth - 1);
+                if (result.Burst) BossHealth = Mathf.Max(0, BossHealth - damage);
             }
             else
             {
                 PlayerTokens = Mathf.Min(9999, PlayerTokens + reward);
-                if (result.Burst) PlayerHealth = Mathf.Max(0, PlayerHealth - 1);
+                if (result.Burst) PlayerHealth = Mathf.Max(0, PlayerHealth - damage);
             }
-            LastActionMessage = (boss ? "BOSS" : "YOU") + (result.Burst ? "  BURST: -1 HP" : "  SAFE") + "  /  +" + reward + " TOKENS";
+            LastActionMessage = (boss ? "BOSS" : "YOU") + (result.Burst ? "  BURST: -" + damage + " HP" : "  SAFE") + "  /  +" + reward + " TOKENS";
             if (PlayerHealth == 0 || BossHealth == 0)
             {
                 State = PlayerHealth == 0 ? DuelState.Lost : DuelState.Won;
@@ -121,6 +132,28 @@ namespace ColaCola.Presentation
             terminal.SetPlayerState(PlayerHealth, playerMaxHealth, PlayerTokens, animate);
             terminal.SetBossState(BossHealth, BossMaxHealth, BossTokens, animate);
             terminal.SetActiveParticipant(IsPlayerTurn);
+        }
+
+        public void SetActionMessage(string message) => LastActionMessage = message;
+
+        public bool TrySpendPlayerTokens(int amount) => TrySpendTokens(amount, false);
+        public bool TrySpendTokens(int amount, bool boss)
+        {
+            if (amount < 0 || !Items || !Items.CanActFor(boss) || (boss ? BossTokens : PlayerTokens) < amount) return false;
+            if (boss) BossTokens -= amount;
+            else PlayerTokens -= amount;
+            RefreshTerminal(true);
+            return true;
+        }
+
+        public bool TryHealPlayer() => TryHeal(false);
+        public bool TryHeal(bool boss)
+        {
+            if (!Items || !Items.CanActFor(boss) || (boss ? BossHealth >= BossMaxHealth : PlayerHealth >= playerMaxHealth)) return false;
+            if (boss) BossHealth++;
+            else PlayerHealth++;
+            RefreshTerminal(true);
+            return true;
         }
 
         private void Update()

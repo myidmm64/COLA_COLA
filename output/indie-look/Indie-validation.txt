@@ -1,8 +1,0 @@
-PASS: saved MainScene reopened with CinemachineBrain and live CM_SeatedDuel.
-Cinemachine resolved package: 6.6.0 (BuiltIn).
-PASS: camera position (0,1.32,-1.40), rotation (11,0,0), FOV50 and near clip preserved.
-PASS: URP camera HDR/post-processing and evaluated global Volume active.
-PASS: ACES, color grading, white balance, shadow/highlight tint, bloom, film grain, vignette and subtle chromatic aberration configured.
-PASS: indie grain Thin2, intensity=0.26, response=0.60; gentle black lift and output dithering active.
-PASS: background practical intensity varies 0.6092 to 0.8726; table key remains steady.
-PASS: real Play mode 18.00s, 46 runtime preview frames, one render camera/listener, no missing scripts.

@@ -1,6 +1,0 @@
-PASS: console and three button Cubes replaced with an authored mesh prefab.
-PASS: 94 unrelated stage local transforms preserved; supported character rest poses calibrated separately.
-Console meshes: 18, triangles: 1808
-Independent key transforms: ShakeButton1 / ShakeButton2 / ShakeButton3; press direction: local -Y.
-PASS: Boss_ExistingRig_SeatedBlockPose: Boss_SeatedIdle, 30.00s, loop enabled, all bindings valid, endpoint difference 0.00000000.
-PASS: PlayerArms_ExistingRig_TablePose: PlayerArms_TableIdle, 30.00s, loop enabled, all bindings valid, endpoint difference 0.00000000.

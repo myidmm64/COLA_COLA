@@ -1,3 +1,0 @@
-PASS: entering Play automatically starts the player hand preview without clicks or menu actions.
-PASS: two preview cycles use a live Animator/PlayableGraph and the original right hand stays on the bottle's right side.
-PASS: stop returns the actor and bottle to Idle; the saved scene keeps previewPlayerOnPlay enabled.

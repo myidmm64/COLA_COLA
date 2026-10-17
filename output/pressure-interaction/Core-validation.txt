@@ -1,4 +1,0 @@
-PASS: selecting and comparing strengths never increases pressure or consumes RNG.
-PASS: one cola confirmation applies exactly one pressure increase and roll, using the forecast probability.
-PASS: unselected/duplicate actions rejected; probability rises with pressure; probabilistic bursts below limit and provisional 100% at limit.
-PASS: dynamic bottle reset and safe probability formatting.

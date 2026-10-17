@@ -1,3 +1,0 @@
-PASS: 350 unrelated transforms keep their world position, rotation and local scale.
-Camera/FOV, table, cola, characters, Idles, all three devices, lighting and pressure interaction are preserved.
-Replaced four item Cube placeholders and the two former boss display props with six items per side.

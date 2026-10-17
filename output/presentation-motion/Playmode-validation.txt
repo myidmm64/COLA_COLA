@@ -1,7 +1,0 @@
-PASS: real 1 -> 3 -> 2 key input interpolates arrow/probability, retargets continuously, settles at 25%/90 degrees and does not consume a turn or reward.
-PASS: actual automatic boss Idle completed a 30-second loop; head variation 6.186deg, supported-hand travel 0.001mm.
-PASS: Cinemachine output moved within 4.308mm / 0.163deg while its anchor and FOV stayed fixed.
-PASS: confirmation uses the exact target probability and original seeded roll; player and boss resolve once, reward correctly and clear the preview.
-PASS: disabling breathing restores the original camera pose; restart clears forecast animation with no delayed callbacks.
-Scope: live Play-mode Animator, Cinemachine output, mesh-readout, input and rule-state checks. No preview render, screen capture or Game-view visual confirmation.
-Applied: verified boss clip and camera component saved to original MainScene; original player Idle/controller and boss controller/reference pose SHA-256 preserved. Validation used an isolated Play project; no user Editor interruption.

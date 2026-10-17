@@ -1,2 +1,0 @@
-PASS: 235 existing transforms retained their world position and rotation.
-Only gauge/console placement and the new terminal were changed.

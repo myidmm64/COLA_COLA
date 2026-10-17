@@ -392,7 +392,7 @@ namespace ColaCola.Editor
                 if (t.name.StartsWith("PLACEHOLDER_") || t.name.StartsWith("TestItem0") ||
                     t.name == "PlayerInventory" || t.name == "BossInventory" || t.parent && t.parent.name.StartsWith("0"))
                     report.AppendLine($"{t.name}: position={t.position:F3} rotation={t.eulerAngles:F2} scale={t.lossyScale:F3}");
-            report.AppendLine("Scope: playable single-player duel with original FPS/boss hands, live health/tokens, public pressure forecasts, victory/defeat, restart and escalating boss health. Boss strength selection is provisional random choice. Items, shop and burst effects are excluded.");
+            report.AppendLine("Scope: playable single-player duel with original FPS/boss hands, live health/tokens, public pressure forecasts, burst presentation, victory/defeat, restart and escalating boss health. In-turn ordering supplies 11 adopted consumables as Cube props. Boss strength selection is provisional random choice unless modified by an item.");
             File.WriteAllText(Output + "/MainScene-layout.txt", report.ToString());
         }
 
@@ -479,7 +479,7 @@ namespace ColaCola.Editor
                 var report = $"PASS: Saved MainScene reopened in Unity {Application.unityVersion}\nPASS: one MainCamera and one AudioListener\nPASS: {renderers.Length} renderers with material/shader references\nPASS: no missing scripts\nPASS: six authored test item models per participant, twelve instances, no remaining item Cube placeholders\nPASS: custom PressureGauge model and NeedlePivot replace the gauge Cube\nPASS: custom ShakeConsole with three independent numbered keys replaces console/button Cubes\nPASS: physical StatusTerminal with complete health/token readout bindings\nPASS: both character Animators have enabled looping Idle controllers without root motion\nPASS: MainScene is first enabled build scene\nPASS: hero bottle center viewport={point:F3}\nScope: 3D staging, test item props, character Idle, sample physical readouts and pressure selection/confirmation prototype. Boss AI, damage, token awards, item effects and shop flow are not implemented.\n";
                 if (duel)
                     report = report.Replace("six authored test item models per participant, twelve instances, no remaining item Cube placeholders", "playable single-player duel; item props/light hidden and automatic hand preview disabled")
-                        .Replace("sample physical readouts and pressure selection/confirmation prototype. Boss AI, damage, token awards, item effects and shop flow are not implemented.", "live health/token readouts, alternating pressure actions, in-hand cola burst presentation, victory/defeat/retry and escalating boss health. Items and shop excluded.");
+                        .Replace("sample physical readouts and pressure selection/confirmation prototype. Boss AI, damage, token awards, item effects and shop flow are not implemented.", "live health/token readouts, alternating pressure actions, in-hand cola burst presentation, victory/defeat/retry and escalating boss health. In-turn ordering and 11 adopted consumables with runtime Cube inventory are covered by the separate item Play-mode report.");
                 File.WriteAllText(Output + "/MainScene-validation.txt", report);
                 Debug.Log("COLA_MAIN_SCENE_VALIDATION_PASS");
                 EditorApplication.isPlaying = false;

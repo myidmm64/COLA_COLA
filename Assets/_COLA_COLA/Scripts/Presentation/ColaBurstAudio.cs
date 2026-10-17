@@ -6,12 +6,12 @@ namespace ColaCola.Presentation
     /// <summary>Deterministic original PET crack, liquid spray and ringing tails. No rule RNG or downloaded audio.</summary>
     public static class ColaBurstAudio
     {
-        public enum Sound { Shake, Strain, Rupture, Cap }
+        public enum Sound { Strain = 1, Rupture = 2, Cap = 3 }
 
         public static AudioClip Build(Sound sound)
         {
             const int rate = 44100;
-            float seconds = sound == Sound.Rupture ? 2.15f : sound == Sound.Strain ? .28f : sound == Sound.Cap ? .23f : .9f;
+            float seconds = sound == Sound.Rupture ? 2.15f : sound == Sound.Strain ? .28f : .23f;
             var samples = new float[Mathf.CeilToInt(seconds * rate)];
             var noise = new System.Random(7319 + (int)sound);
             double filtered = 0, phase = 0;
@@ -39,8 +39,7 @@ namespace ColaCola.Presentation
                 else if (sound == Sound.Cap)
                     value = (Math.Sin(t * 2 * Math.PI * 1150) * .6 + white * .3) * Math.Exp(-t * 35);
                 else
-                    value = filtered * (.14 + .12 * Math.Sin(t * 2 * Math.PI * 7)) +
-                        Math.Sin(t * 2 * Math.PI * 145) * filtered * .12;
+                    throw new ArgumentOutOfRangeException(nameof(sound));
                 float fade = Mathf.Min(1, (samples.Length - i) / (rate * .025f));
                 samples[i] = (float)Math.Tanh(value * 1.2) * fade * .85f;
             }

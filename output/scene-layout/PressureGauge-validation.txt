@@ -1,9 +1,0 @@
-PASS: PLACEHOLDER_PressureGauge replaced by PressureGauge prefab.
-PASS: 225 unrelated transforms retained their world position and rotation.
-PASS: separate NeedlePivot for future local-Z rotation.
-Prefab: Assets/_COLA_COLA/Art/Prefabs/PressureGauge.prefab
-Custom mesh parts: 17
-Triangles: 1788
-World bounds center: (-0.7400, 1.1900, -0.1180)
-World bounds size: (0.3400, 0.4200, 0.1200)
-Static visual readout: 15. Unknown threshold: ?. No gameplay binding added.

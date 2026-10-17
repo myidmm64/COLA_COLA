@@ -5,12 +5,16 @@ namespace ColaCola.Core
     public readonly struct ShakePrediction
     {
         public readonly int PressureBefore, Strength, PressureAfter, Limit;
+        public int PressureIncrease => PressureAfter - PressureBefore;
         public readonly double BurstProbability;
         public ShakePrediction(int pressure, int strength, int limit, double probability)
+            : this(pressure, strength, strength, limit, probability) { }
+
+        public ShakePrediction(int pressure, int strength, int increase, int limit, double probability)
         {
             PressureBefore = pressure;
             Strength = strength;
-            PressureAfter = checked(pressure + strength);
+            PressureAfter = checked(pressure + increase);
             Limit = limit;
             BurstProbability = probability;
         }
@@ -65,20 +69,30 @@ namespace ColaCola.Core
 
         public void ClearSelection() => SelectedStrength = 0;
 
-        public ShakePrediction Predict(int strength)
+        public void AdjustPressure(int delta)
         {
-            if (strength < 1 || strength > 3) throw new ArgumentOutOfRangeException(nameof(strength));
-            int after = checked(Pressure + strength);
-            return new ShakePrediction(Pressure, strength, Limit,
-                Math.Pow(Math.Min(1d, (double)after / Limit), ProbabilityExponent));
+            if (HasBurst) throw new InvalidOperationException("A burst bottle cannot be adjusted.");
+            Pressure = (int)Math.Max(0L, Math.Min(int.MaxValue - 5L, (long)Pressure + delta));
         }
 
-        public bool TryCommit(Func<double> nextRandom, out ShakeResult result)
+        public ShakePrediction Predict(int strength, int increaseBonus = 0, double probabilityReduction = 0)
+        {
+            if (strength < 1 || strength > 3) throw new ArgumentOutOfRangeException(nameof(strength));
+            if (double.IsNaN(probabilityReduction) || double.IsInfinity(probabilityReduction))
+                throw new ArgumentOutOfRangeException(nameof(probabilityReduction));
+            int increase = (int)Math.Max(0L, Math.Min(int.MaxValue - (long)Pressure, (long)strength + increaseBonus));
+            int after = checked(Pressure + increase);
+            double probability = after >= Limit ? 1d : Math.Max(0d, Math.Min(1d,
+                Math.Pow((double)after / Limit, ProbabilityExponent) - Math.Max(0d, probabilityReduction)));
+            return new ShakePrediction(Pressure, strength, increase, Limit, probability);
+        }
+
+        public bool TryCommit(Func<double> nextRandom, out ShakeResult result, int increaseBonus = 0, double probabilityReduction = 0)
         {
             result = default;
             if (SelectedStrength == 0 || HasBurst) return false;
             if (nextRandom == null) throw new ArgumentNullException(nameof(nextRandom));
-            var prediction = Predict(SelectedStrength);
+            var prediction = Predict(SelectedStrength, increaseBonus, probabilityReduction);
             double roll = nextRandom();
             if (double.IsNaN(roll) || roll < 0 || roll >= 1)
                 throw new ArgumentOutOfRangeException(nameof(nextRandom), "Random values must be in [0, 1).");

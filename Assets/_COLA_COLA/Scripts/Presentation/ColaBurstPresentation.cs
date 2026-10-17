@@ -26,7 +26,7 @@ namespace ColaCola.Presentation
         private GameObject runtimeRoot, flyingCap;
         private ParticleSystem liquid, foam, mist;
         private AudioSource fluidAudio, impactAudio, capAudio;
-        private AudioClip shakeSound, strainSound, ruptureSound, capSound;
+        private AudioClip strainSound, ruptureSound, capSound;
         private Material sprayMaterial, dropMaterial;
         private Mesh dropMesh, puddleMesh;
         private Texture2D sprayTexture, vignetteTexture;
@@ -36,7 +36,7 @@ namespace ColaCola.Presentation
         private readonly List<Rect> lensSpots = new List<Rect>();
         private Vector3 bottleScale, capOrigin, capVelocity;
         private Quaternion capRotation;
-        private float impactAt = -100, shakeStarted, tableY, anticipation, capLandAt;
+        private float impactAt = -100, tableY, anticipation, capLandAt;
         private int generation;
         private bool shaking, bossShake, capBounced;
         private readonly System.Random random = new System.Random(93117);
@@ -56,12 +56,9 @@ namespace ColaCola.Presentation
             CancelAndRestore();
             bossShake = boss;
             shaking = true;
-            shakeStarted = Time.unscaledTime;
             bottleScale = owner.bottle.localScale;
-            fluidAudio.clip = shakeSound;
-            fluidAudio.loop = true;
-            fluidAudio.volume = 0;
-            fluidAudio.Play();
+            fluidAudio.clip = null;
+            fluidAudio.loop = false;
         }
 
         public IEnumerator PlayBurst(bool boss)
@@ -157,13 +154,6 @@ namespace ColaCola.Presentation
         {
             if (!owner || !owner.bottle || !runtimeRoot) return;
             float t = Time.unscaledTime - impactAt;
-            if (shaking && fluidAudio && fluidAudio.isPlaying && Stage == BurstStage.Idle)
-            {
-                float grip = owner.shakeAnimator && owner.shakeAnimator.BottleHeld ? 1 : .08f;
-                fluidAudio.transform.position = owner.bottle.position;
-                fluidAudio.volume = soundVolume * .32f * grip;
-                fluidAudio.pitch = 1 + .035f * Mathf.Sin((Time.unscaledTime - shakeStarted) * 17);
-            }
             if (anticipation > 0)
                 owner.bottle.localScale = Vector3.Scale(bottleScale,
                     new Vector3(1 + anticipation * .035f, 1 - anticipation * .008f, 1 + anticipation * .035f));
@@ -349,7 +339,6 @@ namespace ColaCola.Presentation
             fluidAudio = Source("Fluid and PET strain", .7f);
             impactAudio = Source("Rupture and pressure tail", .35f);
             capAudio = Source("Cap table impact", 1);
-            shakeSound = ColaBurstAudio.Build(ColaBurstAudio.Sound.Shake);
             strainSound = ColaBurstAudio.Build(ColaBurstAudio.Sound.Strain);
             ruptureSound = ColaBurstAudio.Build(ColaBurstAudio.Sound.Rupture);
             capSound = ColaBurstAudio.Build(ColaBurstAudio.Sound.Cap);
@@ -474,7 +463,7 @@ namespace ColaCola.Presentation
         {
             CancelAndRestore();
             foreach (var resource in new UnityEngine.Object[] { runtimeRoot, sprayMaterial, dropMaterial, sprayTexture, vignetteTexture,
-                dropMesh, puddleMesh, shakeSound, strainSound, ruptureSound, capSound }) Release(resource);
+                dropMesh, puddleMesh, strainSound, ruptureSound, capSound }) Release(resource);
         }
     }
 }

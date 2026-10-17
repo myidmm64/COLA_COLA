@@ -1,3 +1,0 @@
-More active seated boss Idle with supported hands.
-PASS: Boss_SeatedIdle: 30s, 361 baked supported poses; hand drift 0.0005 mm, orientation drift 0.0000 degrees.
-Hands minimum world Y: 0.83300, 0.83300; tabletop Y=.83000.
