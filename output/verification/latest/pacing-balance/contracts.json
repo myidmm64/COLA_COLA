@@ -1,0 +1,26 @@
+{
+  "kind": "offline_model_checks_not_unity",
+  "profile": {
+    "steps": [
+      2,
+      4,
+      8
+    ],
+    "minimum": 25,
+    "maximum": 35,
+    "exponent": 1.6,
+    "hp": 7,
+    "ice": 6,
+    "candy": 6,
+    "syrup": 3,
+    "spicy": 2,
+    "shield": 1,
+    "hot": 1,
+    "stamp": 4,
+    "tip": 3,
+    "order_cost": 12
+  },
+  "checks": 1562,
+  "passed": true,
+  "elapsed_seconds": 0.0
+}

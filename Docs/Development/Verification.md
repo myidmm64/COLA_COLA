@@ -6,6 +6,16 @@
 
 ## 실행
 
+사용자가 검증을 요청하면 기존 Play 브리지 안에서 아래 디버그 명령을 활용해 준비 시간을 줄인다. OS 키보드 입력을 보내지 않고 실제 단축키와 동일한 공개 메서드를 호출한다.
+
+| 단축키 | Play 코드 경로 | 용도 |
+|---|---|---|
+| Q | `match.ApplyDebugCommand(ColaDuelController.DebugCommand.SetTokens999)` | 플레이어 실제 잔액을 999로 설정해 벨 결제 준비 |
+| W | `match.ApplyDebugCommand(ColaDuelController.DebugCommand.ToggleGuaranteedBurst)` | 폭발 확률 100%를 전환하여 폭발/페이드 검사 준비 |
+| E | `match.ApplyDebugCommand(ColaDuelController.DebugCommand.ToggleFreeItemMenu)` | 무료 전체 품목 메뉴를 열고 필요한 아이템 준비 |
+
+명령은 에디터/Development Build의 실제 진행 중인 Play에서만 동작하며 성공 여부를 bool로 반환한다. Q는 무한 모드가 아니라 999로 설정하는 일회성 명령이고, 실제 벨 구매는 정상적으로 `ColaItemController.WaiterCost`(현재 6토큰)를 차감한다. W는 일반 확률·안전 행동 검사 전에 꺼야 한다. E의 무료 지급은 실제 벨 결제 검증을 대체하지 않는다. 메뉴 품목 선택·담기·받기는 기존 `ColaOrderSheet.HandleTarget` 경로를 사용하고 ←/→로 두 페이지를 이동할 수 있다. 검사 전 디버그 상태를 기록하고 종료 후 복원한다. 이 도구를 사용해도 상태 검사 통과를 Game 뷰 시각 확인으로 표현하지 않는다.
+
 Unity 메뉴 `COLA_COLA > Validation > Run Full Play Verification` 또는 프로젝트 루트 PowerShell:
 
 ```powershell

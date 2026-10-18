@@ -142,6 +142,7 @@ namespace ColaCola.Presentation
             while (Time.unscaledTime - started < .22f)
             { if (version != generation) yield break; yield return null; }
             Stage = BurstStage.FadeIn;
+            ColaTabletopAudio.Cue(owner, "NewBottle", owner.bottle.position, .55f);
             started = Time.unscaledTime;
             while (Time.unscaledTime - started < RevealDuration)
             {

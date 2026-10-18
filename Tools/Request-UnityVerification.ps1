@@ -11,7 +11,7 @@ $colaStatus = Join-Path $colaProject 'output/verification/latest/status.json'
 $colaRequestPath = Join-Path $colaMailbox 'verification-request.json'
 if (Test-Path -LiteralPath $colaStatus) {
     $colaExisting = Get-Content -LiteralPath $colaStatus -Raw | ConvertFrom-Json
-    if ($colaExisting.phase -notin @('passed', 'failed')) {
+    if ($colaExisting.phase -notin @('passed', 'failed', 'completed')) {
         throw "A verification request is already $($colaExisting.phase). Check $colaStatus"
     }
 }

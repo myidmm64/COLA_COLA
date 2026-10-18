@@ -11,7 +11,7 @@ namespace ColaCola.Presentation
         private static readonly string[] ModelNames =
         {
             "01_IceCup", "02_FizzCandy", "03_CarbonationSyrup", "04_QueueTicket", "05_Bill",
-            "06_SpicyOrder", "07_SafetyCap", "08_PizzaSlice", "09_HotSauce", "10_DoubleStamp", "11_TipEnvelope"
+            "06_SpicyOrder", "07_SafetyCap", "08_PizzaSlice", "09_HotSauce", "10_DoubleStamp"
         };
         private readonly GameObject[] sources = new GameObject[ModelNames.Length];
         private readonly Material surface;
@@ -35,8 +35,20 @@ namespace ColaCola.Presentation
             int index = (int)id;
             if (!sources[index]) sources[index] = Resources.Load<GameObject>("ItemModels/" + ModelNames[index]);
             if (!sources[index]) throw new InvalidOperationException("COLA_COLA item model is missing: " + ModelNames[index]);
-            var model = UnityEngine.Object.Instantiate(sources[index], parent, false);
-            model.name = ModelNames[index] + "_Model";
+            return InstantiateModel(sources[index], parent, ModelNames[index] + "_Model");
+        }
+
+        public GameObject CreateBellPart(string name, Transform parent)
+        {
+            var source = Resources.Load<GameObject>("ItemModels/" + name);
+            if (!source) throw new InvalidOperationException("COLA_COLA waiter bell model is missing: " + name);
+            return InstantiateModel(source, parent, name);
+        }
+
+        private GameObject InstantiateModel(GameObject source, Transform parent, string name)
+        {
+            var model = UnityEngine.Object.Instantiate(source, parent, false);
+            model.name = name;
             model.hideFlags = HideFlags.DontSave;
             model.transform.localPosition = Vector3.zero;
             foreach (var renderer in model.GetComponentsInChildren<MeshRenderer>(true))

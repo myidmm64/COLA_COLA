@@ -1,0 +1,994 @@
+{
+  "kind": "offline_supply_model_not_unity",
+  "seed": 19000000,
+  "selected_profile": {
+    "steps": [
+      2,
+      4,
+      8
+    ],
+    "minimum": 25,
+    "maximum": 35,
+    "exponent": 1.6,
+    "hp": 7,
+    "ice": 6,
+    "candy": 6,
+    "syrup": 3,
+    "spicy": 2,
+    "shield": 1,
+    "hot": 1,
+    "stamp": 4,
+    "tip": 3,
+    "order_cost": 6,
+    "order_pack": 2,
+    "bottle_items": 0
+  },
+  "comparison": {
+    "before": {
+      "profile": {
+        "steps": [
+          2,
+          4,
+          8
+        ],
+        "minimum": 25,
+        "maximum": 35,
+        "exponent": 1.6,
+        "hp": 7,
+        "ice": 6,
+        "candy": 6,
+        "syrup": 3,
+        "spicy": 2,
+        "shield": 1,
+        "hot": 1,
+        "stamp": 4,
+        "tip": 3,
+        "order_cost": 12,
+        "order_pack": 4,
+        "bottle_items": 0
+      },
+      "balanced": {
+        "n": 2000,
+        "win_pct": 72.2,
+        "ci95": [
+          70.2,
+          74.12
+        ],
+        "draws": 0,
+        "actions_mean": 51.03,
+        "actions_p95": 79,
+        "turns_mean": 55.85,
+        "bursts_per_shake": 0.3235,
+        "actions_p10": 32,
+        "actions_median": 49.0,
+        "estimated_minutes": {
+          "0": {
+            "mean": 4.68,
+            "p10": 2.96,
+            "median": 4.51,
+            "p90": 6.71,
+            "under3_pct": 10.75,
+            "over10_pct": 0.2
+          },
+          "3": {
+            "mean": 6.09,
+            "p10": 3.85,
+            "median": 5.86,
+            "p90": 8.74,
+            "under3_pct": 2.25,
+            "over10_pct": 3.2
+          },
+          "5": {
+            "mean": 7.02,
+            "p10": 4.44,
+            "median": 6.77,
+            "p90": 10.1,
+            "under3_pct": 0.85,
+            "over10_pct": 10.35
+          },
+          "8": {
+            "mean": 8.43,
+            "p10": 5.34,
+            "median": 8.12,
+            "p90": 12.1,
+            "under3_pct": 0.15,
+            "over10_pct": 25.05
+          }
+        },
+        "packs_mean": 14.98,
+        "wallet_p95": 16,
+        "items_used_mean": 57.39,
+        "strength_pct": {
+          "1": 25.11,
+          "2": 28.4,
+          "3": 46.49
+        },
+        "use_rates": {
+          "얼음컵": 85.29,
+          "발포 캔디": 61.2,
+          "탄산 시럽": 92.6,
+          "취소 번호표": 84.92,
+          "계산서": 81.74,
+          "매운맛 주문서": 93.91,
+          "안전 마개": 98.06,
+          "피자 한 조각": 95.53,
+          "핫소스": 96.61,
+          "더블 스탬프": 99.16,
+          "팁 봉투": 98.25
+        }
+      },
+      "greedy": {
+        "n": 2000,
+        "win_pct": 51.4,
+        "ci95": [
+          49.21,
+          53.59
+        ],
+        "draws": 0,
+        "actions_mean": 46.41,
+        "actions_p95": 73,
+        "turns_mean": 51.11,
+        "bursts_per_shake": 0.3522,
+        "actions_p10": 29,
+        "actions_median": 44.5,
+        "estimated_minutes": {
+          "0": {
+            "mean": 4.27,
+            "p10": 2.68,
+            "median": 4.11,
+            "p90": 6.02,
+            "under3_pct": 17.0,
+            "over10_pct": 0.1
+          },
+          "3": {
+            "mean": 5.56,
+            "p10": 3.49,
+            "median": 5.34,
+            "p90": 7.86,
+            "under3_pct": 3.95,
+            "over10_pct": 1.5
+          },
+          "5": {
+            "mean": 6.42,
+            "p10": 4.03,
+            "median": 6.16,
+            "p90": 9.06,
+            "under3_pct": 1.45,
+            "over10_pct": 5.45
+          },
+          "8": {
+            "mean": 7.71,
+            "p10": 4.85,
+            "median": 7.41,
+            "p90": 10.86,
+            "under3_pct": 0.4,
+            "over10_pct": 16.3
+          }
+        },
+        "packs_mean": 14.41,
+        "wallet_p95": 16,
+        "items_used_mean": 55.15,
+        "strength_pct": {
+          "1": 16.75,
+          "2": 17.0,
+          "3": 66.25
+        },
+        "use_rates": {
+          "얼음컵": 84.09,
+          "발포 캔디": 62.51,
+          "탄산 시럽": 91.12,
+          "취소 번호표": 84.5,
+          "계산서": 82.9,
+          "매운맛 주문서": 93.3,
+          "안전 마개": 97.05,
+          "피자 한 조각": 96.26,
+          "핫소스": 96.16,
+          "더블 스탬프": 98.76,
+          "팁 봉투": 97.93
+        }
+      },
+      "cautious": {
+        "n": 2000,
+        "win_pct": 46.4,
+        "ci95": [
+          44.22,
+          48.59
+        ],
+        "draws": 0,
+        "actions_mean": 71.51,
+        "actions_p95": 112,
+        "turns_mean": 76.21,
+        "bursts_per_shake": 0.2292,
+        "actions_p10": 45,
+        "actions_median": 69.0,
+        "estimated_minutes": {
+          "0": {
+            "mean": 6.41,
+            "p10": 4.06,
+            "median": 6.17,
+            "p90": 9.12,
+            "under3_pct": 1.4,
+            "over10_pct": 5.05
+          },
+          "3": {
+            "mean": 8.33,
+            "p10": 5.31,
+            "median": 8.02,
+            "p90": 11.83,
+            "under3_pct": 0.15,
+            "over10_pct": 23.05
+          },
+          "5": {
+            "mean": 9.61,
+            "p10": 6.12,
+            "median": 9.25,
+            "p90": 13.66,
+            "under3_pct": 0.0,
+            "over10_pct": 39.25
+          },
+          "8": {
+            "mean": 11.53,
+            "p10": 7.33,
+            "median": 11.1,
+            "p90": 16.36,
+            "under3_pct": 0.0,
+            "over10_pct": 62.6
+          }
+        },
+        "packs_mean": 15.18,
+        "wallet_p95": 16,
+        "items_used_mean": 58.45,
+        "strength_pct": {
+          "1": 67.35,
+          "2": 16.49,
+          "3": 16.16
+        },
+        "use_rates": {
+          "얼음컵": 78.94,
+          "발포 캔디": 73.35,
+          "탄산 시럽": 96.33,
+          "취소 번호표": 78.27,
+          "계산서": 80.12,
+          "매운맛 주문서": 95.51,
+          "안전 마개": 98.32,
+          "피자 한 조각": 96.56,
+          "핫소스": 97.64,
+          "더블 스탬프": 99.34,
+          "팁 봉투": 98.91
+        }
+      },
+      "mirror": {
+        "n": 2000,
+        "win_pct": 50.25,
+        "ci95": [
+          48.06,
+          52.44
+        ],
+        "draws": 0,
+        "actions_mean": 53.04,
+        "actions_p95": 86,
+        "turns_mean": 58.5,
+        "bursts_per_shake": 0.3361,
+        "actions_p10": 33,
+        "actions_median": 51.0,
+        "estimated_minutes": {
+          "0": {
+            "mean": 4.93,
+            "p10": 3.05,
+            "median": 4.79,
+            "p90": 7.04,
+            "under3_pct": 9.15,
+            "over10_pct": 0.55
+          },
+          "3": {
+            "mean": 6.41,
+            "p10": 3.96,
+            "median": 6.22,
+            "p90": 9.13,
+            "under3_pct": 2.15,
+            "over10_pct": 6.25
+          },
+          "5": {
+            "mean": 7.39,
+            "p10": 4.58,
+            "median": 7.16,
+            "p90": 10.52,
+            "under3_pct": 0.85,
+            "over10_pct": 12.5
+          },
+          "8": {
+            "mean": 8.87,
+            "p10": 5.49,
+            "median": 8.6,
+            "p90": 12.6,
+            "under3_pct": 0.35,
+            "over10_pct": 30.0
+          }
+        },
+        "packs_mean": 16.37,
+        "wallet_p95": 16,
+        "items_used_mean": 61.36,
+        "strength_pct": {
+          "1": 22.82,
+          "2": 26.74,
+          "3": 50.44
+        },
+        "use_rates": {
+          "얼음컵": 84.94,
+          "발포 캔디": 47.19,
+          "탄산 시럽": 89.26,
+          "취소 번호표": 89.1,
+          "계산서": 86.39,
+          "매운맛 주문서": 90.71,
+          "안전 마개": 97.39,
+          "피자 한 조각": 96.06,
+          "핫소스": 94.84,
+          "더블 스탬프": 98.94,
+          "팁 봉투": 97.68
+        }
+      },
+      "rich": {
+        "n": 1000,
+        "win_pct": 48.5,
+        "ci95": [
+          45.41,
+          51.6
+        ],
+        "draws": 0,
+        "actions_mean": 69.95,
+        "actions_p95": 107,
+        "turns_mean": 80.56,
+        "bursts_per_shake": 0.3233,
+        "actions_p10": 45,
+        "actions_median": 68.0,
+        "estimated_minutes": {
+          "0": {
+            "mean": 6.76,
+            "p10": 4.44,
+            "median": 6.55,
+            "p90": 9.42,
+            "under3_pct": 1.0,
+            "over10_pct": 6.2
+          },
+          "3": {
+            "mean": 8.79,
+            "p10": 5.75,
+            "median": 8.52,
+            "p90": 12.24,
+            "under3_pct": 0.2,
+            "over10_pct": 29.5
+          },
+          "5": {
+            "mean": 10.14,
+            "p10": 6.63,
+            "median": 9.83,
+            "p90": 14.09,
+            "under3_pct": 0.0,
+            "over10_pct": 46.4
+          },
+          "8": {
+            "mean": 12.17,
+            "p10": 8.0,
+            "median": 11.81,
+            "p90": 16.92,
+            "under3_pct": 0.0,
+            "over10_pct": 71.6
+          }
+        },
+        "packs_mean": 31.35,
+        "wallet_p95": 19,
+        "items_used_mean": 115.31,
+        "strength_pct": {
+          "1": 30.46,
+          "2": 26.68,
+          "3": 42.86
+        },
+        "use_rates": {
+          "얼음컵": 87.19,
+          "발포 캔디": 52.91,
+          "탄산 시럽": 89.94,
+          "취소 번호표": 93.97,
+          "계산서": 91.34,
+          "매운맛 주문서": 91.88,
+          "안전 마개": 97.37,
+          "피자 한 조각": 85.81,
+          "핫소스": 95.58,
+          "더블 스탬프": 97.92,
+          "팁 봉투": 96.48
+        }
+      },
+      "campaign": {
+        "runs": 500,
+        "matches": 1364,
+        "draws": 0,
+        "levels": [
+          {
+            "level": 1,
+            "reached": 500,
+            "beaten": 353,
+            "conditional_win_pct": 70.6,
+            "ci95": [
+              66.46,
+              74.42
+            ],
+            "carried_tokens_median": 8
+          },
+          {
+            "level": 2,
+            "reached": 353,
+            "beaten": 244,
+            "conditional_win_pct": 69.12,
+            "ci95": [
+              64.12,
+              73.71
+            ],
+            "carried_tokens_median": 7.0
+          },
+          {
+            "level": 3,
+            "reached": 244,
+            "beaten": 141,
+            "conditional_win_pct": 57.79,
+            "ci95": [
+              51.52,
+              63.82
+            ],
+            "carried_tokens_median": 8
+          },
+          {
+            "level": 4,
+            "reached": 141,
+            "beaten": 79,
+            "conditional_win_pct": 56.03,
+            "ci95": [
+              47.78,
+              63.95
+            ],
+            "carried_tokens_median": 7
+          },
+          {
+            "level": 5,
+            "reached": 79,
+            "beaten": 34,
+            "conditional_win_pct": 43.04,
+            "ci95": [
+              32.69,
+              54.03
+            ],
+            "carried_tokens_median": 7.5
+          },
+          {
+            "level": 6,
+            "reached": 34,
+            "beaten": 9,
+            "conditional_win_pct": 26.47,
+            "ci95": [
+              14.6,
+              43.12
+            ],
+            "carried_tokens_median": 10
+          },
+          {
+            "level": 7,
+            "reached": 9,
+            "beaten": 4,
+            "conditional_win_pct": 44.44,
+            "ci95": [
+              18.88,
+              73.34
+            ],
+            "carried_tokens_median": 10.0
+          },
+          {
+            "level": 8,
+            "reached": 4,
+            "beaten": 2,
+            "conditional_win_pct": 50.0,
+            "ci95": [
+              15.0,
+              85.0
+            ],
+            "carried_tokens_median": 7.0
+          }
+        ]
+      }
+    },
+    "after": {
+      "profile": {
+        "steps": [
+          2,
+          4,
+          8
+        ],
+        "minimum": 25,
+        "maximum": 35,
+        "exponent": 1.6,
+        "hp": 7,
+        "ice": 6,
+        "candy": 6,
+        "syrup": 3,
+        "spicy": 2,
+        "shield": 1,
+        "hot": 1,
+        "stamp": 4,
+        "tip": 3,
+        "order_cost": 6,
+        "order_pack": 2,
+        "bottle_items": 0
+      },
+      "balanced": {
+        "n": 2000,
+        "win_pct": 70.6,
+        "ci95": [
+          68.57,
+          72.56
+        ],
+        "draws": 0,
+        "actions_mean": 52.09,
+        "actions_p95": 85,
+        "turns_mean": 57.28,
+        "bursts_per_shake": 0.3218,
+        "actions_p10": 32,
+        "actions_median": 50.0,
+        "estimated_minutes": {
+          "0": {
+            "mean": 4.91,
+            "p10": 3.01,
+            "median": 4.68,
+            "p90": 7.04,
+            "under3_pct": 9.9,
+            "over10_pct": 0.65
+          },
+          "3": {
+            "mean": 6.35,
+            "p10": 3.88,
+            "median": 6.07,
+            "p90": 9.1,
+            "under3_pct": 2.4,
+            "over10_pct": 6.15
+          },
+          "5": {
+            "mean": 7.31,
+            "p10": 4.48,
+            "median": 6.99,
+            "p90": 10.49,
+            "under3_pct": 0.85,
+            "over10_pct": 13.35
+          },
+          "8": {
+            "mean": 8.75,
+            "p10": 5.36,
+            "median": 8.36,
+            "p90": 12.55,
+            "under3_pct": 0.25,
+            "over10_pct": 29.85
+          }
+        },
+        "packs_mean": 31.94,
+        "wallet_p95": 13,
+        "items_used_mean": 61.25,
+        "strength_pct": {
+          "1": 25.4,
+          "2": 27.98,
+          "3": 46.62
+        },
+        "use_rates": {
+          "얼음컵": 87.53,
+          "발포 캔디": 56.75,
+          "탄산 시럽": 96.82,
+          "취소 번호표": 82.42,
+          "계산서": 83.06,
+          "매운맛 주문서": 96.87,
+          "안전 마개": 99.39,
+          "피자 한 조각": 93.2,
+          "핫소스": 98.04,
+          "더블 스탬프": 99.23,
+          "팁 봉투": 99.21
+        }
+      },
+      "greedy": {
+        "n": 2000,
+        "win_pct": 48.3,
+        "ci95": [
+          46.12,
+          50.49
+        ],
+        "draws": 0,
+        "actions_mean": 46.75,
+        "actions_p95": 74,
+        "turns_mean": 51.71,
+        "bursts_per_shake": 0.3521,
+        "actions_p10": 29,
+        "actions_median": 45.0,
+        "estimated_minutes": {
+          "0": {
+            "mean": 4.42,
+            "p10": 2.75,
+            "median": 4.22,
+            "p90": 6.35,
+            "under3_pct": 15.15,
+            "over10_pct": 0.4
+          },
+          "3": {
+            "mean": 5.73,
+            "p10": 3.56,
+            "median": 5.47,
+            "p90": 8.2,
+            "under3_pct": 4.1,
+            "over10_pct": 2.2
+          },
+          "5": {
+            "mean": 6.6,
+            "p10": 4.09,
+            "median": 6.3,
+            "p90": 9.45,
+            "under3_pct": 1.4,
+            "over10_pct": 6.8
+          },
+          "8": {
+            "mean": 7.9,
+            "p10": 4.9,
+            "median": 7.55,
+            "p90": 11.33,
+            "under3_pct": 0.55,
+            "over10_pct": 18.8
+          }
+        },
+        "packs_mean": 30.31,
+        "wallet_p95": 13,
+        "items_used_mean": 58.12,
+        "strength_pct": {
+          "1": 16.83,
+          "2": 16.84,
+          "3": 66.33
+        },
+        "use_rates": {
+          "얼음컵": 87.31,
+          "발포 캔디": 58.02,
+          "탄산 시럽": 94.15,
+          "취소 번호표": 82.35,
+          "계산서": 83.82,
+          "매운맛 주문서": 94.88,
+          "안전 마개": 99.08,
+          "피자 한 조각": 94.15,
+          "핫소스": 97.53,
+          "더블 스탬프": 99.04,
+          "팁 봉투": 99.21
+        }
+      },
+      "cautious": {
+        "n": 2000,
+        "win_pct": 47.85,
+        "ci95": [
+          45.67,
+          50.04
+        ],
+        "draws": 0,
+        "actions_mean": 71.88,
+        "actions_p95": 112,
+        "turns_mean": 76.81,
+        "bursts_per_shake": 0.229,
+        "actions_p10": 45,
+        "actions_median": 69.0,
+        "estimated_minutes": {
+          "0": {
+            "mean": 6.6,
+            "p10": 4.16,
+            "median": 6.38,
+            "p90": 9.36,
+            "under3_pct": 1.45,
+            "over10_pct": 6.35
+          },
+          "3": {
+            "mean": 8.53,
+            "p10": 5.41,
+            "median": 8.23,
+            "p90": 12.06,
+            "under3_pct": 0.15,
+            "over10_pct": 26.05
+          },
+          "5": {
+            "mean": 9.82,
+            "p10": 6.22,
+            "median": 9.47,
+            "p90": 13.87,
+            "under3_pct": 0.0,
+            "over10_pct": 44.1
+          },
+          "8": {
+            "mean": 11.76,
+            "p10": 7.43,
+            "median": 11.33,
+            "p90": 16.57,
+            "under3_pct": 0.0,
+            "over10_pct": 65.0
+          }
+        },
+        "packs_mean": 32.02,
+        "wallet_p95": 12,
+        "items_used_mean": 61.72,
+        "strength_pct": {
+          "1": 67.31,
+          "2": 16.38,
+          "3": 16.31
+        },
+        "use_rates": {
+          "얼음컵": 82.37,
+          "발포 캔디": 68.22,
+          "탄산 시럽": 98.55,
+          "취소 번호표": 78.01,
+          "계산서": 80.67,
+          "매운맛 주문서": 98.58,
+          "안전 마개": 99.17,
+          "피자 한 조각": 94.32,
+          "핫소스": 99.0,
+          "더블 스탬프": 99.59,
+          "팁 봉투": 99.46
+        }
+      },
+      "mirror": {
+        "n": 2000,
+        "win_pct": 51.05,
+        "ci95": [
+          48.86,
+          53.24
+        ],
+        "draws": 0,
+        "actions_mean": 53.35,
+        "actions_p95": 86,
+        "turns_mean": 58.92,
+        "bursts_per_shake": 0.3339,
+        "actions_p10": 32,
+        "actions_median": 51.0,
+        "estimated_minutes": {
+          "0": {
+            "mean": 5.1,
+            "p10": 3.1,
+            "median": 4.88,
+            "p90": 7.37,
+            "under3_pct": 8.95,
+            "over10_pct": 1.05
+          },
+          "3": {
+            "mean": 6.58,
+            "p10": 4.01,
+            "median": 6.29,
+            "p90": 9.51,
+            "under3_pct": 1.85,
+            "over10_pct": 7.4
+          },
+          "5": {
+            "mean": 7.57,
+            "p10": 4.61,
+            "median": 7.25,
+            "p90": 10.95,
+            "under3_pct": 0.75,
+            "over10_pct": 15.9
+          },
+          "8": {
+            "mean": 9.06,
+            "p10": 5.51,
+            "median": 8.67,
+            "p90": 13.08,
+            "under3_pct": 0.3,
+            "over10_pct": 32.5
+          }
+        },
+        "packs_mean": 34.23,
+        "wallet_p95": 13,
+        "items_used_mean": 64.92,
+        "strength_pct": {
+          "1": 24.14,
+          "2": 26.75,
+          "3": 49.11
+        },
+        "use_rates": {
+          "얼음컵": 89.05,
+          "발포 캔디": 42.67,
+          "탄산 시럽": 96.94,
+          "취소 번호표": 85.34,
+          "계산서": 84.9,
+          "매운맛 주문서": 97.0,
+          "안전 마개": 99.26,
+          "피자 한 조각": 93.81,
+          "핫소스": 98.46,
+          "더블 스탬프": 99.33,
+          "팁 봉투": 99.01
+        }
+      },
+      "rich": {
+        "n": 1000,
+        "win_pct": 52.9,
+        "ci95": [
+          49.8,
+          55.98
+        ],
+        "draws": 0,
+        "actions_mean": 73.45,
+        "actions_p95": 112,
+        "turns_mean": 84.25,
+        "bursts_per_shake": 0.3028,
+        "actions_p10": 48,
+        "actions_median": 71.0,
+        "estimated_minutes": {
+          "0": {
+            "mean": 7.27,
+            "p10": 4.85,
+            "median": 7.02,
+            "p90": 10.08,
+            "under3_pct": 0.8,
+            "over10_pct": 10.4
+          },
+          "3": {
+            "mean": 9.39,
+            "p10": 6.25,
+            "median": 9.09,
+            "p90": 12.98,
+            "under3_pct": 0.1,
+            "over10_pct": 37.1
+          },
+          "5": {
+            "mean": 10.8,
+            "p10": 7.21,
+            "median": 10.44,
+            "p90": 14.97,
+            "under3_pct": 0.0,
+            "over10_pct": 56.2
+          },
+          "8": {
+            "mean": 12.92,
+            "p10": 8.61,
+            "median": 12.5,
+            "p90": 17.93,
+            "under3_pct": 0.0,
+            "over10_pct": 78.7
+          }
+        },
+        "packs_mean": 63.85,
+        "wallet_p95": 16,
+        "items_used_mean": 118.46,
+        "strength_pct": {
+          "1": 37.68,
+          "2": 26.46,
+          "3": 35.86
+        },
+        "use_rates": {
+          "얼음컵": 90.54,
+          "발포 캔디": 46.96,
+          "탄산 시럽": 95.78,
+          "취소 번호표": 90.89,
+          "계산서": 90.88,
+          "매운맛 주문서": 96.57,
+          "안전 마개": 98.76,
+          "피자 한 조각": 84.76,
+          "핫소스": 97.87,
+          "더블 스탬프": 98.14,
+          "팁 봉투": 98.01
+        }
+      },
+      "campaign": {
+        "runs": 500,
+        "matches": 1284,
+        "draws": 0,
+        "levels": [
+          {
+            "level": 1,
+            "reached": 500,
+            "beaten": 344,
+            "conditional_win_pct": 68.8,
+            "ci95": [
+              64.61,
+              72.7
+            ],
+            "carried_tokens_median": 5.0
+          },
+          {
+            "level": 2,
+            "reached": 344,
+            "beaten": 222,
+            "conditional_win_pct": 64.53,
+            "ci95": [
+              59.34,
+              69.4
+            ],
+            "carried_tokens_median": 5.0
+          },
+          {
+            "level": 3,
+            "reached": 222,
+            "beaten": 123,
+            "conditional_win_pct": 55.41,
+            "ci95": [
+              48.83,
+              61.8
+            ],
+            "carried_tokens_median": 5
+          },
+          {
+            "level": 4,
+            "reached": 123,
+            "beaten": 58,
+            "conditional_win_pct": 47.15,
+            "ci95": [
+              38.55,
+              55.93
+            ],
+            "carried_tokens_median": 5.0
+          },
+          {
+            "level": 5,
+            "reached": 58,
+            "beaten": 23,
+            "conditional_win_pct": 39.66,
+            "ci95": [
+              28.09,
+              52.51
+            ],
+            "carried_tokens_median": 5
+          },
+          {
+            "level": 6,
+            "reached": 23,
+            "beaten": 10,
+            "conditional_win_pct": 43.48,
+            "ci95": [
+              25.63,
+              63.19
+            ],
+            "carried_tokens_median": 5.0
+          },
+          {
+            "level": 7,
+            "reached": 10,
+            "beaten": 4,
+            "conditional_win_pct": 40.0,
+            "ci95": [
+              16.82,
+              68.73
+            ],
+            "carried_tokens_median": 4.5
+          },
+          {
+            "level": 8,
+            "reached": 4,
+            "beaten": 1,
+            "conditional_win_pct": 25.0,
+            "ci95": [
+              4.56,
+              69.94
+            ],
+            "carried_tokens_median": 7
+          }
+        ]
+      }
+    }
+  },
+  "contracts": {
+    "kind": "offline_model_checks_not_unity",
+    "profile": {
+      "steps": [
+        2,
+        4,
+        8
+      ],
+      "minimum": 25,
+      "maximum": 35,
+      "exponent": 1.6,
+      "hp": 7,
+      "ice": 6,
+      "candy": 6,
+      "syrup": 3,
+      "spicy": 2,
+      "shield": 1,
+      "hot": 1,
+      "stamp": 4,
+      "tip": 3,
+      "order_cost": 6,
+      "order_pack": 2,
+      "bottle_items": 0
+    },
+    "checks": 1562,
+    "passed": true
+  },
+  "elapsed_seconds": 41.53
+}

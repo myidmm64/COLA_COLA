@@ -90,3 +90,9 @@ Animator는 Root Motion을 끄고 `Always Animate`로 설정한다. Idle 상태�
 저장본 재열기 검사에서 Renderer 77개의 재질·셰이더 참조, 카메라·AudioListener 각 1개, 누락 스크립트 0개, 아이템 Cube 4개를 확인했다. `SampleScene.unity`, `URPProjectSettings.asset`, `QualitySettings.asset`, `EditorSettings.asset`의 파일 해시도 작업 전후 동일했다. 상세 결과는 위 검증 기록과 `output/scene-layout/preserved-files-natural-idle.json`에 있다.
 
 단말기 최초 적용에서는 압력계·콘솔 배치 외 월드 Transform 235개와 설정·패키지·Volume·Idle 관련 파일 21개를 보존했다. 실제 Play에서도 두 캐릭터의 기존 Idle이 계속 재생됨을 확인했다. 최신 검증은 `output/verification/latest/status-terminal/Placement-preservation.txt`, `preserved-files-after.json`, `Display-playmode-validation.txt`를 따른다.
+
+## 플레이어 턴 표시등
+
+`ShakeSelectionInteraction.ResetSession`이 `ColaTurnIndicator`를 자동 연결한다. 콘솔 중앙 버튼 앞쪽에 어두운 베젤과 폭 3.4cm의 작은 올리브색 렌즈를 배치한다. 플레이어가 턴을 갖고 있을 때 0.28초 동안 부드럽게 켜지고 보스 턴에는 같은 시간에 꺼진다. 자기 아이템을 쓰거나 메뉴를 여는 동안은 켜진 상태를 유지해 새 턴으로 오해하는 재점등을 피한다. 경기 종료와 비활성화에서는 꺼진다.
+
+텍스트·점멸·파티클·사운드는 추가하지 않는다. 렌즈는 HDR 발광이나 Light 없이 밝기가 제한된 Unlit 색상만 바꿔 압력계와 테이블을 비추지 않는다. 작은 팔각 베벨 메시와 재질은 런타임에 한 번 만들고 파괴 시 정리한다. 이번 표시등은 Play·컴파일·화면 검증을 실행하지 않았으며 위 기존 검증 기록에 포함되지 않는다.

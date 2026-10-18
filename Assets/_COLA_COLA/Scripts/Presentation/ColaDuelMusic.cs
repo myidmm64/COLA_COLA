@@ -6,7 +6,8 @@ namespace ColaCola.Presentation
     [DisallowMultipleComponent]
     public sealed class ColaDuelMusic : MonoBehaviour
     {
-        [Range(0, 1)] public float musicVolume = .34f;
+        public const float ScoreSeconds = 48;
+        [Range(0, 1)] public float musicVolume = .50f;
         public AudioSource Ambience { get; private set; }
         public AudioSource Tension { get; private set; }
         public float Intensity { get; private set; }
@@ -35,12 +36,13 @@ namespace ColaCola.Presentation
 
         private void EnsureSources()
         {
-            if (!Ambience) Ambience = Source("BGM / After Hours", "Audio/Pizzeria_Night_Base");
-            if (!Tension) Tension = Source("BGM / Pressure Pulse", "Audio/Pizzeria_Night_Tension");
+            if (!Ambience) Ambience = Source("BGM / Still Table - Score", "Audio/Pizzeria_Night_Base");
+            if (!Tension) Tension = Source("BGM / Still Table - Pressure", "Audio/Pizzeria_Night_Tension");
             if (!Ambience.clip || !Tension.clip)
             { Debug.LogError("COLA_COLA original BGM stems are missing.", this); return; }
-            if (!Ambience.isPlaying && !Tension.isPlaying)
+            if (!Ambience.isPlaying || !Tension.isPlaying)
             {
+                Ambience.Stop(); Tension.Stop();
                 double start = AudioSettings.dspTime + .12;
                 Ambience.PlayScheduled(start); Tension.PlayScheduled(start);
             }
@@ -71,8 +73,14 @@ namespace ColaCola.Presentation
             if (match.State != ColaDuelController.DuelState.Playing) targetDuck *= .45f;
             float blend = 1 - Mathf.Exp(-Time.unscaledDeltaTime * (targetDuck < Duck ? 20 : 2.5f));
             Duck = Mathf.Lerp(Duck, targetDuck, blend);
-            Ambience.volume = musicVolume * .8f * Duck;
-            Tension.volume = musicVolume * .72f * Intensity * Duck;
+            Ambience.volume = musicVolume * .84f * Duck;
+            // A quiet upper voice follows the same steady phrase without increasing rhythm density.
+            Tension.volume = musicVolume * .22f * Intensity * Duck;
+        }
+
+        private void OnEnable()
+        {
+            if (Application.IsPlaying(gameObject) && match) EnsureSources();
         }
 
         private void OnDisable()

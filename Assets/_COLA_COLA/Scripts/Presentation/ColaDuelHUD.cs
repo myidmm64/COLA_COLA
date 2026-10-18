@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace ColaCola.Presentation
 {
-    /// <summary>Match-end controls only. In-play status stays on the physical props and effect labels.</summary>
+    /// <summary>Debug shortcut hints and match-end controls. Normal status stays on the physical props.</summary>
     [DisallowMultipleComponent]
     public sealed class ColaDuelHUD : MonoBehaviour
     {
@@ -15,7 +15,7 @@ namespace ColaCola.Presentation
         private static readonly Color MutedColor = new Color(.58f, .62f, .51f, 1);
         private static readonly Color ButtonColor = new Color(.16f, .23f, .16f, 1);
 
-        private GUIStyle titleStyle, detailStyle, buttonStyle;
+        private GUIStyle titleStyle, detailStyle, buttonStyle, debugStyle, debugShadowStyle;
         private GUISkin styledSkin;
         private Font runtimeFont;
 
@@ -24,13 +24,30 @@ namespace ColaCola.Presentation
             if (!Application.IsPlaying(gameObject)) return;
             if (!match) match = FindAnyObjectByType<ColaDuelController>();
             if (!match || Screen.width < 160 || Screen.height < 120) return;
-            if (match.State == ColaDuelController.DuelState.Playing) return;
-
             float scale = Mathf.Clamp(Mathf.Min(Screen.width / 960f, Screen.height / 640f), .7f, 1.15f);
             EnsureStyles(scale);
+            if (match.DebugToolsAvailable) DrawDebugShortcuts(scale);
+            if (match.State == ColaDuelController.DuelState.Playing) return;
             float padding = Mathf.Round(9 * scale);
             bool busy = match.interaction && match.interaction.IsBusy;
             DrawMatchEnd(match.State == ColaDuelController.DuelState.Won, busy, scale, padding);
+        }
+
+        private void DrawDebugShortcuts(float scale)
+        {
+            var sheet = match.GetComponent<ColaOrderSheet>();
+            string[] lines =
+            {
+                "Q  토큰 999",
+                "W  폭발 확률 100%  [" + (match.GuaranteedBurst ? "ON" : "OFF") + "]",
+                "E  메뉴판 (모두 무료)  [" + (sheet && sheet.IsOpen ? "ON" : "OFF") + "]"
+            };
+            for (int i = 0; i < lines.Length; i++)
+            {
+                var rect = new Rect(12 * scale, (12 + i * 22) * scale, Screen.width - 24 * scale, 22 * scale);
+                GUI.Label(new Rect(rect.x + scale, rect.y + scale, rect.width, rect.height), lines[i], debugShadowStyle);
+                GUI.Label(rect, lines[i], debugStyle);
+            }
         }
 
         private void DrawMatchEnd(bool won, bool busy, float scale, float padding)
@@ -72,6 +89,8 @@ namespace ColaCola.Presentation
                 if (!runtimeFont) runtimeFont = Font.CreateDynamicFontFromOSFont(new[] { "Malgun Gothic", "Noto Sans CJK KR", "Arial" }, 18);
                 titleStyle = FlatLabel(CreamColor, TextAnchor.MiddleCenter);
                 detailStyle = FlatLabel(MutedColor, TextAnchor.MiddleCenter);
+                debugStyle = FlatLabel(CreamColor, TextAnchor.MiddleLeft);
+                debugShadowStyle = FlatLabel(new Color(.015f, .02f, .015f, .95f), TextAnchor.MiddleLeft);
                 buttonStyle = new GUIStyle
                 {
                     font = GUI.skin.font,
@@ -81,7 +100,7 @@ namespace ColaCola.Presentation
                     padding = new RectOffset(3, 3, 1, 1),
                     fontStyle = FontStyle.Bold
                 };
-                foreach (var style in new[] { titleStyle, detailStyle, buttonStyle })
+                foreach (var style in new[] { titleStyle, detailStyle, buttonStyle, debugStyle, debugShadowStyle })
                     style.font = runtimeFont;
                 ConfigureButtonState(buttonStyle.normal, CreamColor);
                 ConfigureButtonState(buttonStyle.hover, Color.white);
@@ -96,6 +115,7 @@ namespace ColaCola.Presentation
             titleStyle.fontSize = Mathf.RoundToInt(23 * scale);
             detailStyle.fontSize = Mathf.RoundToInt(12 * scale);
             buttonStyle.fontSize = Mathf.RoundToInt(15 * scale);
+            debugStyle.fontSize = debugShadowStyle.fontSize = Mathf.RoundToInt(14 * scale);
         }
 
         private static GUIStyle FlatLabel(Color color, TextAnchor alignment)

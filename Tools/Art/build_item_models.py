@@ -298,35 +298,19 @@ def stamp(m):
     for x in (-.012,.012): print_rect(m,p,n,x,0,.010,.011,"cream")
 
 
-def coin(m, center, radius, normal):
-    n=unit(normal)
-    u=unit(cross(n,(0,1,0))); v=cross(n,u)
-    rings=[]
-    for depth,r in [(-.002,radius*.92),(-.001,radius),(.001,radius),(.002,radius*.92)]:
-        rings.append([add(center,add(mul(n,depth),add(mul(u,r*math.cos(i*math.tau/12)),
-                                                        mul(v,r*math.sin(i*math.tau/12))))) for i in range(12)])
-    for low,high in zip(rings,rings[1:]):
-        for i in range(12):
-            j=(i+1)%12
-            m.face([low[i],low[j],high[j],high[i]],"brass")
-    m.face(rings[0],"gold",mul(n,-1)); m.face(rings[-1],"gold",n)
-    m.disk(add(center,mul(n,.0023)),radius*.67,"brass",n,12)
-    m.disk(add(center,mul(n,.0026)),radius*.48,"gold",n,10)
+def waiter_bell(m):
+    m.lathe((0,0,0),[(.001,.073),(.005,.083),(.012,.083),(.018,.074)],"ink",16)
+    m.lathe((0,0,0),[(.013,.078),(.020,.078),(.024,.070)],"brass",16)
+    m.lathe((0,0,0),[(.022,.069),(.038,.065),(.056,.055),(.071,.040),(.081,.020),(.084,.010)],"steel",16)
+    m.lathe((0,0,0),[(.023,.071),(.027,.071)],"silver_light",16)
+    for a in (-42,42):
+        r=math.radians(a)
+        m.box((math.sin(r)*.074,.014,-math.cos(r)*.074),(.014,.006,.004),"brass",.0007,(0,-a,0))
 
 
-def envelope(m):
-    u,v=(1,0,0),(0,.93,.36756)
-    origin=(0,.003,-.023)
-    p,n=panel(m,origin,.104,.075,"kraft",u,v,.007)
-    # Fold seams and a triangular flap are raised just enough to survive the game's pixelated view.
-    for side in (-1,1):
-        m.face([p(side*.050,.003,.004),p(0,.035,.004),p(side*.050,.068,.004)],"paper_edge",n)
-        m.face([p(side*.047,.005,.0042),p(0,.033,.0042),p(side*.047,.064,.0042)],"kraft",n)
-    m.face([p(-.050,.074,.0044),p(.050,.074,.0044),p(0,.039,.0044)],"paper",n)
-    m.disk(p(0,.037,.0048),.009,"red_dark",n,10)
-    coin(m,(-.023,.079,.007),.018,n)
-    coin(m,(.012,.088,.014),.019,n)
-    m.box((0,.003,.015),(.085,.006,.045),"paper_edge",.002)
+def waiter_plunger(m):
+    m.lathe((0,0,0),[(.080,.008),(.094,.008)],"brass",10)
+    m.lathe((0,0,0),[(.093,.018),(.096,.024),(.103,.024),(.107,.018)],"silver_light",12)
 
 
 def save_palette():
@@ -376,12 +360,16 @@ def main():
     builders=[("01_IceCup",ice_cup),("02_FizzCandy",candy),("03_CarbonationSyrup",syrup),
               ("04_QueueTicket",ticket),("05_Bill",bill),("06_SpicyOrder",spicy_order),
               ("07_SafetyCap",safety_cap),("08_PizzaSlice",pizza),("09_HotSauce",hot_sauce),
-              ("10_DoubleStamp",stamp),("11_TipEnvelope",envelope)]
+              ("10_DoubleStamp",stamp)]
     for name,build in builders:
         model=Mesh(name)
         build(model)
         model.save()
-    print("Authored 11 original item meshes and one shared palette. No Unity or validation run.")
+    for name,build in [("WaiterBell",waiter_bell),("WaiterBellPlunger",waiter_plunger)]:
+        model=Mesh(name)
+        build(model)
+        model.save()
+    print("Authored 10 item meshes, waiter bell/body plunger and one shared palette. No Unity or validation run.")
 
 
 if __name__=="__main__":

@@ -9,27 +9,28 @@ namespace ColaCola.Presentation
     public sealed class ColaDuelController : MonoBehaviour
     {
         public enum DuelState { Playing, Won, Lost }
+        public enum DebugCommand { SetTokens999, ToggleGuaranteedBurst, ToggleFreeItemMenu }
         public ShakeSelectionInteraction interaction;
         public StatusTerminalDisplay terminal;
         public GameObject itemRoot;
         public Light itemLight;
         public ColaItemController Items { get; private set; }
-        [Range(1, 99)] public int playerMaxHealth = 3;
-        [Range(1, 99)] public int bossBaseHealth = 3;
+        [Range(1, 99)] public int playerMaxHealth = ColaItemBalance.StartingHealth;
+        [Range(1, 99)] public int bossBaseHealth = ColaItemBalance.StartingHealth;
 
         [Header("Debug (Editor / Development Build)")]
-        [Tooltip("플레이어 구매 시 토큰 조건과 차감을 무시합니다. 실제 잔액은 보존합니다.")]
-        public bool debugInfiniteTokens;
-        [Tooltip("플레이어의 콜라당 주문 1회 제한을 해제합니다. 내 턴과 보유 6칸 제한은 유지합니다.")]
-        public bool debugUnlimitedOrders;
+        [Tooltip("E로 전환합니다. 모든 아이템이 무료인 테스트 메뉴를 사용합니다.")]
+        public bool debugItemTestMenu;
+        [Tooltip("W로 전환합니다. 양쪽의 다음 흔들기 예고와 실제 폭발 확률을 100%로 고정합니다. 피해 보정은 유지됩니다.")]
+        public bool debugGuaranteedBurst;
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         private const bool DebugFeaturesEnabled = true;
 #else
         private const bool DebugFeaturesEnabled = false;
 #endif
-        public bool InfinitePlayerTokens => DebugFeaturesEnabled && debugInfiniteTokens;
-        public bool UnlimitedPlayerOrders => DebugFeaturesEnabled && debugUnlimitedOrders;
-        private bool displayedInfiniteTokens;
+        public bool DebugToolsAvailable => DebugFeaturesEnabled;
+        public bool ItemTestMenuEnabled => DebugFeaturesEnabled && debugItemTestMenu;
+        public bool GuaranteedBurst => DebugFeaturesEnabled && debugGuaranteedBurst;
 
         public DuelState State { get; private set; }
         public int Level { get; private set; }
@@ -92,6 +93,7 @@ namespace ColaCola.Presentation
             TabletopReadability.Apply(transform.root);
             ColaCameraBreathing.EnsureFor(transform.root);
             ColaDuelMusic.EnsureFor(this);
+            ColaPizzeriaAmbience.EnsureFor(this);
             playerMaxHealth = Mathf.Clamp(playerMaxHealth, 1, 99);
             bossBaseHealth = Mathf.Clamp(bossBaseHealth, 1, 99);
             PlayerHealth = playerMaxHealth;
@@ -119,9 +121,7 @@ namespace ColaCola.Presentation
             if (!isActiveAndEnabled || State != DuelState.Playing) return;
             bool boss = interaction.LastActionWasBoss;
             var modifiers = interaction.LastItemModifiers;
-            int reward = result.Burst ? 5 : result.Prediction.Strength;
-            if (!result.Burst && modifiers.SafeTip && result.Prediction.BurstProbability >= .5d) reward += 3;
-            reward *= modifiers.RewardMultiplier;
+            int reward = (result.Burst ? 5 : result.Prediction.Strength) + modifiers.RewardBonus;
             int damage = result.Burst ? modifiers.Damage : 0;
             if (boss)
             {
@@ -140,14 +140,15 @@ namespace ColaCola.Presentation
                 interaction.InputEnabled = false;
                 // This event runs before the interaction schedules the next participant.
                 interaction.automaticBossTurns = false;
+                ColaTabletopAudio.Cue(interaction, State == DuelState.Won ? "Win" : "Lose", interaction.bottle.position, .65f);
             }
+            else ColaTabletopAudio.Cue(interaction, "Tokens", terminal.transform.position, .42f);
             RefreshTerminal(true);
         }
 
         private void RefreshTerminal(bool animate)
         {
-            displayedInfiniteTokens = InfinitePlayerTokens;
-            terminal.SetPlayerState(PlayerHealth, playerMaxHealth, displayedInfiniteTokens ? 9999 : PlayerTokens, animate);
+            terminal.SetPlayerState(PlayerHealth, playerMaxHealth, PlayerTokens, animate);
             terminal.SetBossState(BossHealth, BossMaxHealth, BossTokens, animate);
             terminal.SetActiveParticipant(IsPlayerTurn);
         }
@@ -156,13 +157,22 @@ namespace ColaCola.Presentation
 
         public bool TrySpendPlayerTokens(int amount) => TrySpendTokens(amount, false);
         public bool CanAffordTokens(int amount, bool boss = false)
-            => amount >= 0 && ((!boss && InfinitePlayerTokens) || (boss ? BossTokens : PlayerTokens) >= amount);
+            => amount >= 0 && (boss ? BossTokens : PlayerTokens) >= amount;
 
         public bool TrySpendTokens(int amount, bool boss)
         {
             if (!Items || !Items.CanActFor(boss) || !CanAffordTokens(amount, boss)) return false;
             if (boss) BossTokens -= amount;
-            else if (!InfinitePlayerTokens) PlayerTokens -= amount;
+            else PlayerTokens -= amount;
+            RefreshTerminal(true);
+            return true;
+        }
+
+        internal bool TrySpendWaiterTokens(bool boss)
+        {
+            if (!Items || !Items.CanOrderWaiter(boss)) return false;
+            if (boss) BossTokens -= ColaItemController.WaiterCost;
+            else PlayerTokens -= ColaItemController.WaiterCost;
             RefreshTerminal(true);
             return true;
         }
@@ -177,21 +187,52 @@ namespace ColaCola.Presentation
             return true;
         }
 
+        // Keyboard and Play-mode verification share this path; no synthetic OS input is required.
+        public bool ApplyDebugCommand(DebugCommand command)
+        {
+            if (!DebugFeaturesEnabled || !Application.IsPlaying(gameObject) || !isActiveAndEnabled ||
+                !interaction || !terminal || State != DuelState.Playing) return false;
+            switch (command)
+            {
+                case DebugCommand.SetTokens999:
+                    PlayerTokens = 999;
+                    RefreshTerminal(false);
+                    if (Items) Items.GetComponent<ColaOrderSheet>()?.RefreshAvailability();
+                    return true;
+                case DebugCommand.ToggleGuaranteedBurst:
+                    debugGuaranteedBurst = !debugGuaranteedBurst;
+                    if (interaction.Model != null) interaction.Model.ForceBurst = GuaranteedBurst;
+                    if (!interaction.IsBusy) interaction.RefreshPrediction();
+                    return true;
+                case DebugCommand.ToggleFreeItemMenu:
+                    if (!Items) return false;
+                    var sheet = Items.GetComponent<ColaOrderSheet>();
+                    if (!sheet) return false;
+                    if (sheet.IsOpen || sheet.BlocksGameplay)
+                    {
+                        debugItemTestMenu = false;
+                        sheet.Close();
+                        sheet.RefreshAvailability();
+                        return true;
+                    }
+                    debugItemTestMenu = true;
+                    if (sheet.Toggle()) return true;
+                    debugItemTestMenu = false;
+                    return false;
+                default: return false;
+            }
+        }
+
         private void Update()
         {
             if (!interaction || !terminal) return;
-            if (displayedInfiniteTokens != InfinitePlayerTokens) RefreshTerminal(false);
             if (State == DuelState.Playing && terminal.IsPlayerTurn != IsPlayerTurn)
                 terminal.SetActiveParticipant(IsPlayerTurn);
             var keyboard = Keyboard.current;
             if (keyboard == null) return;
-            if (DebugFeaturesEnabled && (keyboard.leftCtrlKey.wasPressedThisFrame || keyboard.rightCtrlKey.wasPressedThisFrame))
-            {
-                bool enable = !(debugInfiniteTokens && debugUnlimitedOrders);
-                debugInfiniteTokens = debugUnlimitedOrders = enable;
-                RefreshTerminal(false);
-                if (Items) Items.GetComponent<ColaOrderSheet>()?.RefreshAvailability();
-            }
+            if (keyboard.qKey.wasPressedThisFrame) ApplyDebugCommand(DebugCommand.SetTokens999);
+            if (keyboard.wKey.wasPressedThisFrame) ApplyDebugCommand(DebugCommand.ToggleGuaranteedBurst);
+            if (keyboard.eKey.wasPressedThisFrame) ApplyDebugCommand(DebugCommand.ToggleFreeItemMenu);
             if (keyboard.rKey.wasPressedThisFrame) RestartRun(fadeIn: State != DuelState.Playing);
             else if (State != DuelState.Playing && !interaction.IsBusy && keyboard.enterKey.wasPressedThisFrame)
             {

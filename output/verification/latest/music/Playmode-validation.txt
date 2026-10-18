@@ -1,4 +1,11 @@
-PASS: Pizzeria_Night_Base, 48s stereo, peak 0.531, RMS 0.152; bounded level and continuous loop seam.
-PASS: Pizzeria_Night_Tension, 48s stereo, peak 0.536, RMS 0.122; bounded level and continuous loop seam.
+Clip=Pizzeria_Night_Base; asset=Assets/_COLA_COLA/Resources/Audio/Pizzeria_Night_Base.wav; source SHA256=29472F354F2CBB116185090B6CE8E10ED75288185582F7E96864C2D4B57F8221; Play-vs-WAV normalized PCM error=0.015526 (allows import compression). 
+PASS: Pizzeria_Night_Base, 40s stereo, peak 0.377, RMS 0.137; bounded level and continuous loop seam.
+Clip=Pizzeria_Night_Tension; asset=Assets/_COLA_COLA/Resources/Audio/Pizzeria_Night_Tension.wav; source SHA256=980BE01F53ED8851B325C405DC8A41D54F55AC84C50677E46E1CAE475CD81340; Play-vs-WAV normalized PCM error=0.063942 (allows import compression). 
+PASS: Pizzeria_Night_Tension, 40s stereo, peak 0.370, RMS 0.082; bounded level and continuous loop seam.
+Listener Main Camera: enabled=True
+Editor UnityEditor.EditorUtility.Internal_AudioMasterMute=False
+Editor UnityEditor.EditorUtility.audioMasterMute=False
+Actual base source output peak=0.081193; mix peak=0.090373; listener volume=1; paused=False; source volume=0.2584; virtual=False; sample advance=13641; DSP advance=0.619.
 PASS: synchronized scheduled playback and real sample-clock wrap; pressure raises the tension stem; rupture ducks music and fade-in restores it; restart retains one score and two original sources.
 Scope: actual Unity Play-mode source/sample state, PCM levels, loop seam, pressure mix and rupture/fade behavior. Speaker listening is not verified.
+W used for burst and debug state restored. Q/E unnecessary for audio-only checks.

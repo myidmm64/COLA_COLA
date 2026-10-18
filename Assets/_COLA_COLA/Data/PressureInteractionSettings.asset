@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 62041ec81be7180498741f777c219a10, type: 3}
   m_Name: PressureInteractionSettings
   m_EditorClassIdentifier: Assembly-CSharp::ColaCola.Presentation.PressureInteractionSettings
-  minimumBottleLimit: 20
-  maximumBottleLimit: 30
-  probabilityExponent: 1.5
+  minimumBottleLimit: 25
+  maximumBottleLimit: 35
+  probabilityExponent: 1.6
   shakeSeconds: 0.55
   burstPauseSeconds: 0.55

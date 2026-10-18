@@ -1,0 +1,2 @@
+BGM state before request-triggered asset refresh.
+NOT TAKEN: Editor was not in Play mode.

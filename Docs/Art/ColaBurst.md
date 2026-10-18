@@ -1,6 +1,6 @@
 # 손에 든 콜라의 폭발
 
-MainScene의 실제 흔들기 결과가 폭발일 때 `ColaBurstPresentation`이 동작한다. `ShakeSelectionInteraction`이 Play 진입 시 자동 연결하므로 기존 씬을 재생해도 적용된다. 아이템·주문 기획과는 별개이며 압력 한계 20~30, 확률 지수 1.5, 피해 1, 폭발 시 총 5토큰 규칙은 유지한다.
+MainScene의 실제 흔들기 결과가 폭발일 때 `ColaBurstPresentation`이 동작한다. `ShakeSelectionInteraction`이 Play 진입 시 자동 연결하므로 기존 씬을 재생해도 적용된다. 현재 기본 규칙은 압력 한계 25~35, 선형 확률(지수 1), 버튼별 압력 증가 2/4/6, 피해 1, 폭발 시 총 5토큰이다. 연출은 아이템·압력 규칙과 분리한다.
 
 ## 연출 순서
 

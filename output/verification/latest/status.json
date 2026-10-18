@@ -1,18 +1,17 @@
 {
-    "id": "9616fa870b974d029090af282f574b6e",
+    "id": "be65d5609ab9452087f88dc80ea0f4df",
     "suite": "music",
     "phase": "passed",
-    "message": "All requested Play checks passed. Original scene setup restored; Editor left open.",
-    "startedUtc": "2026-10-17T09:33:58.2517770Z",
-    "heartbeatUtc": "2026-10-17T09:34:22.6436407Z",
-    "editorProcessId": 26788,
+    "message": "Requested BGM Play checks passed; audio clip identity and digital playback checked. Speaker listening and Game view not inspected. Original scene setup restored; Editor left open.",
+    "startedUtc": "2026-10-18T10:01:47.5491512Z",
+    "heartbeatUtc": "2026-10-18T10:02:11.7095398Z",
+    "editorProcessId": 13428,
     "batchMode": false,
     "success": true,
     "playMode": false,
     "frameCount": 0,
     "passed": [
-        "COLA_MUSIC_PLAYMODE_PASS",
-        "COLA_MAIN_SCENE_VALIDATION_PASS"
+        "COLA_MUSIC_PLAYMODE_PASS"
     ],
     "scenes": [
         {

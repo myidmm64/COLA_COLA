@@ -34,6 +34,7 @@ namespace ColaCola.Editor
         private static double heartbeatAt;
         private static bool subscribed;
         public static bool FullRun => run != null && run.suite == "full" && run.phase == "running";
+        public static bool MusicOnly => run != null && run.suite == "music";
         private static bool Active => run != null && run.phase != "passed" && run.phase != "failed";
 
         public static void Schedule(EditorApplication.CallbackFunction action)
@@ -116,6 +117,7 @@ namespace ColaCola.Editor
                     Directory.CreateDirectory(Root);
                     File.WriteAllText(Root + "/verification.log", "Open-editor Play verification " + run.id + "\n");
                     Persist();
+                    if (request.suite == "music") ColaMusicVerification.WriteLiveSnapshot();
                     AssetDatabase.Refresh();
                     return;
                 }
@@ -197,6 +199,11 @@ namespace ColaCola.Editor
             if (!first.StartsWith("COLA_") || !first.EndsWith("_PASS")) return;
             if (!run.passed.Contains(first)) run.passed.Add(first);
             run.message = first; Persist();
+            if (first == "COLA_MUSIC_PLAYMODE_PASS" && run.suite == "music")
+            {
+                Stop(true, "Requested BGM Play checks passed; audio clip identity and digital playback checked. Speaker listening and Game view not inspected.");
+                return;
+            }
             if (first == "COLA_MAIN_SCENE_VALIDATION_PASS")
             {
                 var required = run.suite == "full" ? new[] { "COLA_MUSIC_PLAYMODE_PASS", "COLA_ORDER_SHEET_PLAYMODE_PASS",

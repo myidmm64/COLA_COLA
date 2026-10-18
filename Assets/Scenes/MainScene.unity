@@ -8490,8 +8490,8 @@ MonoBehaviour:
   terminal: {fileID: 1156346359}
   itemRoot: {fileID: 1432627392}
   itemLight: {fileID: 2034285178}
-  playerMaxHealth: 3
-  bossBaseHealth: 3
+  playerMaxHealth: 6
+  bossBaseHealth: 6
 --- !u!1 &2103481409
 GameObject:
   m_ObjectHideFlags: 0

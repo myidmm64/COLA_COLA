@@ -146,7 +146,7 @@ namespace ColaCola.Editor
             Check(interaction.ConfirmShake() && interaction.LastResult.Prediction.Strength == 3 && interaction.LastResult.Prediction.PressureIncrease == 5,
                 "Boss attack must add pressure five while preserving selected-strength reward.");
             yield return WaitIdle();
-            Check(items.ForcedStrength(false) == 0 && items.PreviewAction(false).PressureBonus == 0, "Player-targeted debuffs must consume exactly once.");
+            Check(items.PreviewAction(false).PressureMultiplier == 1 && items.PreviewAction(false).PressureBonus == 0, "Player-targeted debuffs must consume exactly once.");
             report.AppendLine("PASS: boss syrup/spicy order target the player (forced 3, actual +5, matching animated forecast); boss safety -30%p, double reward and conditional tip are independent; duplicate effects cannot stack; one-shot effects expire on the correct actor's action.");
 
             Fixture();
@@ -199,12 +199,16 @@ namespace ColaCola.Editor
             report.AppendLine("PASS: boss candy transfers pressure without a roll/reward, then player takes the actual hot-sauce burst; boss bill skips its own shake and preserves next-own-action buffs.");
 
             Fixture();
+            Stock(ColaItemId.IceCup, false);
+            Stock(ColaItemId.PizzaSlice, false);
+            int itemsBeforeCancellation = items.InventoryCount;
             BeginBoss(999);
             Use(ColaItemId.QueueTicket);
+            Check(items.InventoryCount == itemsBeforeCancellation - 1, "Boss cancellation ticket must remove exactly one stored player item.");
             yield return WaitIdle();
-            Check(bossResults.Count == 2 && playerResults == 0 && !items.HasSkip(false) && items.CanAct,
-                "Boss ticket must skip one player turn, run exactly one extra boss action and return control.");
-            report.AppendLine("PASS: boss ticket runs two actual original-hand boss actions while skipping exactly one player turn, then restores player input without an extra player roll/reward.");
+            Check(bossResults.Count == 1 && playerResults == 0 && items.CanAct,
+                "Boss cancellation ticket must retain the current turn and return control after one boss action.");
+            report.AppendLine("PASS: boss cancellation ticket removes one stored player item, retains the current turn and restores player input after one boss action.");
 
             Fixture();
             BeginBoss(20, 8);
@@ -264,7 +268,7 @@ namespace ColaCola.Editor
             match.RestartRun(5);
             yield return new WaitForSecondsRealtime(3);
             Check(items.BossInventoryCount == 2 && items.InventoryCount == 2 && items.BossPurchaseCount == 0 && match.BossTokens == 0 &&
-                match.PlayerTokens == 0 && !interaction.IsBusy && !interaction.BossItemPhase && !items.HasSkip(false), "Restart must cancel delayed AI use, items, coins, notices and turn flags.");
+                match.PlayerTokens == 0 && !interaction.IsBusy && !interaction.BossItemPhase && items.PreviewAction(false).PressureMultiplier == 1, "Restart must cancel delayed AI use, items, coins, notices and turn flags.");
             report.AppendLine("PASS: player's skip suppresses boss AI/spending while preserving its unused same-bottle order; restart during the batch purchase display delay cancels all pending boss decisions and restores starter inventories/effects/accounts.");
 
             Fixture();

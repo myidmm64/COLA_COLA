@@ -14,7 +14,8 @@ namespace ColaCola.Presentation
         [Range(.5f, 10)] public float colaOutlinePixels = 2.5f;
         [Range(.5f, 10)] public float menuOutlinePixels = 2.5f;
         private const int MenuTarget = -3;
-        private Transform outlinedMenu;
+        private const int BellTarget = -4;
+        private Transform outlinedMenu, outlinedBell;
         private ShakeSelectionInteraction interaction;
         private Material outlineMaterial, maskMaterial;
         private readonly List<Edge> edges = new();
@@ -70,6 +71,7 @@ namespace ColaCola.Presentation
         private static bool IsOuterGeometry(Renderer source, int button)
         {
             if (source.GetComponent<TextMesh>() || source.GetComponent<ColaWorldText>()) return false;
+            if (button == BellTarget) return true;
             if (button == MenuTarget) return source.name == "BeveledClipboard";
             // RaisedNumber1/2/3 are meshes too. Explicitly select only the physical keycap.
             if (button >= 0) return source.name == "BeveledKeycap";
@@ -124,7 +126,14 @@ namespace ColaCola.Presentation
             }
         }
 
-        private float WidthFor(int target) => target == MenuTarget ? menuOutlinePixels : target == -1 ? colaOutlinePixels : outlinePixels;
+        private float WidthFor(int target) => target == MenuTarget || target == BellTarget ? menuOutlinePixels : target == -1 ? colaOutlinePixels : outlinePixels;
+
+        private void BindBell(ColaWaiterBell bell)
+        {
+            if (!bell || !bell.ModelRoot || !outlineMaterial || !maskMaterial || outlinedBell == bell.ModelRoot) return;
+            outlinedBell = bell.ModelRoot;
+            AddTarget(outlinedBell, BellTarget);
+        }
 
         private void BindMenu(ColaOrderSheet sheet)
         {
@@ -172,6 +181,8 @@ namespace ColaCola.Presentation
             Physics.SyncTransforms();
             if (!Physics.Raycast(interaction.playerCamera.ScreenPointToRay(point), out var hit, 8, ~0,
                     QueryTriggerInteraction.Ignore)) return none;
+            var bell = hit.collider.GetComponent<ColaWaiterBellTarget>();
+            if (bell && bell.Bell && bell.Bell.CanHover) return BellTarget;
             if (sheet && sheet.IsVisible && sheet.CanOpen && !sheet.BlocksGameplay && hit.collider == sheet.OpenCollider)
                 return MenuTarget;
             for (int i = 0; i < interaction.strengthButtons.Length; i++)
@@ -186,14 +197,16 @@ namespace ColaCola.Presentation
 
         private void LateUpdate()
         {
-            bool available = Application.IsPlaying(gameObject) && interaction && interaction.isActiveAndEnabled &&
-                interaction.InputEnabled && !interaction.IsBusy && !interaction.IsBossTurn && interaction.Model != null;
+            bool interactive = Application.IsPlaying(gameObject) && interaction && interaction.isActiveAndEnabled &&
+                interaction.InputEnabled && interaction.Model != null;
+            bool available = interactive && !interaction.IsBusy && !interaction.IsBossTurn;
             var sheet = interaction && interaction.items ? interaction.items.GetComponent<ColaOrderSheet>() : null;
+            var bell = interaction && interaction.items ? interaction.items.GetComponent<ColaWaiterBell>() : null;
             BindMenu(sheet);
-            if (sheet && sheet.BlocksGameplay) available = false;
-            int hovered = available ? HoveredTarget(sheet) : -2;
+            BindBell(bell);
+            if (sheet && sheet.BlocksGameplay) available = interactive = false;
+            int hovered = interactive ? HoveredTarget(sheet) : -2;
             bool selected = interaction && interaction.Model != null && interaction.Model.SelectedStrength > 0;
-            int forced = interaction && interaction.items ? interaction.items.ForcedStrength(false) : 0;
             if (outlineMaterial)
             {
                 float breath = .5f + .5f * Mathf.Sin(Time.unscaledTime * 2.6f);
@@ -202,9 +215,10 @@ namespace ColaCola.Presentation
             }
             foreach (var edge in edges)
             {
-                bool visible = available && edge.button == hovered && edge.source && edge.source.enabled && edge.source.gameObject.activeInHierarchy &&
-                    (edge.button == MenuTarget ? sheet && sheet.IsVisible && sheet.CanOpen && !sheet.BlocksGameplay :
-                        edge.button >= 0 ? forced == 0 || edge.button + 1 == forced : selected);
+                bool targetAvailable = edge.button == BellTarget ? interactive && bell && bell.CanHover : available;
+                bool visible = targetAvailable && edge.button == hovered && edge.source && edge.source.enabled && edge.source.gameObject.activeInHierarchy &&
+                    (edge.button == BellTarget ? true : edge.button == MenuTarget ? sheet && sheet.IsVisible && sheet.CanOpen && !sheet.BlocksGameplay :
+                        edge.button >= 0 || selected);
                 if (edge.outline) edge.outline.enabled = visible;
                 if (edge.mask) edge.mask.enabled = visible;
                 if (visible)

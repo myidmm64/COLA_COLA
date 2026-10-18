@@ -22,7 +22,6 @@ namespace ColaCola.Editor
                 if (!EditorSceneManager.SaveScene(scene)) throw new InvalidOperationException("MainScene save failed.");
                 AssetDatabase.SaveAssets();
                 Debug.Log("COLA_PLAYABLE_DUEL_SAVED");
-                PlayableDuelVerification.Begin();
             }
             catch (Exception exception)
             {
@@ -45,16 +44,16 @@ namespace ColaCola.Editor
             match.terminal = root.GetComponentInChildren<StatusTerminalDisplay>(true);
             match.itemRoot = root.transform.Find("04_TabletopItems").gameObject;
             match.itemLight = root.transform.Find("06_Lighting/TestItems_ReadabilityFill").GetComponent<Light>();
-            match.playerMaxHealth = 3;
-            match.bossBaseHealth = 3;
+            match.playerMaxHealth = ColaCola.Core.ColaItemBalance.StartingHealth;
+            match.bossBaseHealth = ColaCola.Core.ColaItemBalance.StartingHealth;
             match.itemRoot.SetActive(false);
             match.itemLight.enabled = false;
             match.interaction.automaticBossTurns = true;
             match.interaction.shakeAnimator.previewPlayerOnPlay = false;
             var breathing = ColaCameraBreathing.EnsureFor(root.transform);
             if (breathing) EditorUtility.SetDirty(breathing);
-            match.terminal.SetPlayerState(3, 3, 0, false);
-            match.terminal.SetBossState(3, 3, 0, false);
+            match.terminal.SetPlayerState(match.playerMaxHealth, match.playerMaxHealth, 0, false);
+            match.terminal.SetBossState(match.bossBaseHealth, match.bossBaseHealth, 0, false);
             match.terminal.SetActiveParticipant(true);
             var hud = node.GetComponent<ColaDuelHUD>();
             if (!hud) hud = node.gameObject.AddComponent<ColaDuelHUD>();

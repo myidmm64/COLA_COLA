@@ -6,7 +6,7 @@ using UnityEngine.InputSystem;
 
 namespace ColaCola.Presentation
 {
-    /// <summary>A real clipboard/paper model. Selection and checkout use 3D collider targets, without a Canvas or GUI menu.</summary>
+    /// <summary>Debug-only free item test clipboard, opened with E; absent from the normal tabletop.</summary>
     [DisallowMultipleComponent]
     public sealed class ColaOrderSheet : MonoBehaviour
     {
@@ -17,22 +17,24 @@ namespace ColaCola.Presentation
         private readonly List<Material> ownedMaterials = new();
         private readonly List<Mesh> ownedMeshes = new();
         private readonly List<Renderer> detailedPrint = new();
-        private readonly Collider[] purchaseTargets = new Collider[11];
-        private readonly Collider[] nameTargets = new Collider[11];
-        private readonly Renderer[] purchaseRenderers = new Renderer[11];
-        private readonly GameObject[] itemRows = new GameObject[11];
-        private readonly Collider[] removeTargets = new Collider[11];
-        private readonly TextMesh[] priceTexts = new TextMesh[11];
-        private readonly TextMesh[] itemNameTexts = new TextMesh[11];
-        private readonly TextMesh[] numberTexts = new TextMesh[11];
-        private readonly Renderer[] rowRenderers = new Renderer[11];
-        private readonly Renderer[] removeRenderers = new Renderer[11];
+        private readonly Collider[] purchaseTargets = new Collider[ColaItemCatalog.All.Count];
+        private readonly Collider[] nameTargets = new Collider[ColaItemCatalog.All.Count];
+        private readonly Renderer[] purchaseRenderers = new Renderer[ColaItemCatalog.All.Count];
+        private readonly GameObject[] itemRows = new GameObject[ColaItemCatalog.All.Count];
+        private readonly Collider[] removeTargets = new Collider[ColaItemCatalog.All.Count];
+        private readonly TextMesh[] priceTexts = new TextMesh[ColaItemCatalog.All.Count];
+        private readonly TextMesh[] itemNameTexts = new TextMesh[ColaItemCatalog.All.Count];
+        private readonly TextMesh[] numberTexts = new TextMesh[ColaItemCatalog.All.Count];
+        private readonly Renderer[] rowRenderers = new Renderer[ColaItemCatalog.All.Count];
+        private readonly Renderer[] removeRenderers = new Renderer[ColaItemCatalog.All.Count];
         private readonly List<ColaItemId> cart = new(ColaItemController.Capacity);
         private Material available, unavailable, selectedKey, checkoutReady, rowSelected;
         private Collider openTarget, closeTarget, checkoutTarget;
         private Renderer checkoutRenderer, descriptionPanel, descriptionAccent;
         private TextMesh balanceText, inventoryText, descriptionText, descriptionTitle, checkoutText, titleText;
         private bool returning;
+        private int testPage;
+        private int PageCount => Mathf.Max(1, (ColaItemCatalog.All.Count + ColaItemController.MenuSize - 1) / ColaItemController.MenuSize);
         private readonly Vector3 restPosition = new(.37f, .848f, -.37f);
         private readonly Quaternion restRotation = Quaternion.Euler(90, 0, -8);
         public bool IsOpen { get; private set; }
@@ -43,25 +45,23 @@ namespace ColaCola.Presentation
         public Collider OpenCollider => openTarget;
         public Collider CloseCollider => closeTarget;
         public Collider CheckoutCollider => checkoutTarget;
-        public Collider PurchaseCollider(ColaItemId id) => purchaseTargets[(int)id];
-        public Collider RemoveCollider(ColaItemId id) => removeTargets[(int)id];
-        public Collider NameCollider(ColaItemId id) => nameTargets[(int)id];
+        public Collider PurchaseCollider(ColaItemId id) => LookupTarget(purchaseTargets, id);
+        public Collider RemoveCollider(ColaItemId id) => LookupTarget(removeTargets, id);
+        public Collider NameCollider(ColaItemId id) => LookupTarget(nameTargets, id);
+        private static Collider LookupTarget(Collider[] targets, ColaItemId id)
+            => ColaItemCatalog.Contains(id) && (int)id < targets.Length ? targets[(int)id] : null;
         public string Description => descriptionText ? descriptionText.text : "";
         public int CartCount => cart.Count;
-        public int CartTotal
-        {
-            get { int total = 0; foreach (var id in cart) total += ColaItemCatalog.Get(id).Price; return total; }
-        }
+        public int CartTotal => 0;
         public int CartQuantity(ColaItemId id) { int count = 0; foreach (var entry in cart) if (entry == id) count++; return count; }
         public bool CanAdd(ColaItemId id) => items && items.CanPurchase(id) &&
-            items.InventoryCount + cart.Count < ColaItemController.Capacity &&
-            items.match.CanAffordTokens(CartTotal + ColaItemCatalog.Get(id).Price);
+            items.InventoryCount + cart.Count < ColaItemController.Capacity;
         public bool CanOpen
         {
             get
             {
                 if (!isActiveAndEnabled || !items || !items.CanAct || !items.OrderAvailable()) return false;
-                foreach (var id in items.BottleMenu) if (items.CanPurchase(id)) return true;
+                foreach (var definition in ColaItemCatalog.All) if (items.CanPurchase(definition.Id)) return true;
                 return false;
             }
         }
@@ -74,6 +74,7 @@ namespace ColaCola.Presentation
             if (!modelRoot) BuildModel();
             IsOpen = returning = false;
             cart.Clear();
+            testPage = Mathf.Clamp(testPage, 0, PageCount - 1);
             IsSettled = true;
             modelRoot.transform.SetPositionAndRotation(restPosition, restRotation);
             RefreshAvailability();
@@ -85,18 +86,24 @@ namespace ColaCola.Presentation
             if (IsOpen) { Close(); return true; }
             if (!CanOpen || returning) return false;
             IsOpen = true;
-            IsSettled = false;
+            IsSettled = true;
+            var camera = items.match.interaction.playerCamera.transform;
+            modelRoot.transform.SetPositionAndRotation(camera.TransformPoint(new Vector3(.09f, .015f, .58f)), camera.rotation);
             ClearDescription();
+            RefreshAvailability();
+            ColaTabletopAudio.Cue(items.match.interaction, "MenuOpen", modelRoot.transform.position, .55f);
             return true;
         }
 
         public void Close()
         {
+            if (IsOpen && items && items.match)
+                ColaTabletopAudio.Cue(items.match.interaction, "MenuClose", modelRoot.transform.position, .50f);
             IsOpen = false;
             cart.Clear();
-            returning = modelRoot && (Vector3.Distance(modelRoot.transform.position, restPosition) > .002f ||
-                Quaternion.Angle(modelRoot.transform.rotation, restRotation) > 1);
-            IsSettled = !returning;
+            returning = false;
+            IsSettled = true;
+            if (modelRoot) modelRoot.SetActive(false);
         }
 
         public bool HandlePointer(Vector2 screenPoint)
@@ -112,9 +119,6 @@ namespace ColaCola.Presentation
         {
             if (!CanOpen || !IsVisible || !target || !target.gameObject.activeInHierarchy ||
                 !target.transform.IsChildOf(modelRoot.transform)) return false;
-            if ((target.Kind == ColaOrderTarget.Action.Buy || target.Kind == ColaOrderTarget.Action.Inspect ||
-                target.Kind == ColaOrderTarget.Action.Remove) &&
-                !items.IsOnMenu(target.Item)) return false;
             if (target.Kind == ColaOrderTarget.Action.Open) return IsOpen || Toggle();
             if (target.Kind == ColaOrderTarget.Action.Close && IsOpen) { Close(); return true; }
             if (target.Kind == ColaOrderTarget.Action.Inspect && IsOpen && IsSettled)
@@ -122,12 +126,24 @@ namespace ColaCola.Presentation
             if (!IsOpen || !IsSettled) return false;
             if (target.Kind == ColaOrderTarget.Action.Buy)
             {
-                if (!CanAdd(target.Item)) { items.match.SetActionMessage("담을 수 없습니다. 주문 합계와 빈 칸을 확인하세요."); return false; }
-                cart.Add(target.Item); Refresh(); return true;
+                if (!CanAdd(target.Item))
+                {
+                    items.match.SetActionMessage("담을 수 없습니다. 주문 합계와 빈 칸을 확인하세요.");
+                    ColaTabletopAudio.Cue(items.match.interaction, "Blocked", modelRoot.transform.position, .45f);
+                    return false;
+                }
+                cart.Add(target.Item); Refresh();
+                ColaTabletopAudio.Cue(items.match.interaction, "Cart", modelRoot.transform.position, .50f);
+                return true;
             }
             if (target.Kind == ColaOrderTarget.Action.Remove)
-            { bool removed = cart.Remove(target.Item); Refresh(); return removed; }
+            {
+                bool removed = cart.Remove(target.Item); Refresh();
+                if (removed) ColaTabletopAudio.Cue(items.match.interaction, "Cart", modelRoot.transform.position, .40f);
+                return removed;
+            }
             if (target.Kind != ColaOrderTarget.Action.Checkout || !items.TryPurchaseBatch(cart)) return false;
+            ColaTabletopAudio.Cue(items.match.interaction, "Tokens", modelRoot.transform.position, .55f);
             Close(); return true;
         }
 
@@ -137,6 +153,15 @@ namespace ColaCola.Presentation
             RefreshAvailability();
             if (!IsVisible) return;
             if (IsOpen && Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame) Close();
+            if (IsOpen && Keyboard.current != null &&
+                (Keyboard.current.leftArrowKey.wasPressedThisFrame || Keyboard.current.rightArrowKey.wasPressedThisFrame))
+            {
+                int pages = PageCount;
+                int direction = Keyboard.current.leftArrowKey.wasPressedThisFrame ? -1 : 1;
+                testPage = (testPage + direction + pages) % pages;
+                ColaTabletopAudio.Cue(items.match.interaction, "MenuOpen", modelRoot.transform.position, .40f);
+                ClearDescription();
+            }
             var camera = items.match.interaction.playerCamera.transform;
             Vector3 targetPosition = IsOpen ? camera.TransformPoint(new Vector3(.09f, .015f, .58f)) : restPosition;
             Quaternion targetRotation = IsOpen ? camera.rotation : restRotation;
@@ -186,7 +211,7 @@ namespace ColaCola.Presentation
         public void RefreshAvailability()
         {
             if (!items || !modelRoot) return;
-            bool visible = CanOpen;
+            bool visible = CanOpen && IsOpen;
             if (!visible)
             {
                 // Hide the entire prop, including all hit targets; never leave an invisible input lock.
@@ -204,25 +229,23 @@ namespace ColaCola.Presentation
             if (!items || !modelRoot) return;
             // Fine world text aliases at the tabletop's grazing angle. Only draw it while held for reading.
             foreach (var renderer in detailedPrint) if (renderer) renderer.enabled = IsOpen;
-            titleText.text = IsOpen ? "MENU" : "ORDER";
+            titleText.text = "TEST " + (testPage + 1) + "/" + PageCount;
             titleText.characterSize = IsOpen ? .0030f : .006f;
             titleText.anchor = IsOpen ? TextAnchor.MiddleLeft : TextAnchor.MiddleCenter;
             titleText.transform.localPosition = IsOpen ? new Vector3(-.128f, .141f, -.009f) : new Vector3(0, .025f, -.009f);
             titleText.transform.localRotation = IsOpen ? Quaternion.Euler(0, 0, -1.2f) : Quaternion.identity;
-            balanceText.text = "TOKENS  " + (items.match.InfinitePlayerTokens ? "∞" : items.match.PlayerTokens.ToString("00"));
-            inventoryText.text = "ITEMS  " + items.InventoryCount + " / 6";
+            balanceText.text = "TOKENS  " + items.match.PlayerTokens.ToString("00");
+            inventoryText.text = "ITEMS  " + items.InventoryCount + " / " + ColaItemController.Capacity;
             if (!IsOpen) ClearDescription();
             descriptionPanel.enabled = descriptionAccent.enabled = IsOpen && !string.IsNullOrEmpty(descriptionText.text);
             closeTarget.enabled = IsOpen;
             checkoutTarget.enabled = IsVisible && IsOpen && IsSettled && items.CanPurchaseBatch(cart);
-            checkoutText.text = cart.Count == 0 ? "주문" : "주문   " + cart.Count + "개  /  " + CartTotal + " T";
+            checkoutText.text = cart.Count == 0 ? "무료 받기" : "무료 받기   " + cart.Count + "개";
             checkoutRenderer.sharedMaterial = items.CanPurchaseBatch(cart) ? checkoutReady : unavailable;
             for (int i = 0; i < purchaseTargets.Length; i++)
             {
-                int menuRow = -1;
-                for (int slot = 0; slot < items.BottleMenu.Count; slot++)
-                    if (items.BottleMenu[slot] == (ColaItemId)i) { menuRow = slot; break; }
-                bool offered = menuRow >= 0;
+                int menuRow = i - testPage * ColaItemController.MenuSize;
+                bool offered = menuRow >= 0 && menuRow < ColaItemController.MenuSize;
                 itemRows[i].SetActive(offered);
                 if (offered)
                 {
@@ -237,7 +260,7 @@ namespace ColaCola.Presentation
                 removeRenderers[i].sharedMaterial = quantity > 0 ? available : unavailable;
                 rowRenderers[i].enabled = IsOpen && quantity > 0;
                 itemNameTexts[i].text = ColaItemCatalog.Get((ColaItemId)i).Name;
-                priceTexts[i].text = ColaItemCatalog.Get((ColaItemId)i).Price + " T" + (quantity > 0 ? " x" + quantity : "");
+                priceTexts[i].text = "무료" + (quantity > 0 ? " x" + quantity : "");
             }
         }
 
