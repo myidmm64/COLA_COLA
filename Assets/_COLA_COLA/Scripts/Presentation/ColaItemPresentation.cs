@@ -2,11 +2,10 @@ using ColaCola.Core;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.Rendering;
 
 namespace ColaCola.Presentation
 {
-    /// <summary>In-turn order slip and a six-slot tabletop inventory made from actual Cube meshes.</summary>
+    /// <summary>In-turn order slip and six-slot tabletop inventories containing original physical item models.</summary>
     [DisallowMultipleComponent]
     public sealed class ColaItemPresentation : MonoBehaviour
     {
@@ -16,11 +15,15 @@ namespace ColaCola.Presentation
         private GameObject inventoryRoot, bossInventoryRoot;
         private readonly GameObject[] cubes = new GameObject[ColaItemController.Capacity];
         private readonly GameObject[] bossCubes = new GameObject[ColaItemController.Capacity];
-        private readonly Material[] materials = new Material[11];
+        private readonly GameObject[] playerModels = new GameObject[ColaItemController.Capacity];
+        private readonly GameObject[] bossModels = new GameObject[ColaItemController.Capacity];
+        private readonly ColaItemId?[] playerModelIds = new ColaItemId?[ColaItemController.Capacity];
+        private readonly ColaItemId?[] bossModelIds = new ColaItemId?[ColaItemController.Capacity];
+        private ColaItemModelLibrary modelLibrary;
         private Material playerShell, bossShell, ivoryRim, steelRim, paperLiner, playerAccent, bossAccent;
         private readonly List<Material> storageMaterials = new();
         private readonly List<Mesh> storageMeshes = new();
-        private Font cubeFont, menuFont;
+        private Font menuFont;
         private GUIStyle label, detail;
         private int hoveredSlot = -1;
         private bool hoveredBoss;
@@ -71,7 +74,7 @@ namespace ColaCola.Presentation
         private void EnsureProps()
         {
             if (inventoryRoot && bossInventoryRoot) return;
-            cubeFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            modelLibrary = new ColaItemModelLibrary();
             playerShell = StorageMaterial("ServingTray_TealEnamel", new Color(.11f, .34f, .30f));
             bossShell = StorageMaterial("DeliveryCrate_RedWood", new Color(.38f, .13f, .085f));
             ivoryRim = StorageMaterial("ServingTray_IvoryRim", new Color(.70f, .65f, .49f));
@@ -79,8 +82,6 @@ namespace ColaCola.Presentation
             paperLiner = StorageMaterial("Pizzeria_PaperLiner", new Color(.75f, .69f, .52f));
             playerAccent = StorageMaterial("ServingTray_DarkChecks", new Color(.07f, .20f, .17f));
             bossAccent = StorageMaterial("DeliveryCrate_DarkRed", new Color(.22f, .055f, .035f));
-            for (int i = 0; i < materials.Length; i++)
-                materials[i] = MakeMaterial("ItemCube_" + (i + 1), Color.HSVToRGB(i / 11f, .38f, .66f));
             inventoryRoot = BuildInventory(false);
             bossInventoryRoot = BuildInventory(true);
         }
@@ -135,8 +136,8 @@ namespace ColaCola.Presentation
             mesh.triangles = new[] { 0, 1, 2 }; mesh.RecalculateNormals(); mesh.RecalculateBounds(); storageMeshes.Add(mesh);
             var badge = new GameObject("PizzaSliceEmblem", typeof(MeshFilter), typeof(MeshRenderer));
             // Put the badge on the outside of the short front lip, clear of the item numbers.
-            badge.transform.SetParent(root, false); badge.transform.localPosition = new Vector3(0, .030f, -.217f);
-            badge.transform.localScale = Vector3.one * .50f;
+            badge.transform.SetParent(root, false); badge.transform.localPosition = new Vector3(0, .029f, -.198f);
+            badge.transform.localScale = Vector3.one * .36f;
             badge.GetComponent<MeshFilter>().sharedMesh = mesh; badge.GetComponent<Renderer>().sharedMaterial = ivoryRim;
             StorageBlock(badge.transform, "PizzaCrust", new Vector3(0, .027f, -.003f), new Vector3(.078f, .009f, .006f), paperLiner, false);
             StorageBlock(badge.transform, "PepperoniTop", new Vector3(-.011f, .012f, -.004f), new Vector3(.010f, .010f, .004f), bossAccent, false);
@@ -147,57 +148,49 @@ namespace ColaCola.Presentation
         {
             var root = new GameObject(boss ? "BossItemCubes_Runtime" : "PlayerItemCubes_Runtime") { hideFlags = HideFlags.DontSave };
             root.transform.SetParent(items.transform.root, false);
-            // Turn the front edges toward the player and leave the resting order sheet a separate strip of table.
+            // Both trays share one grid and yaw. The rear tray sits higher and farther right in perspective.
             root.transform.SetPositionAndRotation(
-                boss ? new Vector3(.75f, .913f, .58f) : new Vector3(.58f, .833f, .06f),
-                Quaternion.Euler(0, boss ? 10 : 14, 0));
+                boss ? new Vector3(.80f, .927f, .62f) : new Vector3(.62f, .833f, .08f),
+                Quaternion.Euler(0, 8, 0));
             root.transform.localScale = Vector3.one * .84f;
             Material shell = boss ? bossShell : playerShell, trim = boss ? steelRim : ivoryRim;
-            if (boss) StorageBlock(root.transform, "CrateRaisedStand", new Vector3(0, -.0475f, 0), new Vector3(.59f, .095f, .40f), bossAccent);
-            BeveledStorage(root.transform, boss ? "DeliveryCrateShell" : "ServingTrayShell", Vector3.zero, .60f, .42f, .024f, shell);
-            BeveledStorage(root.transform, "SixSlotRearShelf", new Vector3(0, .024f, .105f), .568f, .186f, .060f, shell);
-            StorageBlock(root.transform, "FrontRolledRim", new Vector3(0, .032f, -.204f), new Vector3(.60f, .016f, .018f), trim);
-            StorageBlock(root.transform, "BackRim", new Vector3(0, boss ? .088f : .071f, .204f), new Vector3(.60f, boss ? .128f : .094f, .018f), shell);
+            if (boss) BeveledStorage(root.transform, "CrateRaisedStand", new Vector3(0, -.112f, 0), .51f, .35f, .112f, bossAccent);
+            BeveledStorage(root.transform, boss ? "DeliveryCrateShell" : "ServingTrayShell", Vector3.zero, .55f, .39f, .022f, shell);
+            BeveledStorage(root.transform, "SixSlotRearShelf", new Vector3(0, .022f, .095f), .526f, .178f, .078f, shell);
+            StorageBlock(root.transform, "FrontRolledRim", new Vector3(0, .029f, -.188f), new Vector3(.55f, .014f, .014f), trim);
+            StorageBlock(root.transform, "BackRim", new Vector3(0, .111f, .188f), new Vector3(.55f, .022f, .014f), shell);
+            StorageBlock(root.transform, "RearShelfEdge", new Vector3(0, .093f, .003f), new Vector3(.526f, .014f, .008f), trim);
             foreach (int side in new[] { -1, 1 })
             {
-                StorageBlock(root.transform, "FrontSideRim_" + side, new Vector3(side * .291f, .032f, -.10f), new Vector3(.018f, .016f, .20f), trim);
-                StorageBlock(root.transform, "RearSideRim_" + side, new Vector3(side * .291f, .100f, .105f),
-                    new Vector3(.018f, .032f, .19f), trim);
-                StorageBlock(root.transform, "FrontSlotDivider_" + side, new Vector3(side * .09f, .036f, -.10f), new Vector3(.008f, .024f, .186f), shell);
-                StorageBlock(root.transform, "RearSlotDivider_" + side, new Vector3(side * .09f, .100f, .105f), new Vector3(.008f, .032f, .182f), shell);
+                StorageBlock(root.transform, "FrontSideRim_" + side, new Vector3(side * .268f, .029f, -.095f), new Vector3(.014f, .014f, .178f), trim);
+                StorageBlock(root.transform, "RearSideRim_" + side, new Vector3(side * .268f, .109f, .095f),
+                    new Vector3(.014f, .018f, .178f), trim);
+                StorageBlock(root.transform, "FrontSlotDivider_" + side, new Vector3(side * .085f, .031f, -.095f), new Vector3(.006f, .018f, .178f), shell);
+                StorageBlock(root.transform, "RearSlotDivider_" + side, new Vector3(side * .085f, .109f, .095f), new Vector3(.006f, .018f, .178f), shell);
+                StorageBlock(root.transform, "RecessedSideGrip_" + side, new Vector3(side * .276f, .109f, .095f),
+                    new Vector3(.003f, .008f, .062f), boss ? bossAccent : playerAccent, false);
                 if (boss)
                 {
-                    StorageBlock(root.transform, "SteelFrontCorner_" + side, new Vector3(side * .278f, .040f, -.216f), new Vector3(.022f, .032f, .008f), steelRim);
-                    StorageBlock(root.transform, "SteelRearCorner_" + side, new Vector3(side * .278f, .090f, .216f), new Vector3(.022f, .132f, .008f), steelRim);
-                    StorageBlock(root.transform, "CrateCarryHandle_" + side, new Vector3(side * .313f, .107f, .105f), new Vector3(.014f, .014f, .150f), steelRim);
-                    foreach (int end in new[] { -1, 1 })
-                        StorageBlock(root.transform, "CrateHandleMount_" + side + "_" + end, new Vector3(side * .301f, .107f, .105f + end * .066f), new Vector3(.028f, .014f, .014f), steelRim);
+                    StorageBlock(root.transform, "SteelFrontCorner_" + side, new Vector3(side * .254f, .029f, -.198f), new Vector3(.016f, .020f, .006f), steelRim);
+                    StorageBlock(root.transform, "SteelRearCorner_" + side, new Vector3(side * .254f, .109f, .198f), new Vector3(.016f, .024f, .006f), steelRim);
                 }
-                else StorageBlock(root.transform, "TrayHandleUpright_" + side, new Vector3(side * .085f, .040f, -.242f), new Vector3(.014f, .032f, .014f), ivoryRim);
             }
             if (boss)
             {
-                StorageBlock(root.transform, "CrateTopBand", new Vector3(0, .158f, .204f), new Vector3(.60f, .012f, .023f), steelRim);
+                StorageBlock(root.transform, "CrateTopBand", new Vector3(0, .125f, .188f), new Vector3(.55f, .006f, .016f), steelRim);
                 PizzaBadge(root.transform);
             }
-            else StorageBlock(root.transform, "ServingTrayHandle", new Vector3(0, .056f, -.242f), new Vector3(.184f, .014f, .016f), ivoryRim);
             var owned = boss ? bossCubes : cubes;
             for (int i = 0; i < owned.Length; i++)
             {
-                float x = (i % 3 - 1) * .18f, z = i / 3 == 0 ? -.10f : .10f, floor = i / 3 == 0 ? .024f : .084f;
-                StorageBlock(root.transform, "CompartmentLiner_" + i, new Vector3(x, floor + .0005f, z), new Vector3(.153f, .001f, .153f), paperLiner, false);
-                var check = StorageBlock(root.transform, "LinerCheck_" + i, new Vector3(x, floor + .0011f, z - .056f), new Vector3(.142f, .0004f, .014f), boss ? bossAccent : playerAccent, false);
-                check.transform.localRotation = Quaternion.Euler(0, 12, 0);
-                var cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                cube.name = "ItemSlot_" + (i + 1); cube.transform.SetParent(root.transform, false);
-                cube.transform.localPosition = new Vector3(x, floor + .0535f, z);
-                cube.transform.localScale = Vector3.one * .105f;
+                float x = (i % 3 - 1) * .17f, z = i / 3 == 0 ? -.095f : .095f, floor = i / 3 == 0 ? .022f : .100f;
+                StorageBlock(root.transform, "CompartmentLiner_" + i, new Vector3(x, floor + .0005f, z), new Vector3(.154f, .001f, .154f), paperLiner, false);
+                StorageBlock(root.transform, "LinerCheck_" + i, new Vector3(x, floor + .0011f, z - .060f),
+                    new Vector3(.134f, .0004f, .008f), boss ? bossAccent : playerAccent, false);
+                var cube = new GameObject("ItemSlot_" + (i + 1), typeof(BoxCollider));
+                cube.transform.SetParent(root.transform, false);
+                cube.transform.localPosition = new Vector3(x, floor + .001f, z);
                 cube.AddComponent<ColaItemCube>().Bind(i, boss);
-                cube.GetComponent<Renderer>().shadowCastingMode = ShadowCastingMode.On;
-                var number = new GameObject("ItemNumber"); number.transform.SetParent(cube.transform, false);
-                number.transform.localPosition = new Vector3(0, .12f, -.515f);
-                var text = number.AddComponent<TextMesh>(); text.font = cubeFont; text.fontSize = 48; text.characterSize = .145f;
-                text.anchor = TextAnchor.MiddleCenter; text.alignment = TextAlignment.Center; text.color = Ink; ColaWorldText.Bind(text);
                 owned[i] = cube; cube.SetActive(false);
             }
             return root;
@@ -209,14 +202,26 @@ namespace ColaCola.Presentation
             {
                 bool boss = actor == 1;
                 var owned = boss ? bossCubes : cubes;
+                var models = boss ? bossModels : playerModels;
+                var modelIds = boss ? bossModelIds : playerModelIds;
                 for (int i = 0; i < owned.Length; i++)
                 {
                     var id = items.ItemAt(i, boss);
                     owned[i].SetActive(id.HasValue);
                     if (!id.HasValue) continue;
                     owned[i].name = (boss ? "Boss" : "Player") + "ItemSlot_" + (i + 1) + "_" + id.Value;
-                    owned[i].GetComponent<MeshRenderer>().sharedMaterial = materials[(int)id.Value];
-                    owned[i].GetComponentInChildren<TextMesh>(true).text = ((int)id.Value + 1).ToString("00");
+                    if (!models[i] || modelIds[i] != id)
+                    {
+                        if (models[i])
+                        {
+                            models[i].SetActive(false);
+                            models[i].transform.SetParent(null, false);
+                            Destroy(models[i]);
+                        }
+                        models[i] = modelLibrary.Create(id.Value, owned[i].transform);
+                        modelIds[i] = id;
+                        ColaItemModelLibrary.FitHitTarget(owned[i].transform, owned[i].GetComponent<BoxCollider>());
+                    }
                 }
             }
         }
@@ -260,18 +265,12 @@ namespace ColaCola.Presentation
                 var tooltip = new Rect(Mathf.Clamp(mousePosition.x + 15, 10, Screen.width - width - 10),
                     Mathf.Clamp(Screen.height - mousePosition.y - 80 * scale, 50, Screen.height - 145 * scale), width, 75 * scale);
                 DrawPanel(tooltip);
-                GUI.Label(new Rect(tooltip.x + 8, tooltip.y + 4, width - 16, 25 * scale), definition.Name + (hoveredBoss ? "  /  보스 보유" : "  /  클릭 사용"), label);
+                GUI.Label(new Rect(tooltip.x + 8, tooltip.y + 4, width - 16, 25 * scale), definition.Name, label);
                 GUI.Label(new Rect(tooltip.x + 8, tooltip.y + 28 * scale, width - 16, 43 * scale), definition.Effect, detail);
             }
-            if (!OrderOpen && Time.unscaledTime < items.BossNoticeUntil)
-            {
-                var notice = new Rect(10 * scale, Screen.height - 153 * scale, Screen.width - 20 * scale, 45 * scale);
-                DrawPanel(notice);
-                GUI.Label(new Rect(notice.x + 8, notice.y + 3, notice.width - 16, notice.height - 6), items.BossNotice, detail);
-            }
-            GUI.Label(new Rect(15 * scale, Screen.height - 104 * scale, Screen.width - 30 * scale, 24 * scale),
+            GUI.Label(new Rect(15 * scale, Screen.height - 59 * scale, Screen.width - 30 * scale, 24 * scale),
                 "내 효과: " + items.EffectsText(false), detail);
-            GUI.Label(new Rect(15 * scale, Screen.height - 80 * scale, Screen.width - 30 * scale, 24 * scale),
+            GUI.Label(new Rect(15 * scale, Screen.height - 33 * scale, Screen.width - 30 * scale, 24 * scale),
                 "보스 효과: " + items.EffectsText(true), detail);
         }
 
@@ -290,7 +289,7 @@ namespace ColaCola.Presentation
             if (items) items.InventoryChanged -= RefreshInventory;
             if (inventoryRoot) Destroy(inventoryRoot);
             if (bossInventoryRoot) Destroy(bossInventoryRoot);
-            foreach (var material in materials) if (material) Destroy(material);
+            modelLibrary?.Dispose();
             foreach (var material in storageMaterials) if (material) Destroy(material);
             foreach (var mesh in storageMeshes) if (mesh) Destroy(mesh);
             if (menuFont) Destroy(menuFont);

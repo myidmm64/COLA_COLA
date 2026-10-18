@@ -12,6 +12,7 @@ namespace ColaCola.Presentation
     {
         public enum BurstStage { Idle, Strain, Rupture, Recovery, Blackout, FadeIn }
         [Range(0, 1)] public float soundVolume = .72f;
+        private const float RevealDuration = .38f;
         public BurstStage Stage { get; private set; }
         public int BurstCount { get; private set; }
         public bool LastBurstWasBoss { get; private set; }
@@ -142,10 +143,10 @@ namespace ColaCola.Presentation
             { if (version != generation) yield break; yield return null; }
             Stage = BurstStage.FadeIn;
             started = Time.unscaledTime;
-            while (Time.unscaledTime - started < .82f)
+            while (Time.unscaledTime - started < RevealDuration)
             {
                 if (version != generation) yield break;
-                BlackoutOpacity = 1 - Mathf.SmoothStep(0, 1, (Time.unscaledTime - started) / .82f);
+                BlackoutOpacity = 1 - Mathf.SmoothStep(0, 1, (Time.unscaledTime - started) / RevealDuration);
                 yield return null;
             }
             if (version != generation) yield break;

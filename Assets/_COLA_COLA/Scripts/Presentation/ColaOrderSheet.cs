@@ -13,6 +13,7 @@ namespace ColaCola.Presentation
         private ColaItemController items;
         private GameObject modelRoot;
         private Font font;
+        private Texture2D paperTexture;
         private readonly List<Material> ownedMaterials = new();
         private readonly List<Mesh> ownedMeshes = new();
         private readonly List<Renderer> detailedPrint = new();
@@ -27,9 +28,9 @@ namespace ColaCola.Presentation
         private readonly Renderer[] rowRenderers = new Renderer[11];
         private readonly Renderer[] removeRenderers = new Renderer[11];
         private readonly List<ColaItemId> cart = new(ColaItemController.Capacity);
-        private Material available, unavailable, selectedKey, checkoutReady, rowOdd, rowEven, rowSelected;
+        private Material available, unavailable, selectedKey, checkoutReady, rowSelected;
         private Collider openTarget, closeTarget, checkoutTarget;
-        private Renderer checkoutRenderer;
+        private Renderer checkoutRenderer, descriptionPanel, descriptionAccent;
         private TextMesh balanceText, inventoryText, descriptionText, descriptionTitle, checkoutText, titleText;
         private bool returning;
         private readonly Vector3 restPosition = new(.37f, .848f, -.37f);
@@ -54,7 +55,7 @@ namespace ColaCola.Presentation
         public int CartQuantity(ColaItemId id) { int count = 0; foreach (var entry in cart) if (entry == id) count++; return count; }
         public bool CanAdd(ColaItemId id) => items && items.CanPurchase(id) &&
             items.InventoryCount + cart.Count < ColaItemController.Capacity &&
-            CartTotal + ColaItemCatalog.Get(id).Price <= items.match.PlayerTokens;
+            items.match.CanAffordTokens(CartTotal + ColaItemCatalog.Get(id).Price);
         public bool CanOpen
         {
             get
@@ -172,12 +173,14 @@ namespace ColaCola.Presentation
             var definition = ColaItemCatalog.Get(id);
             descriptionTitle.text = definition.Name;
             descriptionText.text = Wrap(definition.Effect, 22);
+            descriptionPanel.enabled = descriptionAccent.enabled = IsOpen;
         }
 
         private void ClearDescription()
         {
             descriptionTitle.text = "";
             descriptionText.text = "";
+            descriptionPanel.enabled = descriptionAccent.enabled = false;
         }
 
         public void RefreshAvailability()
@@ -201,13 +204,15 @@ namespace ColaCola.Presentation
             if (!items || !modelRoot) return;
             // Fine world text aliases at the tabletop's grazing angle. Only draw it while held for reading.
             foreach (var renderer in detailedPrint) if (renderer) renderer.enabled = IsOpen;
-            titleText.text = IsOpen ? "ORDER MENU" : "ORDER";
+            titleText.text = IsOpen ? "MENU" : "ORDER";
             titleText.characterSize = IsOpen ? .0030f : .006f;
             titleText.anchor = IsOpen ? TextAnchor.MiddleLeft : TextAnchor.MiddleCenter;
             titleText.transform.localPosition = IsOpen ? new Vector3(-.128f, .141f, -.009f) : new Vector3(0, .025f, -.009f);
-            balanceText.text = "TOKENS  " + items.match.PlayerTokens.ToString("00");
+            titleText.transform.localRotation = IsOpen ? Quaternion.Euler(0, 0, -1.2f) : Quaternion.identity;
+            balanceText.text = "TOKENS  " + (items.match.InfinitePlayerTokens ? "∞" : items.match.PlayerTokens.ToString("00"));
             inventoryText.text = "ITEMS  " + items.InventoryCount + " / 6";
             if (!IsOpen) ClearDescription();
+            descriptionPanel.enabled = descriptionAccent.enabled = IsOpen && !string.IsNullOrEmpty(descriptionText.text);
             closeTarget.enabled = IsOpen;
             checkoutTarget.enabled = IsVisible && IsOpen && IsSettled && items.CanPurchaseBatch(cart);
             checkoutText.text = cart.Count == 0 ? "주문" : "주문   " + cart.Count + "개  /  " + CartTotal + " T";
@@ -230,7 +235,7 @@ namespace ColaCola.Presentation
                 int quantity = CartQuantity((ColaItemId)i);
                 purchaseRenderers[i].sharedMaterial = CanAdd((ColaItemId)i) ? quantity > 0 ? selectedKey : available : unavailable;
                 removeRenderers[i].sharedMaterial = quantity > 0 ? available : unavailable;
-                rowRenderers[i].sharedMaterial = quantity > 0 ? rowSelected : menuRow % 2 == 0 ? rowEven : rowOdd;
+                rowRenderers[i].enabled = IsOpen && quantity > 0;
                 itemNameTexts[i].text = ColaItemCatalog.Get((ColaItemId)i).Name;
                 priceTexts[i].text = ColaItemCatalog.Get((ColaItemId)i).Price + " T" + (quantity > 0 ? " x" + quantity : "");
             }
@@ -272,7 +277,7 @@ namespace ColaCola.Presentation
 
         private GameObject Key(string name, Vector3 position, Vector2 size, Material material)
         {
-            var key = MeshPart(name, Plate(size.x, size.y, .0025f, .004f), material, position);
+            var key = MeshPart(name, Plate(size.x, size.y, .0015f, .0016f), material, position);
             var hit = key.AddComponent<BoxCollider>();
             hit.size = new Vector3(size.x, size.y, .004f);
             detailedPrint.Add(key.GetComponent<MeshRenderer>());
@@ -301,22 +306,31 @@ namespace ColaCola.Presentation
             modelRoot = new GameObject("Pizzeria_OrderClipboard_Runtime") { hideFlags = HideFlags.DontSave };
             modelRoot.transform.SetParent(items.transform.root, false);
             font = Font.CreateDynamicFontFromOSFont(new[] { "Malgun Gothic", "Noto Sans CJK KR", "Arial" }, 64);
-            var board = Surface("Receipt_AgedBoard", new Color(.085f, .12f, .105f));
+            var board = Surface("Receipt_AgedBoard", new Color(.16f, .17f, .12f));
             var paper = Surface("Receipt_WarmPaper", new Color(.92f, .87f, .73f));
-            var metal = Surface("Receipt_Clip", new Color(.24f, .26f, .22f));
+            paperTexture = MakePaperTexture();
+            paper.SetTexture("_BaseMap", paperTexture);
+            var metal = Surface("Receipt_Clip", new Color(.29f, .28f, .22f));
+            var wornEdge = Surface("Receipt_BoardWear", new Color(.28f, .27f, .20f));
+            var tape = Surface("Receipt_MaskingTape", new Color(.69f, .64f, .46f));
             var rule = Surface("Receipt_PrintRules", new Color(.48f, .44f, .33f));
             var red = Surface("Receipt_TomatoInk", new Color(.40f, .14f, .095f));
             var chip = Surface("Receipt_BalanceChip", new Color(.84f, .80f, .65f));
-            var detailPaper = Surface("Receipt_DetailPanel", new Color(.85f, .81f, .66f));
-            available = Surface("Receipt_OrderKey", new Color(.18f, .25f, .19f));
-            unavailable = Surface("Receipt_DisabledKey", new Color(.38f, .39f, .32f));
-            selectedKey = Surface("Receipt_AddedKey", new Color(.40f, .17f, .11f));
+            var detailPaper = Surface("Receipt_DetailPanel", new Color(.89f, .83f, .67f));
+            available = Surface("Receipt_OrderKey", new Color(.23f, .25f, .19f));
+            unavailable = Surface("Receipt_DisabledKey", new Color(.44f, .43f, .34f));
+            selectedKey = Surface("Receipt_AddedKey", new Color(.39f, .19f, .12f));
             checkoutReady = red;
-            rowEven = Surface("Receipt_RowEven", new Color(.94f, .90f, .77f));
-            rowOdd = Surface("Receipt_RowOdd", new Color(.89f, .84f, .70f));
-            rowSelected = Surface("Receipt_RowAdded", new Color(.86f, .79f, .61f));
+            rowSelected = Surface("Receipt_RowAdded", new Color(.85f, .78f, .60f));
             MeshPart("BeveledClipboard", Plate(.318f, .392f, .018f, .014f), board, new Vector3(0, 0, .007f));
-            MeshPart("ReceiptPaper", Plate(.294f, .356f, .006f, .0015f), paper, new Vector3(0, 0, -.005f));
+            MeshPart("ReceiptPaper", PaperSheet(), paper, new Vector3(0, 0, -.005f));
+            foreach (int side in new[] { -1, 1 })
+                Block("BoardEdgeWear_" + side, new Vector3(side * .153f, side * .145f, -.0005f),
+                    new Vector3(.004f, .029f, .0005f), wornEdge, false);
+            var topTape = Block("ReceiptTopTape", new Vector3(-.127f, .176f, -.0075f), new Vector3(.035f, .011f, .001f), tape, false);
+            topTape.transform.localRotation = Quaternion.Euler(0, 0, -12);
+            var bottomTape = Block("ReceiptBottomTape", new Vector3(.129f, -.175f, -.0075f), new Vector3(.033f, .010f, .001f), tape, false);
+            bottomTape.transform.localRotation = Quaternion.Euler(0, 0, 14);
             var fold = new Mesh { name = "ReceiptFoldedCorner", hideFlags = HideFlags.DontSave };
             fold.vertices = new[] { new Vector3(.147f, .178f, -.006f), new Vector3(.125f, .178f, -.013f), new Vector3(.147f, .156f, -.013f) };
             fold.triangles = new[] { 0, 1, 2, 2, 1, 0 };
@@ -324,22 +338,27 @@ namespace ColaCola.Presentation
             MeshPart("FoldedPaperCorner", fold, paper, Vector3.zero);
             Block("ClipBridge", new Vector3(0, .180f, -.013f), new Vector3(.085f, .018f, .012f), metal, false);
             Block("ClipTab", new Vector3(0, .192f, -.007f), new Vector3(.052f, .012f, .012f), metal, false);
+            Block("ClipWornEdge", new Vector3(-.018f, .173f, -.0195f), new Vector3(.027f, .002f, .001f), wornEdge, false);
             var box = modelRoot.AddComponent<BoxCollider>();
             box.center = new Vector3(0, 0, .006f);
             box.size = new Vector3(.318f, .392f, .020f);
             modelRoot.AddComponent<ColaOrderTarget>().Bind(ColaOrderTarget.Action.Open);
             openTarget = box;
             Color ink = new(.10f, .15f, .11f), keyInk = new(.96f, .91f, .77f), redInk = new(.40f, .14f, .095f);
-            Text("RestaurantBrand", "COLA COLA / PIZZERIA", new Vector3(-.128f, .164f, -.009f), 48, .0013f, redInk);
-            titleText = Text("ReceiptTitle", "ORDER MENU", new Vector3(-.128f, .141f, -.009f), 64, .0030f, ink);
-            Block("PrintTokenChip", new Vector3(-.080f, .119f, -.0068f), new Vector3(.100f, .017f, .001f), chip, false);
-            Block("PrintInventoryChip", new Vector3(.079f, .119f, -.0068f), new Vector3(.100f, .017f, .001f), chip, false);
+            var brand = Text("RestaurantBrand", "PIZZERIA", new Vector3(-.128f, .164f, -.009f), 48, .0013f, redInk);
+            brand.transform.localRotation = Quaternion.Euler(0, 0, -1.2f);
+            titleText = Text("ReceiptTitle", "MENU", new Vector3(-.128f, .141f, -.009f), 64, .0030f, ink);
+            titleText.fontStyle = FontStyle.Bold;
             balanceText = Text("OrderBalance", "", new Vector3(-.122f, .119f, -.009f), 48, .0016f, ink);
             inventoryText = Text("OrderInventory", "", new Vector3(.038f, .119f, -.009f), 48, .0016f, ink);
             Block("PrintHeaderRule", new Vector3(0, .107f, -.007f), new Vector3(.260f, .002f, .001f), red, false);
-            for (int i = 0; i < 8; i++)
-                Block("PrintHeaderCheck_" + i, new Vector3(.032f + i * .009f, .155f, -.007f),
-                    new Vector3(.008f, .006f, .001f), i % 2 == 0 ? red : chip, false);
+            for (int row = 0; row < 2; row++)
+                for (int column = 0; column < 6; column++)
+                    Block("PrintHeaderCheck_" + row + "_" + column, new Vector3(.055f + column * .009f, .155f - row * .0065f, -.007f),
+                        new Vector3(.0085f, .006f, .001f), (row + column) % 2 == 0 ? red : chip, false);
+            for (int i = 0; i < 18; i++)
+                Block("PrintPerforation_" + i, new Vector3(-.140f, -.154f + i * .018f, -.007f),
+                    new Vector3(.0024f, .0032f, .001f), board, false);
             var close = Key("ReturnClipboard", new Vector3(.131f, .166f, -.012f), new Vector2(.022f, .022f), board);
             close.AddComponent<ColaOrderTarget>().Bind(ColaOrderTarget.Action.Close);
             closeTarget = close.GetComponent<Collider>();
@@ -351,9 +370,10 @@ namespace ColaCola.Presentation
                 row.transform.SetParent(modelRoot.transform, false);
                 itemRows[i] = row;
                 float y = 0;
-                var background = Block("PrintRow_" + i, new Vector3(0, y, -.0067f), new Vector3(.270f, .027f, .001f), rowEven, false);
+                var background = Block("PrintRow_" + i, new Vector3(0, y, -.0067f), new Vector3(.270f, .027f, .001f), rowSelected, false);
                 background.transform.SetParent(row.transform, false); rowRenderers[i] = background.GetComponent<Renderer>();
                 var badge = Block("PrintNumberBadge_" + i, new Vector3(-.118f, y, -.0085f), new Vector3(.022f, .020f, .001f), red, false);
+                badge.transform.localRotation = Quaternion.Euler(0, 0, i % 2 == 0 ? -1.8f : 1.2f);
                 badge.transform.SetParent(row.transform, false);
                 numberTexts[i] = Text("MenuNumber_" + i, "", new Vector3(-.118f, y, -.010f), 48, .0019f, keyInk, TextAnchor.MiddleCenter);
                 numberTexts[i].transform.SetParent(row.transform, false);
@@ -384,8 +404,8 @@ namespace ColaCola.Presentation
                 Block("PrintRule_" + (i + 1), new Vector3(0, y - .014f, -.0075f), new Vector3(.26f, .0004f, .0002f), rule,
                     false).transform.SetParent(row.transform, false);
             }
-            Block("PrintDetailsPanel", new Vector3(0, -.104f, -.0068f), new Vector3(.270f, .066f, .001f), detailPaper, false);
-            Block("PrintDetailsAccent", new Vector3(-.134f, -.104f, -.0075f), new Vector3(.002f, .066f, .001f), red, false);
+            descriptionPanel = Block("PrintDetailsPanel", new Vector3(0, -.104f, -.0068f), new Vector3(.270f, .066f, .001f), detailPaper, false).GetComponent<Renderer>();
+            descriptionAccent = Block("PrintDetailsAccent", new Vector3(-.134f, -.104f, -.0075f), new Vector3(.002f, .066f, .001f), red, false).GetComponent<Renderer>();
             descriptionTitle = Text("ReceiptDescriptionTitle", "", new Vector3(-.122f, -.081f, -.009f), 48, .0017f, redInk);
             descriptionText = Text("ReceiptDescription", "", new Vector3(-.122f, -.093f, -.009f), 48, .0021f, ink, TextAnchor.UpperLeft);
             descriptionText.lineSpacing = .95f;
@@ -411,27 +431,75 @@ namespace ColaCola.Presentation
             return result.ToString();
         }
 
+        private static Texture2D MakePaperTexture()
+        {
+            // Fixed paper wear never consumes gameplay randomness or changes between frames.
+            const int width = 256, height = 320;
+            var texture = new Texture2D(width, height, TextureFormat.RGB24, true)
+            {
+                name = "Receipt_PaperGrain_Runtime", hideFlags = HideFlags.DontSave,
+                filterMode = FilterMode.Point, wrapMode = TextureWrapMode.Clamp
+            };
+            var pixels = new Color[width * height];
+            var wear = new System.Random(18467);
+            for (int y = 0; y < height; y++)
+                for (int x = 0; x < width; x++)
+                {
+                    float u = x / (width - 1f), v = y / (height - 1f);
+                    float edge = 1 - Mathf.Clamp01(Mathf.Min(Mathf.Min(u, 1 - u), Mathf.Min(v, 1 - v)) / .07f);
+                    float fold = 1 - Mathf.Clamp01(Mathf.Abs(v - .49f) / .009f);
+                    float ringDistance = new Vector2((u - .96f) * .83f, v - .20f).magnitude;
+                    float ring = 1 - Mathf.Clamp01(Mathf.Abs(ringDistance - .10f) / .009f);
+                    float shade = 1 - (float)wear.NextDouble() * .035f - edge * .06f - fold * .018f - ring * .065f;
+                    pixels[y * width + x] = new Color(shade, shade - .005f, shade - .018f);
+                }
+            texture.SetPixels(pixels);
+            texture.Apply(true, true);
+            return texture;
+        }
+
+        private static Mesh PaperSheet()
+        {
+            var edge = new List<Vector2>();
+            for (int i = 0; i <= 18; i++)
+            {
+                float nick = i == 0 || i == 18 ? 0 : (i * 7 % 5) * .00035f;
+                edge.Add(new Vector2(Mathf.Lerp(-.141f, .141f, i / 18f), -.178f + nick));
+            }
+            edge.AddRange(new[] { new Vector2(.147f, -.172f), new Vector2(.147f, .172f),
+                new Vector2(.141f, .178f), new Vector2(-.141f, .178f),
+                new Vector2(-.147f, .172f), new Vector2(-.147f, -.172f) });
+            return PolygonPlate(edge, .0015f, .294f, .356f, "Receipt_WornPaperMesh");
+        }
+
         private static Mesh Plate(float width, float height, float corner, float depth)
         {
             var points = new[] { new Vector2(-width / 2 + corner, -height / 2), new Vector2(width / 2 - corner, -height / 2),
                 new Vector2(width / 2, -height / 2 + corner), new Vector2(width / 2, height / 2 - corner),
                 new Vector2(width / 2 - corner, height / 2), new Vector2(-width / 2 + corner, height / 2),
                 new Vector2(-width / 2, height / 2 - corner), new Vector2(-width / 2, -height / 2 + corner) };
+            return PolygonPlate(points, depth, width, height, "ReceiptBeveledPlate");
+        }
+
+        private static Mesh PolygonPlate(IReadOnlyList<Vector2> points, float depth, float width, float height, string name)
+        {
             var vertices = new List<Vector3>();
             var triangles = new List<int>();
             void Triangle(Vector3 a, Vector3 b, Vector3 c)
             { int start = vertices.Count; vertices.Add(a); vertices.Add(b); vertices.Add(c); triangles.Add(start); triangles.Add(start + 1); triangles.Add(start + 2); }
-            for (int i = 0; i < 8; i++)
+            for (int i = 0; i < points.Count; i++)
             {
-                Vector2 a = points[i], b = points[(i + 1) % 8];
+                Vector2 a = points[i], b = points[(i + 1) % points.Count];
                 Vector3 af = new(a.x, a.y, -depth / 2), bf = new(b.x, b.y, -depth / 2);
                 Vector3 ab = new(a.x, a.y, depth / 2), bb = new(b.x, b.y, depth / 2);
                 Triangle(new Vector3(0, 0, -depth / 2), bf, af);
                 Triangle(new Vector3(0, 0, depth / 2), ab, bb);
                 Triangle(af, bf, ab); Triangle(bf, bb, ab);
             }
-            var mesh = new Mesh { name = "ReceiptBeveledPlate", hideFlags = HideFlags.DontSave };
-            mesh.SetVertices(vertices); mesh.SetTriangles(triangles, 0); mesh.RecalculateNormals(); mesh.RecalculateBounds();
+            var uv = new List<Vector2>(vertices.Count);
+            foreach (var vertex in vertices) uv.Add(new Vector2(vertex.x / width + .5f, vertex.y / height + .5f));
+            var mesh = new Mesh { name = name, hideFlags = HideFlags.DontSave };
+            mesh.SetVertices(vertices); mesh.SetUVs(0, uv); mesh.SetTriangles(triangles, 0); mesh.RecalculateNormals(); mesh.RecalculateBounds();
             return mesh;
         }
 
@@ -442,6 +510,7 @@ namespace ColaCola.Presentation
             if (modelRoot) Destroy(modelRoot);
             foreach (var material in ownedMaterials) if (material) Destroy(material);
             foreach (var mesh in ownedMeshes) if (mesh) Destroy(mesh);
+            if (paperTexture) Destroy(paperTexture);
             if (font) Destroy(font);
         }
     }

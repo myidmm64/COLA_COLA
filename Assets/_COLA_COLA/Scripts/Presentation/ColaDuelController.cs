@@ -17,6 +17,20 @@ namespace ColaCola.Presentation
         [Range(1, 99)] public int playerMaxHealth = 3;
         [Range(1, 99)] public int bossBaseHealth = 3;
 
+        [Header("Debug (Editor / Development Build)")]
+        [Tooltip("플레이어 구매 시 토큰 조건과 차감을 무시합니다. 실제 잔액은 보존합니다.")]
+        public bool debugInfiniteTokens;
+        [Tooltip("플레이어의 콜라당 주문 1회 제한을 해제합니다. 내 턴과 보유 6칸 제한은 유지합니다.")]
+        public bool debugUnlimitedOrders;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        private const bool DebugFeaturesEnabled = true;
+#else
+        private const bool DebugFeaturesEnabled = false;
+#endif
+        public bool InfinitePlayerTokens => DebugFeaturesEnabled && debugInfiniteTokens;
+        public bool UnlimitedPlayerOrders => DebugFeaturesEnabled && debugUnlimitedOrders;
+        private bool displayedInfiniteTokens;
+
         public DuelState State { get; private set; }
         public int Level { get; private set; }
         public int PlayerHealth { get; private set; }
@@ -132,7 +146,8 @@ namespace ColaCola.Presentation
 
         private void RefreshTerminal(bool animate)
         {
-            terminal.SetPlayerState(PlayerHealth, playerMaxHealth, PlayerTokens, animate);
+            displayedInfiniteTokens = InfinitePlayerTokens;
+            terminal.SetPlayerState(PlayerHealth, playerMaxHealth, displayedInfiniteTokens ? 9999 : PlayerTokens, animate);
             terminal.SetBossState(BossHealth, BossMaxHealth, BossTokens, animate);
             terminal.SetActiveParticipant(IsPlayerTurn);
         }
@@ -140,11 +155,14 @@ namespace ColaCola.Presentation
         public void SetActionMessage(string message) => LastActionMessage = message;
 
         public bool TrySpendPlayerTokens(int amount) => TrySpendTokens(amount, false);
+        public bool CanAffordTokens(int amount, bool boss = false)
+            => amount >= 0 && ((!boss && InfinitePlayerTokens) || (boss ? BossTokens : PlayerTokens) >= amount);
+
         public bool TrySpendTokens(int amount, bool boss)
         {
-            if (amount < 0 || !Items || !Items.CanActFor(boss) || (boss ? BossTokens : PlayerTokens) < amount) return false;
+            if (!Items || !Items.CanActFor(boss) || !CanAffordTokens(amount, boss)) return false;
             if (boss) BossTokens -= amount;
-            else PlayerTokens -= amount;
+            else if (!InfinitePlayerTokens) PlayerTokens -= amount;
             RefreshTerminal(true);
             return true;
         }
@@ -162,10 +180,18 @@ namespace ColaCola.Presentation
         private void Update()
         {
             if (!interaction || !terminal) return;
+            if (displayedInfiniteTokens != InfinitePlayerTokens) RefreshTerminal(false);
             if (State == DuelState.Playing && terminal.IsPlayerTurn != IsPlayerTurn)
                 terminal.SetActiveParticipant(IsPlayerTurn);
             var keyboard = Keyboard.current;
             if (keyboard == null) return;
+            if (DebugFeaturesEnabled && (keyboard.leftCtrlKey.wasPressedThisFrame || keyboard.rightCtrlKey.wasPressedThisFrame))
+            {
+                bool enable = !(debugInfiniteTokens && debugUnlimitedOrders);
+                debugInfiniteTokens = debugUnlimitedOrders = enable;
+                RefreshTerminal(false);
+                if (Items) Items.GetComponent<ColaOrderSheet>()?.RefreshAvailability();
+            }
             if (keyboard.rKey.wasPressedThisFrame) RestartRun(fadeIn: State != DuelState.Playing);
             else if (State != DuelState.Playing && !interaction.IsBusy && keyboard.enterKey.wasPressedThisFrame)
             {

@@ -28,7 +28,8 @@ namespace ColaCola.Presentation
         private readonly Effects playerEffects = new(), bossEffects = new();
         private bool playerShopUsed, bossShopUsed;
         public bool ShopUsed(bool boss = false) => boss ? bossShopUsed : playerShopUsed;
-        public bool OrderAvailable(bool boss = false) => !ShopUsed(boss);
+        public bool OrderAvailable(bool boss = false)
+            => (!boss && match && match.UnlimitedPlayerOrders) || !ShopUsed(boss);
         public event Action InventoryChanged;
         public bool SafetyReady => playerEffects.Safety;
         public bool DoubleReady => playerEffects.Double;
@@ -88,7 +89,7 @@ namespace ColaCola.Presentation
         public bool CanPurchase(ColaItemId id, bool boss = false)
         {
             return Enum.IsDefined(typeof(ColaItemId), id) && IsOnMenu(id) && CanActFor(boss) && OrderAvailable(boss) && InventoryCountFor(boss) < Capacity &&
-                (boss ? match.BossTokens : match.PlayerTokens) >= ColaItemCatalog.Get(id).Price;
+                match.CanAffordTokens(ColaItemCatalog.Get(id).Price, boss);
         }
 
         public bool TryPurchase(ColaItemId id, bool boss = false)
@@ -104,7 +105,7 @@ namespace ColaCola.Presentation
                 if (!Enum.IsDefined(typeof(ColaItemId), id) || !IsOnMenu(id)) return false;
                 total += ColaItemCatalog.Get(id).Price;
             }
-            return (boss ? match.BossTokens : match.PlayerTokens) >= total;
+            return match.CanAffordTokens(total, boss);
         }
 
         public bool TryPurchaseBatch(IReadOnlyList<ColaItemId> order, bool boss = false)

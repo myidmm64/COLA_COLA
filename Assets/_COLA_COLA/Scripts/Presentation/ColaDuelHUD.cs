@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace ColaCola.Presentation
 {
-    /// <summary>Small instructions and match controls; health and tokens stay on the physical terminal.</summary>
+    /// <summary>Match-end controls only. In-play status stays on the physical props and effect labels.</summary>
     [DisallowMultipleComponent]
     public sealed class ColaDuelHUD : MonoBehaviour
     {
@@ -15,7 +15,7 @@ namespace ColaCola.Presentation
         private static readonly Color MutedColor = new Color(.58f, .62f, .51f, 1);
         private static readonly Color ButtonColor = new Color(.16f, .23f, .16f, 1);
 
-        private GUIStyle headerStyle, instructionStyle, resultStyle, titleStyle, detailStyle, buttonStyle;
+        private GUIStyle titleStyle, detailStyle, buttonStyle;
         private GUISkin styledSkin;
         private Font runtimeFont;
 
@@ -24,33 +24,13 @@ namespace ColaCola.Presentation
             if (!Application.IsPlaying(gameObject)) return;
             if (!match) match = FindAnyObjectByType<ColaDuelController>();
             if (!match || Screen.width < 160 || Screen.height < 120) return;
+            if (match.State == ColaDuelController.DuelState.Playing) return;
 
             float scale = Mathf.Clamp(Mathf.Min(Screen.width / 960f, Screen.height / 640f), .7f, 1.15f);
             EnsureStyles(scale);
-            float margin = Mathf.Round(10 * scale);
             float padding = Mathf.Round(9 * scale);
-            float headerHeight = Mathf.Round(29 * scale);
-            var header = new Rect(margin, margin, Screen.width - margin * 2, headerHeight);
-            DrawPanel(header);
-
-            string state = match.State.ToString();
-            bool playing = state == "Playing";
             bool busy = match.interaction && match.interaction.IsBusy;
-            string turn = playing ? (match.IsPlayerTurn ? (busy ? "YOU ARE SHAKING" : "YOUR TURN") : "BOSS TURN") : "ROUND COMPLETE";
-            GUI.Label(Inset(header, padding, 0), "COLA_COLA  /  LEVEL " + match.Level + "  /  " + turn, headerStyle);
-
-            float footerHeight = Mathf.Round(43 * scale);
-            var footer = new Rect(margin, Screen.height - margin - footerHeight, Screen.width - margin * 2, footerHeight);
-            DrawPanel(footer);
-            float lineHeight = footerHeight * .5f;
-            string message = string.IsNullOrEmpty(match.LastActionMessage)
-                ? "Choose strength, then shake the cola."
-                : match.LastActionMessage;
-            GUI.Label(new Rect(footer.x + padding, footer.y + 1, footer.width - padding * 2, lineHeight), message, resultStyle);
-            GUI.Label(new Rect(footer.x + padding, footer.y + lineHeight - 1, footer.width - padding * 2, lineHeight),
-                "1 / 2 / 3 SELECT  |  CLICK COLA OR SPACE  |  CLICK ORDER SHEET / ITEM CUBE  |  R RESTART", instructionStyle);
-
-            if (!playing) DrawMatchEnd(state == "Won", busy, scale, padding);
+            DrawMatchEnd(match.State == ColaDuelController.DuelState.Won, busy, scale, padding);
         }
 
         private void DrawMatchEnd(bool won, bool busy, float scale, float padding)
@@ -86,13 +66,10 @@ namespace ColaCola.Presentation
 
         private void EnsureStyles(float scale)
         {
-            if (headerStyle == null || styledSkin != GUI.skin)
+            if (titleStyle == null || styledSkin != GUI.skin)
             {
                 styledSkin = GUI.skin;
                 if (!runtimeFont) runtimeFont = Font.CreateDynamicFontFromOSFont(new[] { "Malgun Gothic", "Noto Sans CJK KR", "Arial" }, 18);
-                headerStyle = FlatLabel(GreenColor, TextAnchor.MiddleLeft);
-                instructionStyle = FlatLabel(MutedColor, TextAnchor.MiddleLeft);
-                resultStyle = FlatLabel(CreamColor, TextAnchor.MiddleLeft);
                 titleStyle = FlatLabel(CreamColor, TextAnchor.MiddleCenter);
                 detailStyle = FlatLabel(MutedColor, TextAnchor.MiddleCenter);
                 buttonStyle = new GUIStyle
@@ -104,7 +81,7 @@ namespace ColaCola.Presentation
                     padding = new RectOffset(3, 3, 1, 1),
                     fontStyle = FontStyle.Bold
                 };
-                foreach (var style in new[] { headerStyle, instructionStyle, resultStyle, titleStyle, detailStyle, buttonStyle })
+                foreach (var style in new[] { titleStyle, detailStyle, buttonStyle })
                     style.font = runtimeFont;
                 ConfigureButtonState(buttonStyle.normal, CreamColor);
                 ConfigureButtonState(buttonStyle.hover, Color.white);
@@ -116,9 +93,6 @@ namespace ColaCola.Presentation
                 ConfigureButtonState(buttonStyle.onFocused, CreamColor);
             }
 
-            headerStyle.fontSize = Mathf.RoundToInt(14 * scale);
-            instructionStyle.fontSize = Mathf.RoundToInt(12 * scale);
-            resultStyle.fontSize = Mathf.RoundToInt(13 * scale);
             titleStyle.fontSize = Mathf.RoundToInt(23 * scale);
             detailStyle.fontSize = Mathf.RoundToInt(12 * scale);
             buttonStyle.fontSize = Mathf.RoundToInt(15 * scale);
