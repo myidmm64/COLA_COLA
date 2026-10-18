@@ -1,0 +1,4 @@
+Player ready: hud enabled=True, state=Playing, playerTurn=True, input=True, busy=False, screen=541x304
+Label repaint frame=140, rect=(x:214.00, y:235.00, width:112.00, height:24.00), HUD match same=True
+Boss turn: playerTurn=False, busy=True
+Player turn restored after actual boss action.

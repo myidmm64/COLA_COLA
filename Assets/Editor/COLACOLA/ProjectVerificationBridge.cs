@@ -67,6 +67,8 @@ namespace ColaCola.Editor
         {
             string saved = SessionState.GetString(SessionKey, "");
             if (!string.IsNullOrEmpty(saved)) run = JsonUtility.FromJson<Run>(saved);
+            if (run != null && run.id.StartsWith("shake-", StringComparison.Ordinal)) run.suite = "shake";
+            if (run != null && run.id.StartsWith("turnui-", StringComparison.Ordinal)) run.suite = "turn-ui";
             if (run != null && run.editorProcessId != Process.GetCurrentProcess().Id) run = null;
             EditorApplication.update += Tick;
             Application.logMessageReceived += OnLog;
@@ -114,6 +116,8 @@ namespace ColaCola.Editor
                     run = new Run { id = request.id, suite = request.suite, phase = "preparing",
                         message = "Importing project changes in the open Editor.", startedUtc = DateTime.UtcNow.ToString("O"),
                         editorProcessId = Process.GetCurrentProcess().Id, batchMode = Application.isBatchMode };
+                    if (request.id.StartsWith("shake-", StringComparison.Ordinal)) run.suite = "shake";
+                    if (request.id.StartsWith("turnui-", StringComparison.Ordinal)) run.suite = "turn-ui";
                     Directory.CreateDirectory(Root);
                     File.WriteAllText(Root + "/verification.log", "Open-editor Play verification " + run.id + "\n");
                     Persist();
@@ -185,6 +189,8 @@ namespace ColaCola.Editor
                 case "burst": ColaBurstVerification.Begin(); break;
                 case "items": ColaItemVerification.Begin(); break;
                 case "duel": PlayableDuelVerification.Begin(); break;
+                case "shake": ColaShakePlayReview.Begin(); break;
+                case "turn-ui": ColaTurnLabelVerification.Begin(); break;
             }
         }
 
@@ -199,6 +205,16 @@ namespace ColaCola.Editor
             if (!first.StartsWith("COLA_") || !first.EndsWith("_PASS")) return;
             if (!run.passed.Contains(first)) run.passed.Add(first);
             run.message = first; Persist();
+            if (first == "COLA_TURN_LABEL_PASS" && run.suite == "turn-ui")
+            {
+                Stop(true, "Turn-label checks completed in actual Play. Game-view captures saved for visual review.");
+                return;
+            }
+            if (first == "COLA_SHAKE_REVIEW_PASS" && run.suite == "shake")
+            {
+                Stop(true, "Original-rig shake checks completed in Play. Actual Game-view captures saved for separate visual inspection.");
+                return;
+            }
             if (first == "COLA_MUSIC_PLAYMODE_PASS" && run.suite == "music")
             {
                 Stop(true, "Requested BGM Play checks passed; audio clip identity and digital playback checked. Speaker listening and Game view not inspected.");
@@ -221,6 +237,7 @@ namespace ColaCola.Editor
                 foreach (string key in new[] { "COLA_COLA.MusicVerification", "COLA_COLA.OrderSheetVerification", "COLA_COLA.BossItemVerification",
                     "COLA_COLA.BurstVerification", "COLA_COLA.ItemVerification", "COLA_COLA.PlayableDuelVerification", "COLA_COLA.MainScene.PlayVerification" })
                     SessionState.SetBool(key, false);
+            if (!success) SessionState.SetBool("COLA_COLA.ShakePlayReview", false);
             Persist();
         }
     }

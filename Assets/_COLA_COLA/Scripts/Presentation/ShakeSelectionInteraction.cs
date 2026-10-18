@@ -30,11 +30,12 @@ namespace ColaCola.Presentation
         private readonly Vector3[] buttonRest = new Vector3[3];
         private Vector3 bottleRestPosition, bottleRestScale, capRestPosition;
         private Quaternion bottleRestRotation;
-        private bool captured, busy;
+        private bool captured, busy, fallbackAwaitingResult;
         private bool ForceBurst => items && items.match && items.match.GuaranteedBurst;
         public int CommittedActionCount { get; private set; }
         public int BottleNumber { get; private set; }
         public bool IsBusy => busy || (shakeAnimator && shakeAnimator.IsPlaying) || (items && items.IsUsingItem);
+        public bool AwaitingShakeResult => fallbackAwaitingResult || (shakeAnimator && shakeAnimator.IsAwaitingResult);
         public BottlePressureModel Model => model;
         public ShakeResult LastResult { get; private set; }
         public bool LastActionWasBoss { get; private set; }
@@ -107,6 +108,7 @@ namespace ColaCola.Presentation
             if (shakeAnimator) shakeAnimator.CancelAndRestore();
             if (burstPresentation) burstPresentation.CancelAndRestore();
             StopAllCoroutines();
+            fallbackAwaitingResult = false;
             busy = false;
             IsBossTurn = false;
             BossItemPhase = BossPassedTurn = false;
@@ -325,14 +327,16 @@ namespace ColaCola.Presentation
             burstPresentation.BeginShake(boss);
             bool usesAnimator = shakeAnimator && shakeAnimator.isActiveAndEnabled && shakeAnimator.CanPlay(boss, result.Prediction.Strength);
             var audio = ColaTabletopAudio.EnsureFor(this);
-            audio.BeginShake(result.Prediction.Strength, (float)model.Pressure / Mathf.Max(1, model.Limit), usesAnimator, settings.shakeSeconds);
+            float pressureFraction = Mathf.Clamp01((float)result.Prediction.PressureAfter / Mathf.Max(1, result.Prediction.Limit));
+            audio.BeginShake(result.Prediction.Strength, pressureFraction, usesAnimator, settings.shakeSeconds);
             float duration;
             float started;
             if (usesAnimator)
             {
-                // The character clip owns its full reach, shake and set-down duration.
+                // One choreography owns reach, grip, strokes, result hold and set-down.
                 yield return shakeAnimator.PlayShake(boss, result.Prediction.Strength,
-                    result.Burst ? () => burstPresentation.PlayBurst(boss) : (Func<IEnumerator>)null);
+                    result.Burst ? () => burstPresentation.PlayBurst(boss) : (Func<IEnumerator>)null,
+                    pressureFraction, () => ColaTabletopAudio.Cue(this, "Safe", bottle.position, .40f));
                 if (!IsCurrent(version)) yield break;
                 if (!shakeAnimator.LastPlaybackCompleted)
                 {
@@ -359,13 +363,24 @@ namespace ColaCola.Presentation
                     bottle.localRotation = bottleRestRotation * Quaternion.Euler(wave * 2, 0, wave * 5 * amplitude);
                     yield return null;
                 }
+                // Missing clip bindings still receive the same result-neutral anticipation pause.
+                audio.EndShake();
+                fallbackAwaitingResult = true;
+                float pauseStarted = Time.unscaledTime;
+                float pause = ColaShakeAnimator.ResultPauseSeconds(pressureFraction);
+                while (Time.unscaledTime - pauseStarted < pause)
+                {
+                    if (!IsCurrent(version)) yield break;
+                    yield return null;
+                }
+                fallbackAwaitingResult = false;
                 if (result.Burst) yield return burstPresentation.PlayBurst(boss);
+                else ColaTabletopAudio.Cue(this, "Safe", bottle.position, .40f);
             }
             if (!IsCurrent(version)) yield break;
             audio.EndShake();
             burstPresentation.FinishShake();
             RestorePoses();
-            if (!result.Burst) ColaTabletopAudio.Cue(this, "Safe", bottle.position, .40f);
             if (result.Burst) BeginNextBottle();
             else RefreshView();
             ShakeResolved?.Invoke(result);

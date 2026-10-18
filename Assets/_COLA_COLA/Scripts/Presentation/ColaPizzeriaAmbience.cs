@@ -77,6 +77,7 @@ namespace ColaCola.Presentation
             if (Time.unscaledTime < nextSound) return;
             nextSound = Time.unscaledTime + 12 + (float)timing.NextDouble() * 11;
             if (!match.isActiveAndEnabled || match.State != ColaDuelController.DuelState.Playing ||
+                (match.interaction && match.interaction.AwaitingShakeResult) ||
                 (music && music.Duck < .5f)) return;
             bool isMetal = timing.Next(3) == 0;
             var clip = isMetal ? metal : drip;

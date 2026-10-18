@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace ColaCola.Presentation
 {
-    /// <summary>Debug shortcut hints and match-end controls. Normal status stays on the physical props.</summary>
+    /// <summary>Debug hints, a quiet player-turn label, and match-end controls.</summary>
     [DisallowMultipleComponent]
     public sealed class ColaDuelHUD : MonoBehaviour
     {
@@ -15,9 +15,11 @@ namespace ColaCola.Presentation
         private static readonly Color MutedColor = new Color(.58f, .62f, .51f, 1);
         private static readonly Color ButtonColor = new Color(.16f, .23f, .16f, 1);
 
-        private GUIStyle titleStyle, detailStyle, buttonStyle, debugStyle, debugShadowStyle;
+        private GUIStyle titleStyle, detailStyle, buttonStyle, debugStyle, debugShadowStyle, turnStyle, turnShadowStyle;
         private GUISkin styledSkin;
         private Font runtimeFont;
+        public int TurnLabelRepaintFrame { get; private set; } = -1;
+        public Rect TurnLabelBounds { get; private set; }
 
         private void OnGUI()
         {
@@ -27,10 +29,38 @@ namespace ColaCola.Presentation
             float scale = Mathf.Clamp(Mathf.Min(Screen.width / 960f, Screen.height / 640f), .7f, 1.15f);
             EnsureStyles(scale);
             if (match.DebugToolsAvailable) DrawDebugShortcuts(scale);
-            if (match.State == ColaDuelController.DuelState.Playing) return;
+            if (match.State == ColaDuelController.DuelState.Playing)
+            {
+                if (match.IsPlayerTurn && match.interaction.InputEnabled) DrawPlayerTurn(scale);
+                return;
+            }
             float padding = Mathf.Round(9 * scale);
             bool busy = match.interaction && match.interaction.IsBusy;
             DrawMatchEnd(match.State == ColaDuelController.DuelState.Won, busy, scale, padding);
+        }
+
+        private void DrawPlayerTurn(float scale)
+        {
+            Color tint = GUI.color, content = GUI.contentColor;
+            bool enabledBefore = GUI.enabled;
+            int depth = GUI.depth;
+            GUI.color = GUI.contentColor = Color.white;
+            GUI.enabled = true;
+            GUI.depth = -20; // Above ordinary HUD panels; the burst blackout still covers this.
+            float width = 160 * scale;
+            float height = Mathf.Max(30 * scale, turnStyle.lineHeight + 8);
+            var rect = new Rect(Mathf.Round((Screen.width - width) * .5f),
+                Mathf.Round(Screen.height - 64 * scale - height), width, height);
+            GUI.Label(new Rect(rect.x + 1, rect.y + 1, rect.width, rect.height), "내 차례", turnShadowStyle);
+            GUI.Label(rect, "내 차례", turnStyle);
+            if (Event.current.type == EventType.Repaint)
+            {
+                TurnLabelRepaintFrame = Time.frameCount;
+                TurnLabelBounds = rect;
+            }
+            GUI.depth = depth;
+            GUI.enabled = enabledBefore;
+            GUI.color = tint; GUI.contentColor = content;
         }
 
         private void DrawDebugShortcuts(float scale)
@@ -91,6 +121,14 @@ namespace ColaCola.Presentation
                 detailStyle = FlatLabel(MutedColor, TextAnchor.MiddleCenter);
                 debugStyle = FlatLabel(CreamColor, TextAnchor.MiddleLeft);
                 debugShadowStyle = FlatLabel(new Color(.015f, .02f, .015f, .95f), TextAnchor.MiddleLeft);
+                turnStyle = FlatLabel(new Color(.82f, .82f, .75f, .8f), TextAnchor.MiddleCenter);
+                turnShadowStyle = FlatLabel(new Color(0, 0, 0, .5f), TextAnchor.MiddleCenter);
+                foreach (var style in new[] { turnStyle, turnShadowStyle })
+                {
+                    style.hover.textColor = style.active.textColor = style.focused.textColor = style.normal.textColor;
+                    style.fixedHeight = 0;
+                    style.contentOffset = Vector2.zero;
+                }
                 buttonStyle = new GUIStyle
                 {
                     font = GUI.skin.font,
@@ -100,7 +138,7 @@ namespace ColaCola.Presentation
                     padding = new RectOffset(3, 3, 1, 1),
                     fontStyle = FontStyle.Bold
                 };
-                foreach (var style in new[] { titleStyle, detailStyle, buttonStyle, debugStyle, debugShadowStyle })
+                foreach (var style in new[] { titleStyle, detailStyle, buttonStyle, debugStyle, debugShadowStyle, turnStyle, turnShadowStyle })
                     style.font = runtimeFont;
                 ConfigureButtonState(buttonStyle.normal, CreamColor);
                 ConfigureButtonState(buttonStyle.hover, Color.white);
@@ -116,6 +154,7 @@ namespace ColaCola.Presentation
             detailStyle.fontSize = Mathf.RoundToInt(12 * scale);
             buttonStyle.fontSize = Mathf.RoundToInt(15 * scale);
             debugStyle.fontSize = debugShadowStyle.fontSize = Mathf.RoundToInt(14 * scale);
+            turnStyle.fontSize = turnShadowStyle.fontSize = Mathf.Clamp(Mathf.RoundToInt(14 * scale), 12, 16);
         }
 
         private static GUIStyle FlatLabel(Color color, TextAnchor alignment)

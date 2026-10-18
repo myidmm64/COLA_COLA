@@ -1,5 +1,5 @@
 param(
-    [ValidateSet('music', 'full', 'burst', 'orders', 'items', 'duel')]
+    [ValidateSet('music', 'full', 'burst', 'orders', 'items', 'duel', 'shake', 'turn-ui')]
     [string]$Suite = 'full',
     [switch]$Wait,
     [int]$TimeoutSeconds = 900
@@ -18,7 +18,11 @@ if (Test-Path -LiteralPath $colaStatus) {
 if (Test-Path -LiteralPath $colaRequestPath) { throw 'An unconsumed verification request already exists.' }
 New-Item -ItemType Directory -Path $colaMailbox -Force | Out-Null
 $colaRequestId = [guid]::NewGuid().ToString('N')
-$colaRequestJson = @{ id = $colaRequestId; suite = $Suite } | ConvertTo-Json
+if ($Suite -eq 'shake') { $colaRequestId = 'shake-' + $colaRequestId }
+if ($Suite -eq 'turn-ui') { $colaRequestId = 'turnui-' + $colaRequestId }
+# The already-loaded bridge understands duel; importing this revision selects the focused shake probe.
+$colaRequestSuite = if ($Suite -in @('shake', 'turn-ui')) { 'duel' } else { $Suite }
+$colaRequestJson = @{ id = $colaRequestId; suite = $colaRequestSuite } | ConvertTo-Json
 [IO.File]::WriteAllText($colaRequestPath, $colaRequestJson, [Text.UTF8Encoding]::new($false))
 Write-Output "Queued $Suite ($colaRequestId). The open project Editor imports changes and enters Play; results: $colaStatus"
 if (-not $Wait) { return }

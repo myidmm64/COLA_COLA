@@ -120,10 +120,11 @@ namespace ColaCola.Presentation
             { gripped = true; Play("Grip", owner.bottle.position, .45f); }
             if (!setDown && clock >= release && clear)
             { setDown = true; Play("SetDown", owner.bottle.position, .65f); }
-            float begin = animated ? 1.42f : 0;
-            float end = animated ? 2.43f : shakeDuration;
+            float begin = animated ? ColaShakeAnimator.ShakeStartTime : 0;
+            float end = animated ? ColaShakeAnimator.ShakeEndTime : shakeDuration;
             float envelope = clear ? Mathf.SmoothStep(0, 1, (clock - begin) / .08f) *
                 (1 - Mathf.SmoothStep(0, 1, (clock - (end - .09f)) / .09f)) : 0;
+            if (animated && owner.shakeAnimator) envelope *= owner.shakeAnimator.ShakeStrokeWeight;
             // Equal-power crossfade at 0/50/100% actual pressure; strength changes the stroke pace.
             float blend = pressure * 2;
             for (int i = 0; i < shake.Length; i++)

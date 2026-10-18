@@ -164,7 +164,7 @@ namespace ColaCola.Editor
             Check(Camera.main, "No actual main camera is available for runtime previews.");
             foreach (bool boss in new[] { false, true })
                 for (int strength = 1; strength <= 3; strength++)
-                    Check(driver.CanPlay(boss, strength), "Missing actor/bottle clip for " + (boss ? "boss" : "player") + " strength " + strength);
+                    Check(driver.CanPlay(boss, strength), "Missing original arm/hand binding for " + (boss ? "boss" : "player") + " strength " + strength);
             playerRoot = new RootPose(driver.playerAnimator.transform);
             bossRoot = new RootPose(driver.bossAnimator.transform);
             bottleRest = new RootPose(driver.bottle);
@@ -228,7 +228,7 @@ namespace ColaCola.Editor
                 {
                     case 0:
                         if (driver.IsPlaying) { ObservePerformance(false); return; }
-                        if (interaction.IsBusy || Time.unscaledTime - phaseStarted < ColaShakeAnimationFactory.Duration) return;
+                        if (interaction.IsBusy || Time.unscaledTime - phaseStarted < ColaShakeAnimator.Duration) return;
                         Check(driver.LastPlaybackCompleted && resolvedEvents == 1 && interaction.CommittedActionCount == 1 && interaction.Model.Pressure == 3,
                             "Player performance did not complete exactly one safe pressure action.");
                         FinishObservation(false);
@@ -246,7 +246,7 @@ namespace ColaCola.Editor
                     case 1:
                         CheckPreviewHasNoRuleEffects();
                         if (driver.IsPlaying) { ObservePerformance(true); return; }
-                        if (interaction.IsBusy || Time.unscaledTime - phaseStarted < ColaShakeAnimationFactory.Duration) return;
+                        if (interaction.IsBusy || Time.unscaledTime - phaseStarted < ColaShakeAnimator.Duration) return;
                         Check(driver.LastPlaybackCompleted, "Boss preview ended without completing its clip.");
                         FinishObservation(true);
                         CheckIdleAndBottle();
@@ -365,7 +365,7 @@ namespace ColaCola.Editor
             Check(driver.ActiveHand == wrist, "The bottle is being driven by another actor's hand.");
             var activeActor = boss ? driver.bossAnimator : driver.playerAnimator;
             var waitingActor = boss ? driver.playerAnimator : driver.bossAnimator;
-            Check(activeActor.enabled && driver.UsesAnimatorGraph && waitingActor.enabled && waitingActor.GetCurrentAnimatorStateInfo(0).IsName("Idle"),
+            Check(!activeActor.enabled && driver.UsesOriginalRig && waitingActor.enabled && waitingActor.GetCurrentAnimatorStateInfo(0).IsName("Idle"),
                 "The waiting actor must remain in its own seated Idle.");
             for (int hand = 0; hand < otherHands.Length; hand++)
                 maximumOtherHandMotion = Mathf.Max(maximumOtherHandMotion, Vector3.Distance(otherHands[hand].position, otherHandsAtRest[hand]));
@@ -373,7 +373,7 @@ namespace ColaCola.Editor
             handMesh.Observe();
             maximumWristMotion = Mathf.Max(maximumWristMotion, Vector3.Distance(wrist.position, wristAtRest));
             maximumBottleLift = Mathf.Max(maximumBottleLift, driver.bottle.localPosition.y - bottleRest.position.y);
-            if (time >= ColaShakeAnimationFactory.GripStart + .1f && time <= ColaShakeAnimationFactory.GripEnd - .1f)
+            if (time >= ColaShakeAnimator.GripStartTime + .1f && time <= ColaShakeAnimator.GripEndTime - .1f)
             {
                 if (!boss) Check(Vector3.Dot(wrist.position - driver.bottle.position, Camera.main.transform.right) > .06f,
                     "Player right hand must hold the right side of the bottle.");

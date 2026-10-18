@@ -57,6 +57,7 @@ namespace ColaCola.Presentation
             float danger = Mathf.SmoothStep(0, 1, Mathf.InverseLerp(.1f, .9f, pressure));
             Intensity = Mathf.MoveTowards(Intensity, danger, Time.unscaledDeltaTime * .8f);
             float targetDuck = match.isActiveAndEnabled ? 1 : 0;
+            if (interaction && interaction.AwaitingShakeResult) targetDuck *= .58f;
             var burst = interaction ? interaction.burstPresentation : null;
             if (burst)
             {

@@ -359,7 +359,7 @@ namespace ColaCola.Editor
         {
             if (!driver.IsPlaying) return;
             var hand = driver.PlayingBoss ? driver.bossHand : driver.playerHand;
-            Check(driver.ActiveHand == hand && driver.UsesAnimatorGraph && interaction.IsBusy,
+            Check(driver.ActiveHand == hand && driver.UsesOriginalRig && interaction.IsBusy,
                 "Actual gameplay must animate the acting participant's original hand and lock shared input.");
             float travel = Vector3.Distance(hand.position, driver.PlayingBoss ? bossHandRest : playerHandRest);
             if (driver.PlayingBoss) bossMotion = Mathf.Max(bossMotion, travel);

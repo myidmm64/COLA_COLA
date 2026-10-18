@@ -1,351 +1,485 @@
 using System;
 using System.Collections;
 using UnityEngine;
-using UnityEngine.Animations;
-using UnityEngine.Playables;
 
 namespace ColaCola.Presentation
 {
-    /// <summary>Plays each actor's own rig and attaches the held bottle to that actor's hand.</summary>
+    /// <summary>One continuous, hand-led performance on the original rigs. No shake clips or layered corrections.</summary>
     [DisallowMultipleComponent, DefaultExecutionOrder(1000)]
     public sealed class ColaShakeAnimator : MonoBehaviour
     {
         public Animator playerAnimator, bossAnimator;
-        public Transform playerHand, bossHand;
-        public const float GripStartTime = 1.15f;
-        public const float GripEndTime = 3.35f;
-        public AnimationClip[] playerClips = new AnimationClip[3];
-        public AnimationClip[] bossClips = new AnimationClip[3];
-        public AnimationClip[] playerBottleClips = new AnimationClip[3];
-        public AnimationClip[] bossBottleClips = new AnimationClip[3];
-        public Transform bottle;
-        [Min(0)] public float idleBlendSeconds = .2f;
-        [Tooltip("In the Unity Editor, automatically repeat the player's hand animation when entering Play.")]
+        public Transform playerHand, bossHand, bottle;
+        public const float GripStartTime = .72f;
+        public const float ShakeStartTime = 1.12f;
+        public const float ShakeEndTime = 2.44f;
+        public const float ResultCheckTime = 2.60f;
+        public const float GripEndTime = 3.30f;
+        public const float Duration = 3.95f;
+        private const float ReachEnd = .62f, LiftEnd = 1.08f, ReleaseEnd = 3.46f;
+        public static float ResultPauseSeconds(float pressureFraction) => Mathf.Lerp(.45f, .75f, Mathf.Clamp01(pressureFraction));
+
         public bool previewPlayerOnPlay;
         [Range(1, 3)] public int playPreviewStrength = 2;
 
-        public bool IsPlaying => playback != null;
+        private Performance current;
+        private int generation;
+        private Coroutine previewLoop;
+        public bool IsPlaying => current != null;
         public bool LastPlaybackCompleted { get; private set; }
-        public bool PlayingBoss => playback != null && playback.boss;
-        public float PlaybackTime => playback != null ? playback.elapsed : 0;
-        public Transform ActiveHand => playback != null ? playback.hand : null;
-        public bool BottleHeld => playback != null && playback.elapsed >= GripStartTime && playback.elapsed <= GripEndTime;
-        public bool UsesAnimatorGraph => playback != null && playback.graph.IsValid();
+        public bool PlayingBoss => current != null && current.boss;
+        public float PlaybackTime => current != null ? current.time : 0;
+        public Transform ActiveHand => current != null ? current.right.hand : null;
+        public bool BottleHeld => current != null && current.time >= GripStartTime && current.time <= GripEndTime;
+        public bool UsesOriginalRig => current != null && current.actor && current.right.hand && current.right.hand.IsChildOf(current.actor.transform);
+        public bool IsAwaitingResult => current != null && current.waiting;
+        public float ShakeStrokeWeight => current != null ? current.strokeWeight : 0;
 
-        private Playback playback;
-        private int playbackVersion;
-        private Coroutine playerPreviewLoop;
-
-        private struct LocalPose
+        private struct Pose
         {
             public Vector3 position, scale;
             public Quaternion rotation;
-
-            public LocalPose(Transform node)
-            {
-                position = node.localPosition;
-                rotation = node.localRotation;
-                scale = node.localScale;
-            }
-
+            public Pose(Transform node) { position = node.localPosition; rotation = node.localRotation; scale = node.localScale; }
             public void Apply(Transform node)
             {
                 if (!node) return;
-                node.localPosition = position;
-                node.localRotation = rotation;
-                node.localScale = scale;
+                node.localPosition = position; node.localRotation = rotation; node.localScale = scale;
             }
         }
 
-        private sealed class Playback
+        private sealed class Arm
         {
-            public bool boss, animatorEnabled;
-            public Animator animator;
-            public AnimationClip actorClip, bottleClip, idleClip;
-            public Transform hand, bottleTransform, bottleParent, actorRootParent;
-            public Vector3 bottlePositionInHand;
-            public Quaternion bottleRotationInHand;
-            public Transform[] bones;
-            public LocalPose[] rest;
-            public LocalPose actorRootRest, bottleRest;
-            public float elapsed, duration, normalizedTime, idleSpeed, burstRecoil;
-            public bool paused;
-            public int stateHash;
-            public PlayableGraph graph;
-            public AnimationClipPlayable actorPlayable, idlePlayable;
-            public AnimationMixerPlayable mixer;
+            public Transform shoulder, elbow, hand;
+            public Vector3 startHand, pole, startPole, elbowLocal, handLocal;
+            public Quaternion startRotation;
+            public float upperLength, lowerLength;
+            public Arm(Animator actor, Transform wrist, bool boss, string side)
+            {
+                shoulder = Find(actor.transform, (boss ? "upper_arm." : "UpperArm.") + side);
+                elbow = Find(actor.transform, (boss ? "forearm." : "LowArm.") + side);
+                hand = wrist;
+                startHand = hand.position; startRotation = hand.rotation; pole = startPole = elbow.position;
+                elbowLocal = elbow.localPosition;
+                handLocal = hand.localPosition;
+                upperLength = Vector3.Distance(shoulder.position, elbow.position);
+                lowerLength = Vector3.Distance(elbow.position, hand.position);
+            }
+            public void PositionFpsShoulder(Vector3 target, Camera camera, float tableHeight, float amount)
+            {
+                // Route the FPS sleeve back toward the seated body ABOVE the tabletop.
+                // Pushing the arm downward hides its tail inside the table and produces
+                // a detached-looking cut. Keep a fixed reach proportion while holding.
+                const float seatedForearm = .64f;
+                Vector3 forward = Vector3.ProjectOnPlane(camera.transform.forward, Vector3.up).normalized;
+                float down = Mathf.Min(.14f, Mathf.Max(0, target.y - (tableHeight + .075f)));
+                float back = Mathf.Sqrt(seatedForearm * seatedForearm - down * down - .12f * .12f);
+                Vector3 elbowTarget = target - forward * back - Vector3.up * down + camera.transform.right * .12f;
+                float forearmScale = seatedForearm / Mathf.Max(lowerLength, .0001f);
+                hand.localPosition = handLocal * Mathf.Lerp(1, forearmScale, amount);
+                Vector3 anchor = elbowTarget - (forward * .8f + Vector3.up * .6f) * upperLength;
+                shoulder.position = Vector3.Lerp(shoulder.position, anchor, amount);
+                pole = Vector3.Lerp(startPole, elbowTarget, amount);
+            }
+            public void Move(Vector3 target, Quaternion orientation, Vector3 bendPoint)
+            {
+                Vector3 start = shoulder.position;
+                float a = Vector3.Distance(start, elbow.position), b = Vector3.Distance(elbow.position, hand.position);
+                if (a < .0001f || b < .0001f) return;
+                Vector3 offset = target - start;
+                Vector3 axis = offset.sqrMagnitude > .000001f ? offset.normalized : (hand.position - start).normalized;
+                float distance = Mathf.Clamp(offset.magnitude, Mathf.Abs(a - b) + .00001f, a + b - .00001f);
+                Vector3 bend = Vector3.ProjectOnPlane(bendPoint - start, axis).normalized;
+                if (bend.sqrMagnitude < .5f) bend = Vector3.ProjectOnPlane(Vector3.up, axis).normalized;
+                if (bend.sqrMagnitude < .5f) bend = Vector3.ProjectOnPlane(Vector3.right, axis).normalized;
+                float along = (a * a - b * b + distance * distance) / (2 * distance);
+                Vector3 desiredElbow = start + axis * along + bend * Mathf.Sqrt(Mathf.Max(0, a * a - along * along));
+                shoulder.rotation = Quaternion.FromToRotation(elbow.position - start, desiredElbow - start) * shoulder.rotation;
+                elbow.rotation = Quaternion.FromToRotation(hand.position - elbow.position, start + axis * distance - elbow.position) * elbow.rotation;
+                hand.rotation = orientation;
+            }
+        }
+
+        private sealed class Finger
+        {
+            public Transform bone;
+            public float curl;
+            public bool thumb;
+        }
+
+        private sealed class Performance
+        {
+            public Animator actor;
+            public bool boss, animatorEnabled, paused, waiting, revealed, gripBound;
+            public float time, pressure, recoil, strokeWeight, startedAt, idleNormalized, idleRate;
+            public int strength, idleHash;
+            public Transform[] nodes;
+            public Pose[] rest;
+            public Pose actorRest, bottleRest;
+            public Transform actorParent, bottleParent, torso, head;
+            public Vector3 tableForward, actorRight, touch, contact, held, bottlePosition, pickupPosition, bottleScale;
+            public Camera camera;
+            public Vector3 localPalmBack, localFingerForward, gripOffset;
+            public Quaternion bottleRotation, gripRotation, gripRelativeRotation;
+            public Arm right, left;
+            public Finger[] fingers;
+            public SkinnedMeshRenderer[] skins;
+            public bool[] skinUpdates;
         }
 
         public bool CanPlay(bool boss, int strength)
         {
             if (strength < 1 || strength > 3 || !bottle) return false;
             var actor = boss ? bossAnimator : playerAnimator;
-            var otherActor = boss ? playerAnimator : bossAnimator;
+            var other = boss ? playerAnimator : bossAnimator;
             var hand = boss ? bossHand : playerHand;
-            var clips = boss ? bossClips : playerClips;
-            var bottleClips = boss ? bossBottleClips : playerBottleClips;
-            int index = strength - 1;
-            return actor && actor != otherActor && hand && hand.IsChildOf(actor.transform) &&
-                clips != null && clips.Length > index && clips[index] && clips[index].length > 0 &&
-                bottleClips != null && bottleClips.Length > index && bottleClips[index] && bottleClips[index].length > 0;
+            if (!actor || actor == other || !hand || !hand.IsChildOf(actor.transform)) return false;
+            var upper = Find(actor.transform, boss ? "upper_arm.R" : "UpperArm.R");
+            var elbow = Find(actor.transform, boss ? "forearm.R" : "LowArm.R");
+            return upper && elbow && elbow.IsChildOf(upper) && hand.IsChildOf(elbow);
         }
 
-        /// <summary>The shared bottle is locked to one performance at a time. No pressure or turn rules are changed here.</summary>
-        public IEnumerator PlayShake(bool boss, int strength, Func<IEnumerator> burstPerformance = null)
+        public IEnumerator PlayShake(bool boss, int strength, Func<IEnumerator> burstPerformance = null,
+            float pressureFraction = 0, Action safeResult = null)
         {
             if (!Application.IsPlaying(gameObject) || !isActiveAndEnabled || IsPlaying || !CanPlay(boss, strength)) yield break;
-            int version = ++playbackVersion;
+            int version = ++generation;
             LastPlaybackCompleted = false;
             try
             {
-                BeginPlayback(boss, strength);
-                bool performed = false;
-                while (playback != null && version == playbackVersion)
+                Begin(boss, strength, pressureFraction);
+                while (current != null && version == generation)
                 {
-                    if (!performed && burstPerformance != null && playback.elapsed >= 2.45f)
+                    if (!current.revealed && current.time >= ResultCheckTime)
                     {
-                        performed = true;
-                        playback.paused = true;
-                        yield return burstPerformance();
-                        if (playback == null || version != playbackVersion) yield break;
-                        playback.paused = false;
-                        playback.burstRecoil = 0;
-                        playback.elapsed = GripEndTime;
+                        current.paused = current.waiting = true;
+                        float began = Time.unscaledTime;
+                        float duration = ResultPauseSeconds(current.pressure);
+                        while (current != null && version == generation && Time.unscaledTime - began < duration) yield return null;
+                        if (current == null || version != generation) yield break;
+                        current.waiting = false;
+                        current.revealed = true;
+                        if (burstPerformance != null) yield return burstPerformance();
+                        else safeResult?.Invoke();
+                        if (current == null || version != generation) yield break;
+                        current.recoil = 0;
+                        current.paused = false;
+                        if (burstPerformance != null) current.time = GripEndTime;
                     }
                     yield return null;
                 }
             }
             finally
             {
-                // Explicit cancellation is also called by the interaction before stopping its own coroutines.
-                // Keeping the clock here on this component makes restoration independent of the waiting caller.
-                if (version == playbackVersion && playback != null) CancelAndRestore();
+                if (current != null && version == generation) CancelAndRestore();
             }
         }
 
-        private void BeginPlayback(bool boss, int strength)
+        private void Begin(bool boss, int strength, float pressure)
         {
-            var animator = boss ? bossAnimator : playerAnimator;
-            if (animator.isActiveAndEnabled && !animator.isInitialized) animator.Update(0);
-            var state = animator.runtimeAnimatorController ? animator.GetCurrentAnimatorStateInfo(0) : default;
-            var infos = animator.runtimeAnimatorController ? animator.GetCurrentAnimatorClipInfo(0) : Array.Empty<AnimatorClipInfo>();
-            AnimationClip idleClip = null;
-            float greatestWeight = -1;
-            foreach (var info in infos)
-                if (info.clip && info.weight > greatestWeight) { idleClip = info.clip; greatestWeight = info.weight; }
-            if (!idleClip && animator.runtimeAnimatorController)
+            var actor = boss ? bossAnimator : playerAnimator;
+            if (actor.enabled && !actor.isInitialized) actor.Update(0);
+            var idle = actor.runtimeAnimatorController ? actor.GetCurrentAnimatorStateInfo(0) : default;
+            var p = new Performance
             {
-                var clips = animator.runtimeAnimatorController.animationClips;
-                if (clips.Length > 0) idleClip = clips[0];
-            }
-            var allNodes = animator.GetComponentsInChildren<Transform>(true);
-            var bones = new Transform[Mathf.Max(0, allNodes.Length - 1)];
-            int next = 0;
-            foreach (var node in allNodes) if (node != animator.transform) bones[next++] = node;
-            var pose = new Playback
-            {
-                boss = boss,
-                animator = animator,
-                hand = boss ? bossHand : playerHand,
-                animatorEnabled = animator.enabled,
-                actorClip = (boss ? bossClips : playerClips)[strength - 1],
-                bottleClip = (boss ? bossBottleClips : playerBottleClips)[strength - 1],
-                idleClip = idleClip,
-                bottleTransform = bottle,
-                bottleParent = bottle.parent,
-                actorRootParent = animator.transform.parent,
-                normalizedTime = state.normalizedTime,
-                stateHash = state.fullPathHash,
-                idleSpeed = animator.enabled ? animator.speed * state.speed * state.speedMultiplier : 0,
-                bones = bones,
-                rest = new LocalPose[bones.Length],
-                actorRootRest = new LocalPose(animator.transform),
-                bottleRest = new LocalPose(bottle)
+                actor = actor, boss = boss, strength = strength, pressure = Mathf.Clamp01(pressure),
+                animatorEnabled = actor.enabled, startedAt = Time.unscaledTime,
+                idleHash = idle.fullPathHash, idleNormalized = idle.normalizedTime,
+                idleRate = actor.speed * idle.speed * idle.speedMultiplier / Mathf.Max(.01f, idle.length),
+                actorRest = new Pose(actor.transform), actorParent = actor.transform.parent,
+                bottleRest = new Pose(bottle), bottleParent = bottle.parent,
+                bottlePosition = bottle.position, bottleRotation = bottle.rotation, bottleScale = bottle.localScale,
+                nodes = actor.GetComponentsInChildren<Transform>(true),
+                skins = actor.GetComponentsInChildren<SkinnedMeshRenderer>(true)
             };
-            pose.duration = Mathf.Max(pose.actorClip.length, pose.bottleClip.length);
-            for (int i = 0; i < bones.Length; i++) pose.rest[i] = new LocalPose(bones[i]);
-            animator.enabled = true;
-            playback = pose;
-            CreateActorGraph(pose);
-            CaptureHandGrip(pose);
-            SamplePlayback(pose);
-        }
-
-        private static void CaptureHandGrip(Playback pose)
-        {
-            // Capture against the authored contact pose rather than the current Idle phase.
-            // The offset belongs to this rig; the other actor's bones never participate.
-            EvaluateActor(pose, GripStartTime, 1);
-            pose.bottleClip.SampleAnimation(pose.bottleTransform.gameObject, GripStartTime);
-            pose.bottlePositionInHand = pose.hand.InverseTransformPoint(pose.bottleTransform.position);
-            pose.bottleRotationInHand = Quaternion.Inverse(pose.hand.rotation) * pose.bottleTransform.rotation;
-            EvaluateActor(pose, 0, 0);
-            pose.bottleRest.Apply(pose.bottleTransform);
-        }
-
-        private static void CreateActorGraph(Playback pose)
-        {
-            pose.graph = PlayableGraph.Create("COLA_COLA_" + (pose.boss ? "Boss" : "Player") + "_HandPlayback");
-            pose.graph.SetTimeUpdateMode(DirectorUpdateMode.Manual);
-            pose.mixer = AnimationMixerPlayable.Create(pose.graph, 2);
-            pose.actorPlayable = AnimationClipPlayable.Create(pose.graph, pose.actorClip);
-            pose.actorPlayable.SetApplyFootIK(false);
-            pose.actorPlayable.SetSpeed(0);
-            pose.graph.Connect(pose.actorPlayable, 0, pose.mixer, 1);
-            if (pose.idleClip)
-            {
-                pose.idlePlayable = AnimationClipPlayable.Create(pose.graph, pose.idleClip);
-                pose.idlePlayable.SetApplyFootIK(false);
-                pose.idlePlayable.SetSpeed(0);
-                pose.graph.Connect(pose.idlePlayable, 0, pose.mixer, 0);
-            }
-            var output = AnimationPlayableOutput.Create(pose.graph, "Original character hand", pose.animator);
-            output.SetSourcePlayable(pose.mixer);
-            pose.graph.Play();
-        }
-
-        private static void EvaluateActor(Playback pose, float time, float blend)
-        {
-            if (pose.idlePlayable.IsValid())
-            {
-                float idleTime = pose.normalizedTime * pose.idleClip.length + time * pose.idleSpeed;
-                pose.idlePlayable.SetTime(Mathf.Repeat(idleTime, pose.idleClip.length));
-            }
-            else blend = 1;
-            pose.actorPlayable.SetTime(Mathf.Min(time, pose.actorClip.length));
-            pose.mixer.SetInputWeight(0, 1 - blend);
-            pose.mixer.SetInputWeight(1, blend);
-            pose.graph.Evaluate(0);
-            for (int i = 0; i < pose.bones.Length; i++)
-                if (pose.bones[i]) pose.bones[i].localScale = pose.rest[i].scale;
-            pose.actorRootRest.Apply(pose.animator.transform);
+            p.rest = new Pose[p.nodes.Length];
+            for (int i = 0; i < p.nodes.Length; i++) p.rest[i] = new Pose(p.nodes[i]);
+            p.skinUpdates = new bool[p.skins.Length];
+            for (int i = 0; i < p.skins.Length; i++) p.skinUpdates[i] = p.skins[i].updateWhenOffscreen;
+            p.right = new Arm(actor, boss ? bossHand : playerHand, boss, "R");
+            var leftHand = Find(actor.transform, boss ? "hand.L" : "Wrist.L");
+            if (boss && leftHand && Find(actor.transform, "upper_arm.L") && Find(actor.transform, "forearm.L"))
+                p.left = new Arm(actor, leftHand, true, "L");
+            p.torso = boss ? Find(actor.transform, "spine.001") : null;
+            p.head = boss ? Find(actor.transform, "spine.004") : null;
+            var camera = Camera.main;
+            p.camera = camera;
+            // The imported FPS root/pivot is not the seated player's position or facing direction.
+            Vector3 facing = !boss && camera ? camera.transform.forward : bottle.position - actor.transform.position;
+            p.tableForward = Vector3.ProjectOnPlane(facing, Vector3.up).normalized;
+            if (p.tableForward.sqrMagnitude < .5f) p.tableForward = boss ? Vector3.back : Vector3.forward;
+            p.actorRight = Vector3.Cross(Vector3.up, p.tableForward).normalized;
+            var middle = Find(actor.transform, boss ? "f_middle.01.R" : "Middle2.R");
+            var index = Find(actor.transform, boss ? "f_index.01.R" : "Index2.R");
+            var little = Find(actor.transform, boss ? "f_pinky.01.R" : "Little2.R");
+            Vector3 forward = middle ? (middle.position - p.right.startHand).normalized : p.right.hand.forward;
+            Vector3 across = index && little ? (index.position - little.position).normalized : p.right.hand.right;
+            Vector3 back = Vector3.Cross(forward, across).normalized;
+            if (back.sqrMagnitude < .5f) back = p.right.hand.up;
+            if (Vector3.Dot(back, Vector3.up) < 0) back = -back;
+            p.localPalmBack = Quaternion.Inverse(p.right.startRotation) * back;
+            p.localFingerForward = Quaternion.Inverse(p.right.startRotation) * forward;
+            p.gripRotation = Quaternion.LookRotation(p.tableForward, p.actorRight) *
+                Quaternion.Inverse(Quaternion.LookRotation(p.localFingerForward, p.localPalmBack));
+            float palm = middle ? Vector3.Distance(middle.position, p.right.startHand) * .78f : .06f;
+            p.pickupPosition = p.bottlePosition - p.tableForward * (boss ? 0 : .08f);
+            float gripHeight = boss ? .185f : .165f;
+            p.touch = p.bottlePosition + Vector3.up * gripHeight + p.actorRight * .092f - p.tableForward * palm;
+            p.contact = p.pickupPosition + Vector3.up * gripHeight + p.actorRight * .092f - p.tableForward * palm;
+            p.held = p.contact - p.tableForward * (boss ? .18f : .29f) + Vector3.up * (boss ? .13f : .155f) + p.actorRight * .025f;
+            p.fingers = Fingers(actor.transform, boss);
+            current = p;
+            actor.enabled = false; // Exactly one writer owns this rig during the complete action.
+            foreach (var skin in p.skins) skin.updateWhenOffscreen = true;
+            Apply(p, GripStartTime);
+            p.gripOffset = p.right.hand.InverseTransformPoint(bottle.position);
+            p.gripRelativeRotation = Quaternion.Inverse(p.right.hand.rotation) * p.bottleRotation;
+            p.gripBound = true;
+            Apply(p, 0);
         }
 
         private void LateUpdate()
         {
-            var pose = playback;
-            if (pose == null) return;
-            if (!pose.animator || !pose.hand || !pose.bottleTransform)
-            {
-                CancelAndRestore();
-                return;
-            }
+            var p = current;
+            if (p == null) return;
+            if (!p.actor || !p.right.hand || !bottle) { CancelAndRestore(); return; }
             try
             {
-                if (!pose.paused) pose.elapsed = Mathf.Min(pose.duration, pose.elapsed + Time.unscaledDeltaTime);
-                SamplePlayback(pose);
-                if (pose.elapsed >= pose.duration)
+                if (!p.paused)
+                {
+                    float next = Mathf.Min(Duration, p.time + Time.unscaledDeltaTime);
+                    p.time = !p.revealed ? Mathf.Min(next, ResultCheckTime) : next;
+                }
+                Apply(p, p.time);
+                if (p.time >= Duration)
                 {
                     LastPlaybackCompleted = true;
-                    RestorePlayback(pose);
+                    Restore(p);
                 }
             }
-            catch (Exception exception)
+            catch (Exception error) { CancelAndRestore(); Debug.LogException(error, this); }
+        }
+
+        private void Apply(Performance p, float time)
+        {
+            for (int i = 0; i < p.nodes.Length; i++) p.rest[i].Apply(p.nodes[i]);
+            float reach = Ease(time / ReachEnd);
+            float returning = Ease((time - ReleaseEnd) / (Duration - ReleaseEnd));
+            float lifting = Ease((time - GripStartTime) / (LiftEnd - GripStartTime));
+            float lowering = Ease((time - ResultCheckTime) / (GripEndTime - ResultCheckTime));
+            float lift = lifting * (1 - lowering);
+            float drag = Ease((time - ReachEnd) / (GripStartTime - ReachEnd));
+            Vector3 target;
+            Quaternion orientation;
+            if (time < ReachEnd)
             {
-                CancelAndRestore();
-                Debug.LogException(exception, this);
+                target = Bezier(p.right.startHand, p.right.startHand + Vector3.up * .065f,
+                    p.touch - p.tableForward * .045f + Vector3.up * .040f, p.touch, reach);
+                orientation = Quaternion.Slerp(p.right.startRotation, p.gripRotation, reach);
+            }
+            else if (time < GripStartTime)
+            {
+                target = Vector3.Lerp(p.touch, p.contact, drag);
+                orientation = p.gripRotation;
+            }
+            else if (time >= ReleaseEnd)
+            {
+                target = Bezier(p.touch, p.touch - p.tableForward * .045f + Vector3.up * .045f,
+                    p.right.startHand + Vector3.up * .045f, p.right.startHand, returning);
+                orientation = Quaternion.Slerp(p.gripRotation, p.right.startRotation, returning);
+            }
+            else
+            {
+                target = time < ResultCheckTime ? Vector3.Lerp(p.contact, p.held, lifting) : Vector3.Lerp(p.held, p.touch, lowering);
+                target += Vector3.up * (Mathf.Sin(lift * Mathf.PI) * .015f);
+                orientation = p.gripRotation;
+            }
+            // Relax the upright grip into a slight diagonal once the bottle is lifted.
+            // Blend back to upright before setting it down so the hand never changes grip.
+            Quaternion carriedTilt = Quaternion.AngleAxis(-14f * lift, p.tableForward) *
+                Quaternion.AngleAxis(-6f * lift, p.actorRight);
+            orientation = carriedTilt * orientation;
+            target += p.actorRight * (.018f * lift);
+            p.strokeWeight = 0;
+            if (time >= ShakeStartTime && time <= ShakeEndTime)
+            {
+                float phase = Mathf.InverseLerp(ShakeStartTime, ShakeEndTime, time);
+                float stroke = Stroke(phase, p.strength + 1, out float speed);
+                float vertical = p.strength == 1 ? .035f : p.strength == 2 ? .055f : .075f;
+                float depth = p.strength == 1 ? .018f : p.strength == 2 ? .032f : .045f;
+                float tilt = p.boss ? (p.strength == 1 ? 10 : p.strength == 2 ? 18 : 26) :
+                    (p.strength == 1 ? 8 : p.strength == 2 ? 13 : 18);
+                float ownerScale = p.boss ? 1.06f : 1;
+                // Shake along the tilted bottle's diagonal instead of a world-vertical rail.
+                Vector3 strokeDirection = carriedTilt * (Vector3.up * vertical - p.tableForward * depth);
+                target += strokeDirection * (stroke * ownerScale);
+                orientation = Quaternion.AngleAxis(-stroke * tilt * ownerScale,
+                    carriedTilt * p.actorRight) * orientation;
+                p.strokeWeight = .30f + .70f * speed;
+            }
+            if (p.recoil > 0)
+            {
+                target -= p.tableForward * (p.recoil * .045f);
+                target += Vector3.up * (p.recoil * .018f);
+                orientation = Quaternion.AngleAxis(p.recoil * 12, p.actorRight) * orientation;
+            }
+            float leaning = reach * (1 - returning) * Mathf.Lerp(1, .48f, lift);
+            if (p.torso)
+            {
+                p.torso.rotation = Quaternion.AngleAxis(38 * leaning, p.actorRight) * p.torso.rotation;
+                p.torso.position += (p.tableForward * .11f + Vector3.up * .015f) * leaning;
+                if (p.head) p.head.rotation = Quaternion.AngleAxis(-22 * leaning, p.actorRight) * p.head.rotation;
+                float shortage = Vector3.Distance(p.right.shoulder.position, target) - (p.right.upperLength + p.right.lowerLength - .008f);
+                if (shortage > 0)
+                    p.torso.position += Vector3.ClampMagnitude(target - p.right.shoulder.position, Mathf.Min(shortage, .15f)) * reach * (1 - returning);
+            }
+            if (!p.boss && p.camera) p.right.PositionFpsShoulder(target, p.camera, p.bottlePosition.y, reach * (1 - returning));
+            p.right.Move(target, orientation, p.right.pole + p.actorRight * (.045f * leaning));
+            if (p.left != null)
+                p.left.Move(p.left.startHand + p.tableForward * (.07f * leaning), p.left.startRotation, p.left.pole);
+            bottle.localScale = p.bottleScale;
+            if (p.gripBound && time >= GripStartTime && time <= GripEndTime)
+                bottle.SetPositionAndRotation(p.right.hand.TransformPoint(p.gripOffset), p.right.hand.rotation * p.gripRelativeRotation);
+            else bottle.SetPositionAndRotation(time <= GripStartTime ? Vector3.Lerp(p.bottlePosition, p.pickupPosition, drag) : p.bottlePosition, p.bottleRotation);
+            float close = Ease((time - .60f) / (GripStartTime - .60f)) * (1 - Ease((time - GripEndTime) / (ReleaseEnd - GripEndTime)));
+            CurlFingers(p, close);
+        }
+
+        private static float Stroke(float phase, int count, out float speed)
+        {
+            float from, to, progress;
+            if (phase < .10f) { from = 0; to = 1; progress = phase / .10f; }
+            else if (phase > .90f) { from = 1; to = 0; progress = (phase - .90f) / .10f; }
+            else
+            {
+                float segment = (phase - .10f) / .80f * (count * 2);
+                int index = Mathf.Min(count * 2 - 1, Mathf.FloorToInt(segment));
+                progress = segment - index;
+                from = index % 2 == 0 ? 1 : -1;
+                to = -from;
+            }
+            progress = Mathf.Clamp01(progress);
+            speed = 16 * progress * progress * (1 - progress) * (1 - progress);
+            return Mathf.Lerp(from, to, Ease(progress));
+        }
+
+        private static Finger[] Fingers(Transform root, bool boss)
+        {
+            var joints = new System.Collections.Generic.List<Finger>();
+            var names = boss ? new[] { "f_index.", "f_middle.", "f_ring.", "f_pinky." } : new[] { "Index", "Middle", "Ring", "Little" };
+            foreach (string name in names)
+                for (int i = 0; i < 3; i++)
+                {
+                    var bone = Find(root, boss ? name + "0" + (i + 1) + ".R" : name + (i + 2) + ".R");
+                    if (bone) joints.Add(new Finger { bone = bone, curl = i == 0 ? 34 : i == 1 ? 48 : 32 });
+                }
+            foreach (string name in boss ? new[] { "thumb.02.R", "thumb.03.R" } : new[] { "Thumb2.R", "Thumb3.R" })
+            {
+                var bone = Find(root, name);
+                if (bone) joints.Add(new Finger { bone = bone, curl = 26, thumb = true });
+            }
+            return joints.ToArray();
+        }
+
+        private void CurlFingers(Performance p, float amount)
+        {
+            if (amount <= 0) return;
+            Vector3 palmBack = p.right.hand.rotation * p.localPalmBack;
+            foreach (var finger in p.fingers)
+            {
+                if (!finger.bone) continue;
+                Vector3 forward = finger.bone.childCount > 0 ? finger.bone.GetChild(0).position - finger.bone.position :
+                    p.right.hand.rotation * p.localFingerForward;
+                if (finger.thumb)
+                {
+                    Vector3 contact = bottle.position + bottle.up * .185f + p.actorRight * .03f - p.tableForward * .04f;
+                    var delta = Quaternion.FromToRotation(forward, contact - finger.bone.position);
+                    finger.bone.rotation = Quaternion.Slerp(Quaternion.identity,
+                        Quaternion.RotateTowards(Quaternion.identity, delta, finger.curl), amount) * finger.bone.rotation;
+                    continue;
+                }
+                Vector3 axis = Vector3.Cross(forward.normalized, -palmBack).normalized;
+                finger.bone.rotation = Quaternion.AngleAxis(finger.curl * amount, axis) * finger.bone.rotation;
             }
         }
 
-        private void SamplePlayback(Playback pose)
+        private static float Ease(float value)
         {
-            float blend = idleBlendSeconds <= 0 ? 1 : Mathf.Min(
-                Mathf.SmoothStep(0, 1, pose.elapsed / idleBlendSeconds),
-                Mathf.SmoothStep(0, 1, (pose.duration - pose.elapsed) / idleBlendSeconds));
-            EvaluateActor(pose, pose.elapsed, blend);
-            // Add a brief reflex to the original rig, then keep the bottle attached to that hand.
-            if (pose.burstRecoil > 0 && pose.hand.parent)
-                pose.hand.parent.localRotation *= Quaternion.Euler(-9 * pose.burstRecoil,
-                    (pose.boss ? -4 : 4) * pose.burstRecoil, (pose.boss ? 12 : -12) * pose.burstRecoil);
-            pose.bottleClip.SampleAnimation(pose.bottleTransform.gameObject, Mathf.Min(pose.elapsed, pose.bottleClip.length));
-            pose.bottleTransform.localScale = pose.bottleRest.scale;
-            if (pose.elapsed >= GripStartTime && pose.elapsed <= GripEndTime)
-                pose.bottleTransform.SetPositionAndRotation(pose.hand.TransformPoint(pose.bottlePositionInHand),
-                    pose.hand.rotation * pose.bottleRotationInHand);
+            float t = Mathf.Clamp01(value);
+            return t * t * t * (10 + t * (-15 + 6 * t));
+        }
+        private static Vector3 Bezier(Vector3 a, Vector3 b, Vector3 c, Vector3 d, float t)
+        {
+            float s = 1 - t;
+            return s * s * s * a + 3 * s * s * t * b + 3 * s * t * t * c + t * t * t * d;
+        }
+        private static Transform Find(Transform root, string name)
+        {
+            foreach (var node in root.GetComponentsInChildren<Transform>(true)) if (node.name == name) return node;
+            return null;
         }
 
+        public void SetBurstRecoil(float amount) { if (current != null) current.recoil = Mathf.Clamp01(amount); }
         public void CancelAndRestore()
         {
             LastPlaybackCompleted = false;
-            ++playbackVersion;
-            var pose = playback;
-            if (pose != null) RestorePlayback(pose);
+            generation++;
+            if (current != null) Restore(current);
         }
-
-        public void SetBurstRecoil(float amount)
+        private void Restore(Performance p)
         {
-            if (playback != null) playback.burstRecoil = Mathf.Clamp01(amount);
-        }
-
-        private void RestorePlayback(Playback pose)
-        {
-            // Clear first: callers can cancel twice, or reset the interaction from a completion callback.
-            if (playback == pose) playback = null;
-            if (pose.graph.IsValid()) pose.graph.Destroy();
-            if (pose.bottleTransform && pose.bottleTransform.parent != pose.bottleParent)
-                pose.bottleTransform.SetParent(pose.bottleParent, false);
-            pose.bottleRest.Apply(pose.bottleTransform);
-            if (!pose.animator) return;
-            if (pose.animator.transform.parent != pose.actorRootParent)
-                pose.animator.transform.SetParent(pose.actorRootParent, false);
-            for (int i = 0; i < pose.bones.Length; i++) pose.rest[i].Apply(pose.bones[i]);
-            pose.actorRootRest.Apply(pose.animator.transform);
-            pose.animator.enabled = pose.animatorEnabled;
-            if (pose.animatorEnabled && pose.animator.runtimeAnimatorController && pose.stateHash != 0)
+            if (current == p) current = null;
+            if (bottle)
             {
-                pose.animator.Rebind();
-                float normalized = pose.normalizedTime;
-                if (pose.idleClip) normalized += pose.elapsed * pose.idleSpeed / pose.idleClip.length;
-                pose.animator.Play(pose.stateHash, 0, normalized);
+                if (bottle.parent != p.bottleParent) bottle.SetParent(p.bottleParent, false);
+                p.bottleRest.Apply(bottle);
             }
-            if (pose.animatorEnabled && pose.animator.gameObject.activeInHierarchy)
-                pose.animator.Update(0);
-            pose.actorRootRest.Apply(pose.animator.transform);
+            for (int i = 0; i < p.nodes.Length; i++) p.rest[i].Apply(p.nodes[i]);
+            for (int i = 0; i < p.skins.Length; i++) if (p.skins[i]) p.skins[i].updateWhenOffscreen = p.skinUpdates[i];
+            if (!p.actor) return;
+            if (p.actor.transform.parent != p.actorParent) p.actor.transform.SetParent(p.actorParent, false);
+            p.actorRest.Apply(p.actor.transform);
+            p.actor.enabled = p.animatorEnabled;
+            if (p.animatorEnabled && p.actor.runtimeAnimatorController && p.idleHash != 0)
+            {
+                p.actor.Play(p.idleHash, 0, p.idleNormalized + (Time.unscaledTime - p.startedAt) * p.idleRate);
+                p.actor.Update(0);
+            }
+            p.actorRest.Apply(p.actor.transform);
         }
 
         [ContextMenu("Preview Player Shake (Play Mode)")]
         public void PreviewPlayerShake() => Preview(false);
-
+        [ContextMenu("Preview Boss Shake (Play Mode)")]
+        public void PreviewBossShake() => Preview(true);
+        private void Preview(bool boss)
+        {
+            if (!Application.IsPlaying(gameObject) || !isActiveAndEnabled || IsPlaying || !CanPlay(boss, 2)) return;
+            var interaction = FindAnyObjectByType<ShakeSelectionInteraction>();
+            if (interaction && interaction.IsBusy) return;
+            StartCoroutine(PlayShake(boss, 2));
+        }
         public void BeginPlayerPlayPreview()
         {
             if (!Application.IsPlaying(gameObject) || !isActiveAndEnabled || !previewPlayerOnPlay) return;
-            StopPlayerPlayPreview();
-            playerPreviewLoop = StartCoroutine(RepeatPlayerPreview());
+            StopPlayerPlayPreview(); previewLoop = StartCoroutine(RepeatPreview());
         }
-
-        private IEnumerator RepeatPlayerPreview()
+        private IEnumerator RepeatPreview()
         {
             yield return new WaitForSecondsRealtime(.75f);
             while (previewPlayerOnPlay && isActiveAndEnabled)
             {
                 var interaction = FindAnyObjectByType<ShakeSelectionInteraction>();
-                if (!interaction || !interaction.IsBusy)
-                    yield return PlayShake(false, Mathf.Clamp(playPreviewStrength, 1, 3));
+                if (!interaction || !interaction.IsBusy) yield return PlayShake(false, Mathf.Clamp(playPreviewStrength, 1, 3));
                 yield return new WaitForSecondsRealtime(1);
             }
-            playerPreviewLoop = null;
+            previewLoop = null;
         }
-
         [ContextMenu("Stop Player Play Preview")]
         public void StopPlayerPlayPreview()
         {
-            if (playerPreviewLoop == null) return;
-            StopCoroutine(playerPreviewLoop);
-            playerPreviewLoop = null;
-            CancelAndRestore();
+            if (previewLoop != null) StopCoroutine(previewLoop);
+            previewLoop = null; CancelAndRestore();
         }
-
-        [ContextMenu("Preview Boss Shake (Play Mode)")]
-        public void PreviewBossShake() => Preview(true);
-
-        private void Preview(bool boss)
-        {
-            if (!Application.IsPlaying(gameObject) || !isActiveAndEnabled || IsPlaying || !CanPlay(boss, 2)) return;
-            var interaction = FindFirstObjectByType<ShakeSelectionInteraction>();
-            if (interaction && interaction.IsBusy) return;
-            StartCoroutine(PlayShake(boss, 2));
-        }
-
         private void OnDisable() { StopPlayerPlayPreview(); CancelAndRestore(); }
         private void OnDestroy() => CancelAndRestore();
     }

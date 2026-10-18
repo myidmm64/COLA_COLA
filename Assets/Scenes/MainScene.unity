@@ -2342,24 +2342,7 @@ MonoBehaviour:
   bossAnimator: {fileID: 814513946}
   playerHand: {fileID: 2047373874}
   bossHand: {fileID: 814513947}
-  playerClips:
-  - {fileID: 7400000, guid: 1ff9f88aef704fc449cfe58e01118dd6, type: 2}
-  - {fileID: 7400000, guid: fa7642fc6d556754fbecc17d4d95a1b3, type: 2}
-  - {fileID: 7400000, guid: 9950ad7a3ca6b8f418ddb6512e4d995f, type: 2}
-  bossClips:
-  - {fileID: 7400000, guid: 5cd8b3befa62ccd4aba2f47f19d70ce7, type: 2}
-  - {fileID: 7400000, guid: 48748a2cf3e5fd049842a944bdde3299, type: 2}
-  - {fileID: 7400000, guid: c26e2d8d0c8d8f741a12f3d76822642c, type: 2}
-  playerBottleClips:
-  - {fileID: 7400000, guid: 7096ee43f4bbba24c800042d09866d75, type: 2}
-  - {fileID: 7400000, guid: b639183a6e07d504f85a4fc5c783c4fe, type: 2}
-  - {fileID: 7400000, guid: 969bd1875d9518e4e9a036ccec882d56, type: 2}
-  bossBottleClips:
-  - {fileID: 7400000, guid: b6c72f2f4a280e245b84b633b18e8963, type: 2}
-  - {fileID: 7400000, guid: 2907211405809774990680f56e839812, type: 2}
-  - {fileID: 7400000, guid: 7e7bb49a5769e56418bebe6a6084abd3, type: 2}
   bottle: {fileID: 489600033}
-  idleBlendSeconds: 0.2
   previewPlayerOnPlay: 0
   playPreviewStrength: 2
 --- !u!1 &641643749

@@ -48,8 +48,8 @@ namespace ColaCola.Presentation
             const float z = -.134f, slope = .13333333f;
             root.transform.localPosition = new Vector3(0, .045f + slope * z + .007f, z);
             root.transform.localRotation = Quaternion.Euler(-Mathf.Atan(slope) * Mathf.Rad2Deg, 0, 0);
-            Part("Beveled bezel", Vector3.zero, new Vector3(.044f, .003f, .013f), bezelMaterial);
-            Part("Olive pilot lens", Vector3.up * .0031f, new Vector3(.034f, .001f, .006f), lensMaterial);
+            Part("Beveled bezel", Vector3.zero, new Vector3(.054f, .003f, .013f), bezelMaterial);
+            Part("Olive pilot lens", Vector3.up * .0031f, new Vector3(.044f, .001f, .006f), lensMaterial);
         }
 
         private void Part(string label, Vector3 position, Vector3 scale, Material material)
