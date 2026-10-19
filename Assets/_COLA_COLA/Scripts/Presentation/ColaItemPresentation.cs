@@ -219,7 +219,7 @@ namespace ColaCola.Presentation
                 {
                     delivery.landed = true;
                     var id = items.ItemAt(delivery.slot, delivery.boss);
-                    bool glass = id == ColaItemId.IceCup || id == ColaItemId.HotSauce || id == ColaItemId.CarbonationSyrup;
+                    bool glass = id == ColaItemId.IceCup || id == ColaItemId.HotSauce || id == ColaItemId.CarbonationSyrup || id == ColaItemId.SodaWater;
                     ColaTabletopAudio.Cue(items.match.interaction, glass ? "DeliveryLandGlass" : "DeliveryLand", delivery.model.position, .65f);
                 }
                 if (elapsed >= DeliverySeconds)
@@ -466,8 +466,6 @@ namespace ColaCola.Presentation
                     if (!interaction.IsBusy) { hoveredSlot = cube.Slot; hoveredBoss = cube.IsBoss; }
                     var definition = ColaItemCatalog.Get(items.ItemAt(cube.Slot, cube.IsBoss).Value);
                     hoverTitle = definition.Name; hoverDescription = definition.Effect;
-                    if (!cube.IsBoss && items.CanAct && items.UsesRemaining() == 0)
-                        hoverDescription += "\n이번 차례 아이템을 모두 사용했습니다.";
                     return;
                 }
                 var bellTarget = hit.collider.GetComponent<ColaWaiterBellTarget>();

@@ -91,7 +91,7 @@ namespace ColaCola.Presentation
         {
             var owner = items.match.interaction;
             bool bottleItem = id == ColaItemId.IceCup || id == ColaItemId.FizzCandy ||
-                id == ColaItemId.CarbonationSyrup || id == ColaItemId.HotSauce;
+                id == ColaItemId.CarbonationSyrup || id == ColaItemId.HotSauce || id == ColaItemId.SodaWater || id == ColaItemId.BottleOpener;
             if (bottleItem && owner.bottle)
             {
                 var towardsBottle = owner.bottle.position - origin;
@@ -140,6 +140,16 @@ namespace ColaCola.Presentation
                 case ColaItemId.HotSauce: angles.z = side * 34 * lean; break;
                 case ColaItemId.DoubleStamp:
                     position.y -= .060f * lean; angles.z = side * 3 * lean; break;
+                case ColaItemId.BottleOpener:
+                    angles.z = side * 24 * lean; position.y += .012f * lean; break;
+                case ColaItemId.Straw:
+                    angles.x = 18 * lean; angles.z = side * 8 * lean; break;
+                case ColaItemId.SodaWater:
+                    angles.z = side * 30 * lean; break;
+                case ColaItemId.CoinCup:
+                    angles.z = side * 28 * lean; position.y -= .008f * lean; break;
+                case ColaItemId.SwapTongs:
+                    angles.y = side * 20 * lean; position.z += side * .025f * action; break;
             }
             position += new Vector3(0, .014f, boss ? .045f : -.045f) * exit;
             var poseRotation = rotation * Quaternion.Euler(angles);
@@ -202,20 +212,22 @@ namespace ColaCola.Presentation
         private int MaterialIndex => current switch
         {
             ColaItemId.FizzCandy or ColaItemId.HotSauce or ColaItemId.SpicyOrder => 1,
-            ColaItemId.CarbonationSyrup or ColaItemId.SafetyCap => 3,
-            ColaItemId.DoubleStamp => 4,
+            ColaItemId.CarbonationSyrup or ColaItemId.SafetyCap or ColaItemId.BottleOpener or ColaItemId.SwapTongs => 3,
+            ColaItemId.DoubleStamp or ColaItemId.CoinCup or ColaItemId.Straw => 4,
             _ => 0
         };
 
         private void Scatter()
         {
-            bool liquid = current == ColaItemId.IceCup || current == ColaItemId.CarbonationSyrup || current == ColaItemId.HotSauce;
+            bool liquid = current == ColaItemId.IceCup || current == ColaItemId.CarbonationSyrup || current == ColaItemId.HotSauce || current == ColaItemId.SodaWater;
             bool paper = current == ColaItemId.QueueTicket || current == ColaItemId.Bill || current == ColaItemId.SpicyOrder;
             int count = current switch
             {
                 ColaItemId.IceCup => 5,
                 ColaItemId.CarbonationSyrup or ColaItemId.HotSauce or ColaItemId.QueueTicket or ColaItemId.PizzaSlice => 4,
                 ColaItemId.FizzCandy => 3,
+                ColaItemId.SodaWater => 4,
+                ColaItemId.CoinCup => 3,
                 _ => 0
             };
             var emissionPoint = prop.transform.TransformPoint(localPivot);

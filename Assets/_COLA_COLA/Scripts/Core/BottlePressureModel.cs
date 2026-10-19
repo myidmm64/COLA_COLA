@@ -78,6 +78,12 @@ namespace ColaCola.Core
 
         public void ClearSelection() => SelectedStrength = 0;
 
+        public void AdjustLimit(int delta)
+        {
+            if (HasBurst) throw new InvalidOperationException("A burst bottle cannot be adjusted.");
+            Limit = (int)Math.Max(1L, Math.Min(999L, (long)Limit + delta));
+        }
+
         public void AdjustPressure(int delta)
         {
             if (HasBurst) throw new InvalidOperationException("A burst bottle cannot be adjusted.");

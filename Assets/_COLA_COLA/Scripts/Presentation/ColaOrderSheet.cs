@@ -49,7 +49,7 @@ namespace ColaCola.Presentation
         public Collider RemoveCollider(ColaItemId id) => LookupTarget(removeTargets, id);
         public Collider NameCollider(ColaItemId id) => LookupTarget(nameTargets, id);
         private static Collider LookupTarget(Collider[] targets, ColaItemId id)
-            => ColaItemCatalog.Contains(id) && (int)id < targets.Length ? targets[(int)id] : null;
+            => ColaItemCatalog.Contains(id) ? targets[ColaItemCatalog.IndexOf(id)] : null;
         public string Description => descriptionText ? descriptionText.text : "";
         public int CartCount => cart.Count;
         public int CartTotal => 0;
@@ -246,6 +246,7 @@ namespace ColaCola.Presentation
             checkoutRenderer.sharedMaterial = items.CanPurchaseBatch(cart) ? checkoutReady : unavailable;
             for (int i = 0; i < purchaseTargets.Length; i++)
             {
+                var definition = ColaItemCatalog.All[i];
                 int menuRow = i - testPage * ColaItemController.MenuSize;
                 bool offered = menuRow >= 0 && menuRow < ColaItemController.MenuSize;
                 itemRows[i].SetActive(offered);
@@ -256,12 +257,12 @@ namespace ColaCola.Presentation
                 }
                 purchaseTargets[i].enabled = offered && IsVisible && IsOpen && IsSettled;
                 nameTargets[i].enabled = offered && IsVisible && IsOpen && IsSettled;
-                removeTargets[i].enabled = offered && IsVisible && IsOpen && IsSettled && CartQuantity((ColaItemId)i) > 0;
-                int quantity = CartQuantity((ColaItemId)i);
-                purchaseRenderers[i].sharedMaterial = CanAdd((ColaItemId)i) ? quantity > 0 ? selectedKey : available : unavailable;
+                removeTargets[i].enabled = offered && IsVisible && IsOpen && IsSettled && CartQuantity(definition.Id) > 0;
+                int quantity = CartQuantity(definition.Id);
+                purchaseRenderers[i].sharedMaterial = CanAdd(definition.Id) ? quantity > 0 ? selectedKey : available : unavailable;
                 removeRenderers[i].sharedMaterial = quantity > 0 ? available : unavailable;
                 rowRenderers[i].enabled = IsOpen && quantity > 0;
-                itemNameTexts[i].text = ColaItemCatalog.Get((ColaItemId)i).Name;
+                itemNameTexts[i].text = definition.Name;
                 priceTexts[i].text = "무료" + (quantity > 0 ? " x" + quantity : "");
             }
         }

@@ -8,7 +8,8 @@ namespace ColaCola.Core
         IceCup, FizzCandy, CarbonationSyrup, QueueTicket, Bill, SpicyOrder,
         SafetyCap, PizzaSlice, HotSauce, DoubleStamp,
         // Reserved ID for old Editor diagnostics. Not a catalog item or a grantable item.
-        [Obsolete("Tip envelope was removed from the game.")] TipEnvelope = 10
+        [Obsolete("Tip envelope was removed from the game.")] TipEnvelope = 10,
+        BottleOpener = 11, Straw, SodaWater, CoinCup, SwapTongs
     }
 
     public sealed class ColaItemDefinition
@@ -26,19 +27,31 @@ namespace ColaCola.Core
     {
         private static readonly ColaItemDefinition[] Entries =
         {
-            new(ColaItemId.IceCup, "얼음컵", 3, 9, $"압력 -{ColaItemBalance.IceReduction}."),
-            new(ColaItemId.FizzCandy, "발포 캔디", 7, 14, $"압력 +{ColaItemBalance.CandyIncrease}."),
-            new(ColaItemId.CarbonationSyrup, "탄산 시럽", 4, 16, $"상대의 다음 흔들기 압력 +{ColaItemBalance.SyrupBonus}. 매운맛 주문서와 함께 적용 불가."),
-            new(ColaItemId.QueueTicket, "취소 번호표", 3, 12, "상대 아이템 1개를 무작위로 제거."),
-            new(ColaItemId.Bill, "계산서", 5, 7, "흔들지 않고 상대에게 차례를 넘김."),
-            new(ColaItemId.SpicyOrder, "매운맛 주문서", 3, 12, $"상대의 다음 흔들기 압력 {ColaItemBalance.SpicyMultiplier}배. 탄산 시럽과 함께 적용 불가."),
-            new(ColaItemId.SafetyCap, "안전 마개", 4, 8, $"내 다음 흔들기 피해 -{ColaItemBalance.ShieldReduction}."),
-            new(ColaItemId.PizzaSlice, "피자 한 조각", 8, 4, "체력 +1."),
-            new(ColaItemId.HotSauce, "핫소스", 3, 11, $"이 콜라가 교체될 때까지 양쪽 폭발 피해 +{ColaItemBalance.HotDamageBonus}. 중첩 불가."),
-            new(ColaItemId.DoubleStamp, "더블 스탬프", 4, 7, $"내 다음 흔들기가 안전하면 +{ColaItemBalance.StampRewardBonus}토큰.")
+            new(ColaItemId.IceCup, "얼음컵", 3, 6, $"압력 -{ColaItemBalance.IceReduction}."),
+            new(ColaItemId.FizzCandy, "발포 캔디", 7, 10, $"압력 +{ColaItemBalance.CandyIncrease}."),
+            new(ColaItemId.CarbonationSyrup, "탄산 시럽", 4, 11, $"상대의 다음 흔들기 압력 +{ColaItemBalance.SyrupBonus}."),
+            new(ColaItemId.QueueTicket, "취소 번호표", 3, 8, "상대 아이템 1개를 무작위로 제거."),
+            new(ColaItemId.Bill, "계산서", 5, 5, "흔들지 않고 상대에게 차례를 넘김."),
+            new(ColaItemId.SpicyOrder, "매운맛 주문서", 3, 8, $"상대의 다음 흔들기 압력 {ColaItemBalance.SpicyMultiplier}배."),
+            new(ColaItemId.SafetyCap, "안전 마개", 4, 6, "내게 걸린 시럽과 매운맛을 제거."),
+            new(ColaItemId.PizzaSlice, "피자 한 조각", 8, 3, "체력 +1."),
+            new(ColaItemId.HotSauce, "핫소스", 3, 8, $"이 콜라의 양쪽 폭발 피해 +{ColaItemBalance.HotDamageBonus}."),
+            new(ColaItemId.DoubleStamp, "더블 스탬프", 4, 7, $"내 다음 흔들기가 안전하면 +{ColaItemBalance.StampRewardBonus}토큰."),
+            new(ColaItemId.BottleOpener, "병따개", 4, 8, $"이 콜라의 한계 압력 -{ColaItemBalance.OpenerReduction}."),
+            new(ColaItemId.Straw, "빨대", 4, 7, $"상대 토큰을 최대 {ColaItemBalance.StrawTokens}개 훔침."),
+            new(ColaItemId.SodaWater, "탄산수", 5, 5, "압력을 한계의 절반으로 맞춤."),
+            new(ColaItemId.CoinCup, "동전컵", 3, 4, $"토큰 +{ColaItemBalance.CoinCupTokens}."),
+            new(ColaItemId.SwapTongs, "교환 집게", 5, 4, "서로의 무작위 아이템 1개를 교환.")
         };
         public static IReadOnlyList<ColaItemDefinition> All { get; } = Array.AsReadOnly(Entries);
-        public static bool Contains(ColaItemId id) => (int)id >= 0 && (int)id < Entries.Length;
+        // ID 10 remains retired; catalog positions must not be confused with serialized IDs.
+        public static int IndexOf(ColaItemId id)
+        {
+            int value = (int)id;
+            int index = value > 10 ? value - 1 : value;
+            return value != 10 && index >= 0 && index < Entries.Length ? index : -1;
+        }
+        public static bool Contains(ColaItemId id) => IndexOf(id) >= 0;
         public static ColaItemId[] DrawRandom(Random random, int count, ColaItemId? excluded = null)
         {
             if (random == null) throw new ArgumentNullException(nameof(random));
@@ -64,8 +77,8 @@ namespace ColaCola.Core
         }
         public static ColaItemDefinition Get(ColaItemId id)
         {
-            int index = (int)id;
-            if (index < 0 || index >= Entries.Length) throw new ArgumentOutOfRangeException(nameof(id));
+            int index = IndexOf(id);
+            if (index < 0) throw new ArgumentOutOfRangeException(nameof(id));
             return Entries[index];
         }
     }

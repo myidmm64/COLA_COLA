@@ -15,8 +15,8 @@ namespace ColaCola.Presentation
         public GameObject itemRoot;
         public Light itemLight;
         public ColaItemController Items { get; private set; }
-        [Range(1, 99)] public int playerMaxHealth = ColaItemBalance.StartingHealth;
-        [Range(1, 99)] public int bossBaseHealth = ColaItemBalance.StartingHealth;
+        [Range(1, ColaItemBalance.StartingHealth)] public int playerMaxHealth = ColaItemBalance.StartingHealth;
+        [Range(1, ColaItemBalance.StartingHealth)] public int bossBaseHealth = ColaItemBalance.StartingHealth;
 
         [Header("Debug (Editor / Development Build)")]
         [Tooltip("E로 전환합니다. 모든 아이템이 무료인 테스트 메뉴를 사용합니다.")]
@@ -94,10 +94,10 @@ namespace ColaCola.Presentation
             ColaCameraBreathing.EnsureFor(transform.root);
             ColaDuelMusic.EnsureFor(this);
             ColaPizzeriaAmbience.EnsureFor(this);
-            playerMaxHealth = Mathf.Clamp(playerMaxHealth, 1, 99);
-            bossBaseHealth = Mathf.Clamp(bossBaseHealth, 1, 99);
+            playerMaxHealth = Mathf.Clamp(playerMaxHealth, 1, ColaItemBalance.StartingHealth);
+            bossBaseHealth = Mathf.Clamp(bossBaseHealth, 1, ColaItemBalance.StartingHealth);
             PlayerHealth = playerMaxHealth;
-            BossMaxHealth = Mathf.Min(99, bossBaseHealth + Mathf.Min(Level - 1, ColaItemBalance.MaximumBossHealthBonus));
+            BossMaxHealth = bossBaseHealth;
             BossHealth = BossMaxHealth;
             State = DuelState.Playing;
             LastActionMessage = "Choose a strength, then shake the cola.";
@@ -178,6 +178,29 @@ namespace ColaCola.Presentation
         }
 
         public bool TryHealPlayer() => TryHeal(false);
+
+        public bool CanTransferTokens(int maximum, bool boss)
+            => maximum > 0 && (boss ? PlayerTokens : BossTokens) > 0 && (boss ? BossTokens : PlayerTokens) < 9999;
+
+        public bool TryTransferTokens(int maximum, bool boss)
+        {
+            if (!Items || !Items.CanActFor(boss) || !CanTransferTokens(maximum, boss)) return false;
+            int amount = Mathf.Min(maximum, boss ? PlayerTokens : BossTokens, 9999 - (boss ? BossTokens : PlayerTokens));
+            if (boss) { PlayerTokens -= amount; BossTokens += amount; }
+            else { BossTokens -= amount; PlayerTokens += amount; }
+            RefreshTerminal(true);
+            return true;
+        }
+
+        public bool TryGrantItemTokens(int amount, bool boss)
+        {
+            if (!Items || !Items.CanActFor(boss) || amount <= 0 || (boss ? BossTokens : PlayerTokens) >= 9999) return false;
+            if (boss) BossTokens = Mathf.Min(9999, BossTokens + amount);
+            else PlayerTokens = Mathf.Min(9999, PlayerTokens + amount);
+            RefreshTerminal(true);
+            return true;
+        }
+
         public bool TryHeal(bool boss)
         {
             if (!Items || !Items.CanActFor(boss) || (boss ? BossHealth >= BossMaxHealth : PlayerHealth >= playerMaxHealth)) return false;

@@ -1,0 +1,22 @@
+fileFormatVersion: 2
+guid: c7a3f5326d0257cbb24bb005ee25b5e2
+ModelImporter:
+  serializedVersion: 24600
+  internalIDToNameTable: []
+  externalObjects: {}
+  materials:
+    materialImportMode: 0
+  meshes:
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    importCameras: 0
+    importLights: 0
+    weldVertices: 1
+    preserveHierarchy: 0
+  tangentSpace:
+    normalImportMode: 0
+  importAnimation: 0
+  userData:
+  assetBundleName:
+  assetBundleVariant:

@@ -1,5 +1,6 @@
 """Author original tactile game SFX. Only final Resources WAVs/metas are written."""
 import numpy as np
+import argparse
 from compose_pizzeria_bgm import RATE, DEST, write, band_noise
 
 
@@ -62,6 +63,20 @@ def items():
     finish('Item_DoubleStamp', stamp)
 
 
+def new_items():
+    t = timeline(.48)
+    opener = hit(t,.04,740,65,.7)+hit(t,.12,1140,50,.35)+rough(t,900,4300,501)*np.exp(-((t-.15)/.025)**2)*.18
+    finish('Item_BottleOpener',opener,.48)
+    straw = rough(t,350,2100,502)*np.exp(-((t-.16)/.075)**2)*(.4+.6*np.sin(t*70)**2)
+    finish('Item_Straw',straw+hit(t,.28,640,45,.35),.42)
+    water = rough(t,700,5200,503)*np.exp(-((t-.18)/.09)**2)*(.45+.55*np.sin(t*48)**4)
+    finish('Item_SodaWater',water+hit(t,.015,430,44,.25),.48)
+    coins = sum(hit(t,a,f,d,g) for a,f,d,g in ((.02,1390,38,.6),(.11,1870,49,.5),(.22,2210,59,.3)))
+    finish('Item_CoinCup',coins,.44)
+    tongs = hit(t,.05,910,57,.6)+hit(t,.21,690,46,.65)+rough(t,1300,4100,504)*np.exp(-((t-.19)/.035)**2)*.12
+    finish('Item_SwapTongs',tongs,.45)
+
+
 def shaking():
     # Periodic noise and integer-period amplitude modulation make true seamless loops.
     t = timeline(1)
@@ -100,7 +115,12 @@ def interactions():
 
 
 if __name__ == '__main__':
+    parser=argparse.ArgumentParser()
+    parser.add_argument('--new-items-only',action='store_true')
+    args=parser.parse_args()
     DEST.mkdir(parents=True,exist_ok=True)
-    items()
-    shaking()
-    interactions()
+    if not args.new_items_only:
+        items()
+        shaking()
+        interactions()
+    new_items()

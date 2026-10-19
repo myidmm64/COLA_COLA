@@ -9,7 +9,6 @@ namespace ColaCola.Presentation
     public sealed class ColaBossItemAI : MonoBehaviour
     {
         public bool automaticItemUse = true;
-        [Range(1, 2)] public int maximumUsesPerTurn = 2;
         [Min(.1f)] public float purchaseDisplaySeconds = .8f;
         [Min(.1f)] public float useDisplaySeconds = .65f;
         private ColaItemController items;
@@ -48,10 +47,8 @@ namespace ColaCola.Presentation
         {
             if (decisions == null) ResetDecisions();
             ChosenStrength = Mathf.Clamp(strength, 1, 3);
-            int used = 0;
             bool ordered = false;
-            int budget = Mathf.Clamp(maximumUsesPerTurn, 1, 2);
-            while (Active && used < budget)
+            while (Active)
             {
                 if (items.IsUsingItem || items.IsReceivingItems(true)) { yield return null; continue; }
                 // A delivery or pressure-changing item can alter the sensible shake completely.
@@ -62,13 +59,12 @@ namespace ColaCola.Presentation
                 {
                     var owned = items.ItemAt(i, true);
                     if (!owned.HasValue || !items.CanUseSlot(i, true)) continue;
-                    float score = Score(owned.Value, budget - used) * Variation();
+                    float score = Score(owned.Value) * Variation();
                     if (score > best) { best = score; slot = i; }
                 }
                 if (slot >= 0)
                 {
                     if (!items.TryUseSlot(slot, true)) yield break;
-                    used++;
                     yield return new WaitForSecondsRealtime(Mathf.Max(.1f, useDisplaySeconds));
                     continue;
                 }
@@ -89,10 +85,10 @@ namespace ColaCola.Presentation
             => (1 - risk) * ColaItemBalance.ShakeReward(strength, false, modifiers.RewardBonus) +
                 risk * ColaItemBalance.ShakeReward(strength, true, modifiers.RewardBonus);
 
-        private ShakePrediction OpponentReply(int pressure, ItemActionModifiers opponent)
+        private ShakePrediction OpponentReply(int pressure, ItemActionModifiers opponent, BottlePressureModel evaluation = null)
         {
             var match = items.match;
-            var model = match.interaction.Model;
+            var model = evaluation ?? match.interaction.Model;
             var best = model.PredictAtPressure(pressure, 1, opponent.PressureBonus, pressureMultiplier: opponent.PressureMultiplier);
             double bestValue = double.NegativeInfinity;
             // The reply balances its own health against income, rather than always choosing button 2.
@@ -107,24 +103,24 @@ namespace ColaCola.Presentation
             return best;
         }
 
-        private double Utility(int strength, int pressure, ItemActionModifiers own, ItemActionModifiers opponent, bool passing = false)
+        private double Utility(int strength, int pressure, ItemActionModifiers own, ItemActionModifiers opponent, bool passing = false, BottlePressureModel evaluation = null)
         {
             var match = items.match;
-            var model = match.interaction.Model;
+            var model = evaluation ?? match.interaction.Model;
             if (passing)
-                return OpponentReply(pressure, opponent).BurstProbability *
+                return OpponentReply(pressure, opponent, model).BurstProbability *
                     opponent.Damage * HealthWeight(match.PlayerHealth) * .7;
             var prediction = model.PredictAtPressure(pressure, strength, own.PressureBonus, pressureMultiplier: own.PressureMultiplier);
             double risk = prediction.BurstProbability;
-            double enemyRisk = OpponentReply(prediction.PressureAfter, opponent).BurstProbability;
+            double enemyRisk = OpponentReply(prediction.PressureAfter, opponent, model).BurstProbability;
             return CoinWeight(match.BossTokens) * ExpectedReward(strength, risk, own) -
                 risk * own.Damage * HealthWeight(match.BossHealth) +
                 (1 - risk) * enemyRisk * opponent.Damage * HealthWeight(match.PlayerHealth) * .7;
         }
 
-        private double BestActionUtility(int pressure, ItemActionModifiers own, ItemActionModifiers opponent)
-            => System.Math.Max(Utility(1, pressure, own, opponent), System.Math.Max(
-                Utility(2, pressure, own, opponent), Utility(3, pressure, own, opponent)));
+        private double BestActionUtility(int pressure, ItemActionModifiers own, ItemActionModifiers opponent, BottlePressureModel evaluation = null)
+            => System.Math.Max(Utility(1, pressure, own, opponent, evaluation: evaluation), System.Math.Max(
+                Utility(2, pressure, own, opponent, evaluation: evaluation), Utility(3, pressure, own, opponent, evaluation: evaluation)));
 
         private bool HasBill()
         {
@@ -133,7 +129,7 @@ namespace ColaCola.Presentation
             return false;
         }
 
-        private float Score(ColaItemId id, int remainingUses)
+        private float Score(ColaItemId id)
         {
             var match = items.match;
             var model = match.interaction.Model;
@@ -150,7 +146,7 @@ namespace ColaCola.Presentation
                     return (float)(BestActionUtility(Mathf.Max(0, pressure - ColaItemBalance.IceReduction), own, opponent) - before);
                 case ColaItemId.FizzCandy:
                     value = BestActionUtility(pressure + ColaItemBalance.CandyIncrease, own, opponent) - before;
-                    if (remainingUses >= 2 && HasBill())
+                    if (HasBill())
                         value = System.Math.Max(value, Utility(1, pressure + ColaItemBalance.CandyIncrease, own, opponent, true) - before + .03);
                     return (float)value;
                 case ColaItemId.CarbonationSyrup:
@@ -164,7 +160,7 @@ namespace ColaCola.Presentation
                     opponent = new ItemActionModifiers(opponent.PressureBonus, opponent.Damage, opponent.RewardBonus, ColaItemBalance.SpicyMultiplier);
                     break;
                 case ColaItemId.SafetyCap:
-                    own = new ItemActionModifiers(own.PressureBonus, Mathf.Max(0, own.Damage - ColaItemBalance.ShieldReduction), own.RewardBonus, own.PressureMultiplier);
+                    own = new ItemActionModifiers(0, own.Damage, own.RewardBonus, 1);
                     break;
                 case ColaItemId.HotSauce:
                     own = new ItemActionModifiers(own.PressureBonus, own.Damage + ColaItemBalance.HotDamageBonus, own.RewardBonus, own.PressureMultiplier);
@@ -173,9 +169,50 @@ namespace ColaCola.Presentation
                 case ColaItemId.DoubleStamp:
                     own = new ItemActionModifiers(own.PressureBonus, own.Damage, own.RewardBonus + ColaItemBalance.StampRewardBonus, own.PressureMultiplier);
                     break;
+                case ColaItemId.BottleOpener:
+                    var opened = new BottlePressureModel(Mathf.Max(1, model.Limit - ColaItemBalance.OpenerReduction), model.ProbabilityExponent, pressure)
+                        { ForceBurst = model.ForceBurst };
+                    value = BestActionUtility(pressure, own, opponent, opened) - before;
+                    if (HasBill())
+                        value = System.Math.Max(value, Utility(1, pressure, own, opponent, true, opened) - before + .03);
+                    return (float)value;
+                case ColaItemId.Straw:
+                    return (float)(System.Math.Min(ColaItemBalance.StrawTokens, match.PlayerTokens) *
+                        (CoinWeight(match.BossTokens) + CoinWeight(match.PlayerTokens) * .5));
+                case ColaItemId.SodaWater:
+                    value = BestActionUtility(model.Limit / 2, own, opponent) - before;
+                    if (HasBill())
+                        value = System.Math.Max(value, Utility(1, model.Limit / 2, own, opponent, true) - before + .03);
+                    return (float)value;
+                case ColaItemId.CoinCup:
+                    return (float)(ColaItemBalance.CoinCupTokens * CoinWeight(match.BossTokens));
+                case ColaItemId.SwapTongs:
+                    return SwapValue();
                 default: return 0;
             }
             return (float)(BestActionUtility(pressure, own, opponent) - before);
         }
+
+        private float SwapValue()
+        {
+            float own = 0, other = 0;
+            int ownCount = 0, otherCount = 0;
+            for (int i = 0; i < ColaItemController.Capacity; i++)
+            {
+                var a = items.ItemAt(i, true); var b = items.ItemAt(i, false);
+                if (a.HasValue && a != ColaItemId.SwapTongs) { own += HeldValue(a.Value); ownCount++; }
+                if (b.HasValue) { other += HeldValue(b.Value); otherCount++; }
+            }
+            return ownCount == 0 || otherCount == 0 ? 0 : (other / otherCount - own / ownCount) * .18f + .025f;
+        }
+
+        private float HeldValue(ColaItemId id)
+            => id switch
+            {
+                ColaItemId.PizzaSlice => items.match.BossHealth < items.match.BossMaxHealth ? 1.2f : .15f,
+                ColaItemId.SafetyCap => items.PreviewAction(true).PressureBonus > 0 || items.PreviewAction(true).PressureMultiplier > 1 ? 1.1f : .2f,
+                ColaItemId.Bill => items.match.interaction.Model.Pressure > items.match.interaction.Model.Limit / 2 ? 1.3f : .5f,
+                _ => .8f
+            };
     }
 }

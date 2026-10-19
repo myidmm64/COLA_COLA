@@ -1,8 +1,9 @@
-"""Author COLA_COLA's eleven original tabletop props, in metres with a shared flat-colour atlas.
+"""Author COLA_COLA's fifteen original tabletop props, in metres with a shared flat-colour atlas.
 
 Run to regenerate the source assets. This script does not launch Unity or create previews/tests.
 """
 from pathlib import Path
+import argparse
 import math
 import struct
 import uuid
@@ -298,6 +299,57 @@ def stamp(m):
     for x in (-.012,.012): print_rect(m,p,n,x,0,.010,.011,"cream")
 
 
+def bottle_opener(m):
+    m.box((0,.009,.024),(.025,.016,.074),"red_dark",.004)
+    m.box((0,.017,.024),(.014,.002,.055),"red",.001)
+    m.box((0,.009,-.027),(.017,.010,.031),"steel",.002)
+    for x in (-.024,.024):
+        m.box((x,.009,-.046),(.009,.011,.039),"silver_light",.002)
+    for z in (-.063,-.029):
+        m.box((0,.009,z),(.048,.011,.009),"silver_light",.002)
+    m.box((0,.011,-.033),(.022,.005,.012),"steel",.001,(-12,0,0))
+
+
+def straw(m):
+    m.box((0,.008,0),(.041,.013,.047),"paper",.002)
+    m.box((0,.015,-.010),(.042,.002,.009),"red",.0005)
+    m.lathe((0,0,0),[(.014,.004),(.101,.004)],"cream",8)
+    for y in (.029,.048,.067,.086):
+        m.lathe((0,0,0),[(y,.0042),(y+.006,.0042)],"red",8)
+    m.lathe((0,.099,0),[(0,.004),(.034,.004)],"cream",8,(0,0,-52))
+    m.lathe((.015,.111,0),[(0,.0042),(.007,.0042)],"red",8,(0,0,-52))
+
+
+def soda_water(m):
+    m.lathe((0,0,0),[(.001,.023),(.007,.027),(.077,.027),(.092,.012),(.111,.012)],"ice",10)
+    m.lathe((0,0,0),[(.025,.0273),(.065,.0273)],"teal_dark",10)
+    m.lathe((0,0,0),[(.107,.015),(.119,.015)],"silver_light",10)
+    for y in (.112,.116): m.lathe((0,0,0),[(y,.0155),(y+.001,.0155)],"steel",10)
+    p,n=panel(m,(0,.031,-.0276),.032,.028,"cream",v=(0,1,0),thickness=.0007)
+    for x,y,r in [(-.008,.008,.0025),(.006,.013,.0035),(0,.022,.002)]:
+        m.disk(p(x,y),r,"teal",normal=n,sides=8)
+
+
+def coin_cup(m):
+    m.lathe((0,0,0),[(.001,.024),(.006,.028),(.034,.038),(.041,.039)],"brass",12)
+    m.lathe((0,0,0),[(.037,.0398),(.043,.0398)],"silver_light",12)
+    m.disk((0,.041,0),.034,"ink",sides=12)
+    for x,z,y,a in [(-.014,-.008,.043,-14),(.011,-.012,.045,12),(0,.014,.046,25)]:
+        m.lathe((x,y,z),[(0,.012),(.003,.012)],"gold",10,(a,0,0))
+        m.disk((x,y+.0033,z),.006,"brass",sides=8)
+
+
+def swap_tongs(m):
+    for side in (-1,1):
+        m.box((side*.012,.009,0),(.009,.013,.106),"steel",.002,(0,side*12,0))
+        m.box((side*.020,.010,-.043),(.020,.010,.025),"silver_light",.002,(0,side*12,0))
+        m.box((side*.009,.016,.020),(.010,.003,.033),"teal_dark",.001,(0,side*12,0))
+        for z in (-.049,-.041,-.033):
+            m.box((side*.021,.016,z),(.018,.002,.002),"ink",.0002,(0,side*12,0))
+    m.lathe((0,0,.046),[(.003,.012),(.017,.012)],"brass",10)
+    m.disk((0,.018,.046),.006,"steel",sides=8)
+
+
 def waiter_bell(m):
     m.lathe((0,0,0),[(.001,.073),(.005,.083),(.012,.083),(.018,.074)],"ink",16)
     m.lathe((0,0,0),[(.013,.078),(.020,.078),(.024,.070)],"brass",16)
@@ -353,24 +405,29 @@ def save_palette():
 """)
 
 
-def main():
+def main(new_items_only=False):
     OUTPUT.mkdir(parents=True,exist_ok=True)
-    write_meta(OUTPUT,"folderAsset: yes\nDefaultImporter:\n  externalObjects: {}\n")
-    save_palette()
+    if not new_items_only:
+        write_meta(OUTPUT,"folderAsset: yes\nDefaultImporter:\n  externalObjects: {}\n")
+        save_palette()
     builders=[("01_IceCup",ice_cup),("02_FizzCandy",candy),("03_CarbonationSyrup",syrup),
               ("04_QueueTicket",ticket),("05_Bill",bill),("06_SpicyOrder",spicy_order),
               ("07_SafetyCap",safety_cap),("08_PizzaSlice",pizza),("09_HotSauce",hot_sauce),
-              ("10_DoubleStamp",stamp)]
+              ("10_DoubleStamp",stamp), ("11_BottleOpener",bottle_opener), ("12_Straw",straw),
+              ("13_SodaWater",soda_water), ("14_CoinCup",coin_cup), ("15_SwapTongs",swap_tongs)]
+    if new_items_only: builders = builders[-5:]
     for name,build in builders:
         model=Mesh(name)
         build(model)
         model.save()
-    for name,build in [("WaiterBell",waiter_bell),("WaiterBellPlunger",waiter_plunger)]:
+    for name,build in ([] if new_items_only else [("WaiterBell",waiter_bell),("WaiterBellPlunger",waiter_plunger)]):
         model=Mesh(name)
         build(model)
         model.save()
-    print("Authored 10 item meshes, waiter bell/body plunger and one shared palette. No Unity or validation run.")
+    print("Authored five new item meshes." if new_items_only else "Authored fifteen items, bell parts and palette.")
 
 
 if __name__=="__main__":
-    main()
+    parser=argparse.ArgumentParser()
+    parser.add_argument('--new-items-only',action='store_true')
+    main(parser.parse_args().new_items_only)

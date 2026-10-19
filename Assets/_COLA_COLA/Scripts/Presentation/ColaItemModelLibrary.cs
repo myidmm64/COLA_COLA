@@ -11,7 +11,8 @@ namespace ColaCola.Presentation
         private static readonly string[] ModelNames =
         {
             "01_IceCup", "02_FizzCandy", "03_CarbonationSyrup", "04_QueueTicket", "05_Bill",
-            "06_SpicyOrder", "07_SafetyCap", "08_PizzaSlice", "09_HotSauce", "10_DoubleStamp"
+            "06_SpicyOrder", "07_SafetyCap", "08_PizzaSlice", "09_HotSauce", "10_DoubleStamp",
+            "11_BottleOpener", "12_Straw", "13_SodaWater", "14_CoinCup", "15_SwapTongs"
         };
         private readonly GameObject[] sources = new GameObject[ModelNames.Length];
         private readonly Material surface;
@@ -32,7 +33,8 @@ namespace ColaCola.Presentation
 
         public GameObject Create(ColaItemId id, Transform parent)
         {
-            int index = (int)id;
+            int index = ColaItemCatalog.IndexOf(id);
+            if (index < 0) throw new ArgumentOutOfRangeException(nameof(id));
             if (!sources[index]) sources[index] = Resources.Load<GameObject>("ItemModels/" + ModelNames[index]);
             if (!sources[index]) throw new InvalidOperationException("COLA_COLA item model is missing: " + ModelNames[index]);
             return InstantiateModel(sources[index], parent, ModelNames[index] + "_Model");

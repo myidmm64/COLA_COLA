@@ -98,7 +98,6 @@ namespace ColaCola.Presentation
             CommittedActionCount = 0;
             BottleNumber = 0;
             BeginNextBottle();
-            if (items) items.BeginTurn(false);
         }
 
         public void CancelPendingActions()
@@ -275,7 +274,6 @@ namespace ColaCola.Presentation
                 busy = false;
                 IsBossTurn = false;
                 BossItemPhase = BossPassedTurn = false;
-                if (items) items.BeginTurn(false);
                 RefreshView();
                 yield break;
             }
@@ -303,7 +301,6 @@ namespace ColaCola.Presentation
                 ColaTabletopAudio.Cue(this, "Turn", bottle.position, .30f);
                 BossPassedTurn = false;
                 BossItemPhase = true;
-                if (items) items.BeginTurn(true);
                 RefreshView();
                 var ai = items ? items.GetComponent<ColaBossItemAI>() : null;
                 int strength = ai && ai.isActiveAndEnabled ? ai.ChooseStrength() : bossChoiceRandom.Next(1, 4);
@@ -329,7 +326,6 @@ namespace ColaCola.Presentation
             busy = false;
             IsBossTurn = false;
             BossItemPhase = BossPassedTurn = false;
-            if (items) items.BeginTurn(false);
             RefreshView();
         }
 
