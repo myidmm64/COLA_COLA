@@ -144,15 +144,34 @@ namespace ColaCola.Editor
             int bursts = match.interaction.burstPresentation.BurstCount;
             Check(match.interaction.SelectStrength(2) && match.interaction.ConfirmShake(), "Burst input rejected.");
             float deadline = Time.unscaledTime + 22;
-            bool playerPause = false, bossPause = false;
+            bool playerPause = false;
             while (match.interaction.IsBusy && Time.unscaledTime < deadline)
             {
-                if (driver.IsAwaitingResult) { if (driver.PlayingBoss) bossPause = true; else playerPause = true; }
+                if (driver.IsAwaitingResult && !driver.PlayingBoss) playerPause = true;
                 yield return null;
             }
-            Check(!match.interaction.IsBusy && playerPause && bossPause && match.interaction.burstPresentation.BurstCount == bursts + 2,
-                "Both actual participants must hold for result then burst and restore input.");
-            report.AppendLine("PASS: W shared path: actual player and boss burst after common result holds, blackout and return to player input.");
+            Check(!match.interaction.IsBusy && playerPause && match.IsPlayerTurn &&
+                match.interaction.burstPresentation.BurstCount == bursts + 1,
+                "Player must keep the first turn on the replacement bottle after their burst.");
+            int beforeBossActions = match.interaction.CommittedActionCount;
+            Check(match.interaction.PassPlayerTurn(), "Could not hand the actual turn to the boss.");
+            deadline = Time.unscaledTime + 36;
+            bool bossPause = false, repeatedBoss = false;
+            while (match.interaction.IsBusy && Time.unscaledTime < deadline)
+            {
+                if (driver.IsAwaitingResult && driver.PlayingBoss) bossPause = true;
+                if (match.interaction.CommittedActionCount >= beforeBossActions + 2)
+                {
+                    repeatedBoss = match.interaction.IsBossTurn && match.interaction.LastActionWasBoss;
+                    // Let the second held-bottle performance finish, then stop this fixture's AI loop.
+                    match.interaction.automaticBossTurns = false;
+                }
+                yield return null;
+            }
+            Check(!match.interaction.IsBusy && bossPause && repeatedBoss &&
+                match.interaction.burstPresentation.BurstCount == bursts + 3,
+                "Boss must start the replacement bottle after bursting; both performances must complete.");
+            report.AppendLine("PASS: W shared path: player keeps the next bottle; boss repeats on the next bottle after bursting. Holds, blackouts and fixture-controlled return complete.");
             match.ApplyDebugCommand(ColaDuelController.DebugCommand.ToggleGuaranteedBurst);
             Prepare(123, false);
             Check(match.interaction.SelectStrength(3) && match.interaction.ConfirmShake(), "Cancellation input rejected.");

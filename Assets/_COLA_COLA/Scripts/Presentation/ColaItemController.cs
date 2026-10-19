@@ -154,6 +154,7 @@ namespace ColaCola.Presentation
             return true;
         }
 
+        public bool CanInspectItems => MatchActive;
         public bool CanInspectWaiter => MatchActive;
         public bool CanOrderWaiter(bool boss = false)
             => MatchActive && (!boss || CanBossAct) && Capacity - InventoryCountFor(boss) >= WaiterItemCount &&

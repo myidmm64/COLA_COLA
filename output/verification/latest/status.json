@@ -1,17 +1,17 @@
 {
-    "id": "turnui-d9d5ddafba9f4167af4c17e475457753",
-    "suite": "turn-ui",
+    "id": "fonts-52badb2398934525ba4a65e7b40af6bd",
+    "suite": "fonts",
     "phase": "passed",
-    "message": "Turn-label checks completed in actual Play. Game-view captures saved for visual review. Original scene setup restored; Editor left open.",
-    "startedUtc": "2026-10-18T12:34:29.8698297Z",
-    "heartbeatUtc": "2026-10-18T12:34:52.6222820Z",
-    "editorProcessId": 13428,
+    "message": "Bundled-font/UI checks completed in actual Play. Actual Game-view captures require visual review. Original scene setup restored; Editor left open.",
+    "startedUtc": "2026-10-19T09:06:34.0836794Z",
+    "heartbeatUtc": "2026-10-19T09:06:48.8725366Z",
+    "editorProcessId": 33256,
     "batchMode": false,
     "success": true,
     "playMode": false,
     "frameCount": 0,
     "passed": [
-        "COLA_TURN_LABEL_PASS"
+        "COLA_FONT_READABILITY_PASS"
     ],
     "scenes": [
         {

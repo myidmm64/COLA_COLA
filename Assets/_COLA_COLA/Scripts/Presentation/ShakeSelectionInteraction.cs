@@ -268,6 +268,15 @@ namespace ColaCola.Presentation
         {
             yield return ResolveAnimation(result, false, version);
             if (!IsCurrent(version)) yield break;
+            // The participant who burst the bottle starts the replacement bottle.
+            if (result.Burst)
+            {
+                busy = false;
+                IsBossTurn = false;
+                BossItemPhase = BossPassedTurn = false;
+                RefreshView();
+                yield break;
+            }
             yield return ResolveBossTurn(version);
         }
 
@@ -286,7 +295,7 @@ namespace ColaCola.Presentation
 
         private IEnumerator ResolveBossTurn(int version)
         {
-            if (automaticBossTurns && InputEnabled && IsCurrent(version))
+            while (automaticBossTurns && InputEnabled && IsCurrent(version))
             {
                 IsBossTurn = true;
                 ColaTabletopAudio.Cue(this, "Turn", bottle.position, .30f);
@@ -303,9 +312,14 @@ namespace ColaCola.Presentation
                 while (IsCurrent(version) && items && items.IsUsingItem) yield return null;
                 if (!IsCurrent(version)) yield break;
                 BossItemPhase = false;
+                bool startsNextBottle = false;
                 if (!BossPassedTurn && model.SelectStrength(strength) && CommitSelected(true, out var bossResult))
+                {
                     yield return ResolveAnimation(bossResult, true, version);
+                    startsNextBottle = bossResult.Burst;
+                }
                 if (!IsCurrent(version)) yield break;
+                if (!startsNextBottle) break;
             }
             busy = false;
             IsBossTurn = false;
@@ -368,9 +382,17 @@ namespace ColaCola.Presentation
                 fallbackAwaitingResult = true;
                 float pauseStarted = Time.unscaledTime;
                 float pause = ColaShakeAnimator.ResultPauseSeconds(pressureFraction);
+                Vector3 heldPosition = bottle.localPosition;
+                Quaternion heldRotation = bottle.localRotation;
                 while (Time.unscaledTime - pauseStarted < pause)
                 {
                     if (!IsCurrent(version)) yield break;
+                    float elapsed = Time.unscaledTime - pauseStarted;
+                    float blend = Mathf.SmoothStep(0, 1, elapsed / .12f);
+                    bottle.localPosition = heldPosition + new Vector3(Mathf.Sin(elapsed * 4.4f) * .0045f,
+                        Mathf.Sin(elapsed * 6.1f) * .003f, 0) * blend;
+                    bottle.localRotation = heldRotation * Quaternion.Euler(
+                        Mathf.Sin(elapsed * 5.1f) * 1.6f * blend, 0, Mathf.Sin(elapsed * 3.7f) * .9f * blend);
                     yield return null;
                 }
                 fallbackAwaitingResult = false;

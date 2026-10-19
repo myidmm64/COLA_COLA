@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace ColaCola.Presentation
 {
-    /// <summary>Debug hints, a quiet player-turn label, and match-end controls.</summary>
+    /// <summary>Debug hints and match-end controls; turn feedback lives on the physical console.</summary>
     [DisallowMultipleComponent]
     public sealed class ColaDuelHUD : MonoBehaviour
     {
@@ -15,11 +15,9 @@ namespace ColaCola.Presentation
         private static readonly Color MutedColor = new Color(.58f, .62f, .51f, 1);
         private static readonly Color ButtonColor = new Color(.16f, .23f, .16f, 1);
 
-        private GUIStyle titleStyle, detailStyle, buttonStyle, debugStyle, debugShadowStyle, turnStyle, turnShadowStyle;
+        private GUIStyle titleStyle, detailStyle, buttonStyle, debugStyle, debugShadowStyle;
         private GUISkin styledSkin;
         private Font runtimeFont;
-        public int TurnLabelRepaintFrame { get; private set; } = -1;
-        public Rect TurnLabelBounds { get; private set; }
 
         private void OnGUI()
         {
@@ -28,39 +26,13 @@ namespace ColaCola.Presentation
             if (!match || Screen.width < 160 || Screen.height < 120) return;
             float scale = Mathf.Clamp(Mathf.Min(Screen.width / 960f, Screen.height / 640f), .7f, 1.15f);
             EnsureStyles(scale);
-            if (match.DebugToolsAvailable) DrawDebugShortcuts(scale);
-            if (match.State == ColaDuelController.DuelState.Playing)
-            {
-                if (match.IsPlayerTurn && match.interaction.InputEnabled) DrawPlayerTurn(scale);
-                return;
-            }
+            bool ready = match.interaction && match.interaction.InputEnabled && !match.interaction.IsBusy;
+            if (match.DebugToolsAvailable && match.IsPlayerTurn && ready) DrawDebugShortcuts(scale);
+            if (match.State == ColaDuelController.DuelState.Playing) return;
             float padding = Mathf.Round(9 * scale);
             bool busy = match.interaction && match.interaction.IsBusy;
+            if (busy) return;
             DrawMatchEnd(match.State == ColaDuelController.DuelState.Won, busy, scale, padding);
-        }
-
-        private void DrawPlayerTurn(float scale)
-        {
-            Color tint = GUI.color, content = GUI.contentColor;
-            bool enabledBefore = GUI.enabled;
-            int depth = GUI.depth;
-            GUI.color = GUI.contentColor = Color.white;
-            GUI.enabled = true;
-            GUI.depth = -20; // Above ordinary HUD panels; the burst blackout still covers this.
-            float width = 160 * scale;
-            float height = Mathf.Max(30 * scale, turnStyle.lineHeight + 8);
-            var rect = new Rect(Mathf.Round((Screen.width - width) * .5f),
-                Mathf.Round(Screen.height - 64 * scale - height), width, height);
-            GUI.Label(new Rect(rect.x + 1, rect.y + 1, rect.width, rect.height), "내 차례", turnShadowStyle);
-            GUI.Label(rect, "내 차례", turnStyle);
-            if (Event.current.type == EventType.Repaint)
-            {
-                TurnLabelRepaintFrame = Time.frameCount;
-                TurnLabelBounds = rect;
-            }
-            GUI.depth = depth;
-            GUI.enabled = enabledBefore;
-            GUI.color = tint; GUI.contentColor = content;
         }
 
         private void DrawDebugShortcuts(float scale)
@@ -74,8 +46,10 @@ namespace ColaCola.Presentation
             };
             for (int i = 0; i < lines.Length; i++)
             {
-                var rect = new Rect(12 * scale, (12 + i * 22) * scale, Screen.width - 24 * scale, 22 * scale);
-                GUI.Label(new Rect(rect.x + scale, rect.y + scale, rect.width, rect.height), lines[i], debugShadowStyle);
+                float row = Mathf.Max(22 * scale, debugStyle.lineHeight + 4);
+                var rect = new Rect(Mathf.Round(12 * scale), Mathf.Round(12 * scale + i * row),
+                    Mathf.Round(Screen.width - 24 * scale), Mathf.Ceil(row));
+                GUI.Label(new Rect(rect.x + 1, rect.y + 1, rect.width, rect.height), lines[i], debugShadowStyle);
                 GUI.Label(rect, lines[i], debugStyle);
             }
         }
@@ -116,19 +90,11 @@ namespace ColaCola.Presentation
             if (titleStyle == null || styledSkin != GUI.skin)
             {
                 styledSkin = GUI.skin;
-                if (!runtimeFont) runtimeFont = Font.CreateDynamicFontFromOSFont(new[] { "Malgun Gothic", "Noto Sans CJK KR", "Arial" }, 18);
+                if (!runtimeFont) runtimeFont = ColaGameFont.Load();
                 titleStyle = FlatLabel(CreamColor, TextAnchor.MiddleCenter);
                 detailStyle = FlatLabel(MutedColor, TextAnchor.MiddleCenter);
                 debugStyle = FlatLabel(CreamColor, TextAnchor.MiddleLeft);
                 debugShadowStyle = FlatLabel(new Color(.015f, .02f, .015f, .95f), TextAnchor.MiddleLeft);
-                turnStyle = FlatLabel(new Color(.82f, .82f, .75f, .8f), TextAnchor.MiddleCenter);
-                turnShadowStyle = FlatLabel(new Color(0, 0, 0, .5f), TextAnchor.MiddleCenter);
-                foreach (var style in new[] { turnStyle, turnShadowStyle })
-                {
-                    style.hover.textColor = style.active.textColor = style.focused.textColor = style.normal.textColor;
-                    style.fixedHeight = 0;
-                    style.contentOffset = Vector2.zero;
-                }
                 buttonStyle = new GUIStyle
                 {
                     font = GUI.skin.font,
@@ -136,9 +102,9 @@ namespace ColaCola.Presentation
                     border = new RectOffset(),
                     margin = new RectOffset(),
                     padding = new RectOffset(3, 3, 1, 1),
-                    fontStyle = FontStyle.Bold
+                    fontStyle = FontStyle.Normal
                 };
-                foreach (var style in new[] { titleStyle, detailStyle, buttonStyle, debugStyle, debugShadowStyle, turnStyle, turnShadowStyle })
+                foreach (var style in new[] { titleStyle, detailStyle, buttonStyle, debugStyle, debugShadowStyle })
                     style.font = runtimeFont;
                 ConfigureButtonState(buttonStyle.normal, CreamColor);
                 ConfigureButtonState(buttonStyle.hover, Color.white);
@@ -154,7 +120,6 @@ namespace ColaCola.Presentation
             detailStyle.fontSize = Mathf.RoundToInt(12 * scale);
             buttonStyle.fontSize = Mathf.RoundToInt(15 * scale);
             debugStyle.fontSize = debugShadowStyle.fontSize = Mathf.RoundToInt(14 * scale);
-            turnStyle.fontSize = turnShadowStyle.fontSize = Mathf.Clamp(Mathf.RoundToInt(14 * scale), 12, 16);
         }
 
         private static GUIStyle FlatLabel(Color color, TextAnchor alignment)
@@ -166,6 +131,7 @@ namespace ColaCola.Presentation
                 wordWrap = false,
                 margin = new RectOffset(),
                 padding = new RectOffset(),
+                fontStyle = FontStyle.Normal,
                 richText = false
             };
             style.normal.textColor = color;
@@ -177,8 +143,6 @@ namespace ColaCola.Presentation
             state.background = Texture2D.whiteTexture;
             state.textColor = textColor;
         }
-
-        private void OnDestroy() { if (runtimeFont) Destroy(runtimeFont); }
 
         private static Rect Inset(Rect rect, float horizontal, float vertical)
         {

@@ -281,6 +281,9 @@ namespace ColaCola.Editor
                 coveredResults++;
             }
             if ((phase == 2 || phase == 7) && !interaction.LastActionWasBoss) interaction.Model.BeginBottle(20, 19);
+            // This presentation fixture observes one boss blast. Starter ownership/repeated boss
+            // turns are covered by the focused shake probe; don't add another AI action here.
+            if (phase == 2 && interaction.LastActionWasBoss && result.Burst) interaction.automaticBossTurns = false;
         }
 
         private static void CheckRestored()

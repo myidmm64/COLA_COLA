@@ -3,7 +3,7 @@ using UnityEngine.Rendering;
 
 namespace ColaCola.Presentation
 {
-    /// <summary>A small, steady pilot lamp on the console, lit while the player owns the turn.</summary>
+    /// <summary>Player-facing olive pilot lamp with one soft brightness swell on turn arrival.</summary>
     [DisallowMultipleComponent]
     public sealed class ColaTurnIndicator : MonoBehaviour
     {
@@ -12,8 +12,15 @@ namespace ColaCola.Presentation
         private Material bezelMaterial, lensMaterial;
         private Mesh mesh;
         private float brightness;
+        private bool previousPlayerTurn, arrivalPending;
+        private int previousBottle = -1;
+        private float arrivalAt = float.NegativeInfinity;
+        public float Brightness => brightness;
+        public float ArrivalPulseWeight { get; private set; }
+        public Transform ModelRoot => root ? root.transform : null;
         private static readonly Color Off = new(.065f, .080f, .050f);
         private static readonly Color On = new(.56f, .61f, .34f);
+        private static readonly Color Arrival = new(.83f, .86f, .49f);
 
         public static void EnsureFor(ShakeSelectionInteraction interaction)
         {
@@ -22,8 +29,7 @@ namespace ColaCola.Presentation
             if (!indicator) indicator = interaction.gameObject.AddComponent<ColaTurnIndicator>();
             indicator.owner = interaction;
             indicator.Build();
-            indicator.brightness = 0;
-            if (indicator.lensMaterial) indicator.lensMaterial.SetColor("_BaseColor", Off);
+            indicator.ResetSignal();
         }
 
         private void Build()
@@ -44,12 +50,12 @@ namespace ColaCola.Presentation
             mesh = MakePuck();
             root = new GameObject("PlayerTurn_PilotLamp_Runtime") { hideFlags = HideFlags.DontSave };
             root.transform.SetParent(console, false);
-            // Front lip below the middle button, outside the moving keycaps and gauge mount.
-            const float z = -.134f, slope = .13333333f;
-            root.transform.localPosition = new Vector3(0, .045f + slope * z + .007f, z);
-            root.transform.localRotation = Quaternion.Euler(-Mathf.Atan(slope) * Mathf.Rad2Deg, 0, 0);
-            Part("Beveled bezel", Vector3.zero, new Vector3(.054f, .003f, .013f), bezelMaterial);
-            Part("Olive pilot lens", Vector3.up * .0031f, new Vector3(.044f, .001f, .006f), lensMaterial);
+            // Vertical near side of the gauge's console, facing the seated player (-local Z).
+            // The enlarged lens sits below the keys and projects out of the housing face.
+            root.transform.localPosition = new Vector3(0, -.015f, -.1515f);
+            root.transform.localRotation = Quaternion.Euler(-90, 0, 0);
+            Part("Beveled bezel", Vector3.zero, new Vector3(.104f, .006f, .042f), bezelMaterial);
+            Part("Olive pilot lens", Vector3.up * .0061f, new Vector3(.084f, .002f, .026f), lensMaterial);
         }
 
         private void Part(string label, Vector3 position, Vector3 scale, Material material)
@@ -98,17 +104,35 @@ namespace ColaCola.Presentation
         {
             if (!root || !lensMaterial) return;
             bool playerTurn = owner && owner.isActiveAndEnabled && owner.InputEnabled && owner.Model != null && !owner.IsBossTurn;
+            int bottleNumber = owner ? owner.BottleNumber : -1;
+            if (playerTurn && (!previousPlayerTurn || bottleNumber != previousBottle)) arrivalPending = true;
+            if (!playerTurn) arrivalPending = false;
+            if (arrivalPending && !owner.IsBusy)
+            {
+                arrivalAt = Time.unscaledTime;
+                arrivalPending = false;
+            }
+            previousPlayerTurn = playerTurn;
+            previousBottle = bottleNumber;
             float target = playerTurn ? 1 : 0;
             brightness = Mathf.MoveTowards(brightness, target, Time.unscaledDeltaTime / .28f);
             float eased = brightness * brightness * (3 - 2 * brightness);
-            lensMaterial.SetColor("_BaseColor", Color.Lerp(Off, On, eased));
+            float phase = (Time.unscaledTime - arrivalAt) / .65f;
+            float wave = phase >= 0 && phase <= 1 && playerTurn ? Mathf.Sin(phase * Mathf.PI) : 0;
+            ArrivalPulseWeight = wave * wave;
+            lensMaterial.SetColor("_BaseColor", Color.Lerp(Off, Color.Lerp(On, Arrival, ArrivalPulseWeight), eased));
         }
 
-        private void OnDisable()
+        private void ResetSignal()
         {
             brightness = 0;
+            ArrivalPulseWeight = 0;
+            previousPlayerTurn = arrivalPending = false;
+            previousBottle = -1;
+            arrivalAt = float.NegativeInfinity;
             if (lensMaterial) lensMaterial.SetColor("_BaseColor", Off);
         }
+        private void OnDisable() => ResetSignal();
         private void OnDestroy()
         {
             if (root) Destroy(root);

@@ -1,0 +1,5 @@
+Actual Play Game view 1351x760, bundled font=TerrarumSansBitmap, atlas filter=Bilinear. Korean glyphs requested at 20px exist.
+World-hover description present at end-of-frame. GUI requests the native 20px grid; world labels request 60px.
+Settled-menu label projection drift over 0.35 seconds: 0.0070 screen pixels.
+World labels using the same bundled font: 32. E free menu opened without purchases; Q not needed; W off. Sparse actual Game-view captures; no preview camera/RenderTexture.
+Restored Game-view size: 1351x760. Native GUI 20px remains unscaled.

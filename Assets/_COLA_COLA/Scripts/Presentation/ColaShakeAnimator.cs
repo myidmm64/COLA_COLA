@@ -110,7 +110,7 @@ namespace ColaCola.Presentation
         {
             public Animator actor;
             public bool boss, animatorEnabled, paused, waiting, revealed, gripBound;
-            public float time, pressure, recoil, strokeWeight, startedAt, idleNormalized, idleRate;
+            public float time, pressure, recoil, strokeWeight, startedAt, idleNormalized, idleRate, holdElapsed;
             public int strength, idleHash;
             public Transform[] nodes;
             public Pose[] rest;
@@ -244,6 +244,7 @@ namespace ColaCola.Presentation
             if (!p.actor || !p.right.hand || !bottle) { CancelAndRestore(); return; }
             try
             {
+                if (p.waiting) p.holdElapsed += Time.unscaledDeltaTime;
                 if (!p.paused)
                 {
                     float next = Mathf.Min(Duration, p.time + Time.unscaledDeltaTime);
@@ -316,6 +317,21 @@ namespace ColaCola.Presentation
                     carriedTilt * p.actorRight) * orientation;
                 p.strokeWeight = .30f + .70f * speed;
             }
+            // A result hold is a living pose, not a frozen animation frame. The independent
+            // clock keeps moving while the choreography waits, then fades into set-down.
+            float holdWeight = Ease((time - ShakeEndTime) / (ResultCheckTime - ShakeEndTime)) *
+                (1 - Ease((time - ResultCheckTime) / .18f));
+            float holdClock = Mathf.Max(0, time - ShakeEndTime) + p.holdElapsed;
+            if (holdWeight > 0)
+            {
+                float settle = Mathf.Sin(holdClock * 18) * Mathf.Exp(-holdClock * 7) * .004f;
+                target += (p.actorRight * (Mathf.Sin(holdClock * 4.4f) * .0045f) +
+                    Vector3.up * (Mathf.Sin(holdClock * 6.1f) * .003f + settle)) * holdWeight;
+                orientation = Quaternion.AngleAxis(Mathf.Sin(holdClock * 5.1f) * 1.6f * holdWeight,
+                    carriedTilt * p.actorRight) * orientation;
+                orientation = Quaternion.AngleAxis(Mathf.Sin(holdClock * 3.7f) * .9f * holdWeight,
+                    p.tableForward) * orientation;
+            }
             if (p.recoil > 0)
             {
                 target -= p.tableForward * (p.recoil * .045f);
@@ -325,7 +341,8 @@ namespace ColaCola.Presentation
             float leaning = reach * (1 - returning) * Mathf.Lerp(1, .48f, lift);
             if (p.torso)
             {
-                p.torso.rotation = Quaternion.AngleAxis(38 * leaning, p.actorRight) * p.torso.rotation;
+                p.torso.rotation = Quaternion.AngleAxis(38 * leaning + Mathf.Sin(holdClock * 4.4f) * .28f * holdWeight,
+                    p.actorRight) * p.torso.rotation;
                 p.torso.position += (p.tableForward * .11f + Vector3.up * .015f) * leaning;
                 if (p.head) p.head.rotation = Quaternion.AngleAxis(-22 * leaning, p.actorRight) * p.head.rotation;
                 float shortage = Vector3.Distance(p.right.shoulder.position, target) - (p.right.upperLength + p.right.lowerLength - .008f);

@@ -69,6 +69,7 @@ namespace ColaCola.Editor
             if (!string.IsNullOrEmpty(saved)) run = JsonUtility.FromJson<Run>(saved);
             if (run != null && run.id.StartsWith("shake-", StringComparison.Ordinal)) run.suite = "shake";
             if (run != null && run.id.StartsWith("turnui-", StringComparison.Ordinal)) run.suite = "turn-ui";
+            if (run != null && run.id.StartsWith("fonts-", StringComparison.Ordinal)) run.suite = "fonts";
             if (run != null && run.editorProcessId != Process.GetCurrentProcess().Id) run = null;
             EditorApplication.update += Tick;
             Application.logMessageReceived += OnLog;
@@ -106,6 +107,12 @@ namespace ColaCola.Editor
             pollAt = EditorApplication.timeSinceStartup + .3;
             try
             {
+                if (Active && File.Exists(RequestPath))
+                {
+                    var cancellation = JsonUtility.FromJson<Request>(File.ReadAllText(RequestPath));
+                    if (cancellation != null && cancellation.suite == "cancel")
+                    { File.Delete(RequestPath); Stop(false, "Cancelled through verification mailbox."); }
+                }
                 if (!Active && File.Exists(RequestPath))
                 {
                     var request = JsonUtility.FromJson<Request>(File.ReadAllText(RequestPath));
@@ -118,6 +125,7 @@ namespace ColaCola.Editor
                         editorProcessId = Process.GetCurrentProcess().Id, batchMode = Application.isBatchMode };
                     if (request.id.StartsWith("shake-", StringComparison.Ordinal)) run.suite = "shake";
                     if (request.id.StartsWith("turnui-", StringComparison.Ordinal)) run.suite = "turn-ui";
+                    if (request.id.StartsWith("fonts-", StringComparison.Ordinal)) run.suite = "fonts";
                     Directory.CreateDirectory(Root);
                     File.WriteAllText(Root + "/verification.log", "Open-editor Play verification " + run.id + "\n");
                     Persist();
@@ -191,6 +199,7 @@ namespace ColaCola.Editor
                 case "duel": PlayableDuelVerification.Begin(); break;
                 case "shake": ColaShakePlayReview.Begin(); break;
                 case "turn-ui": ColaTurnLabelVerification.Begin(); break;
+                case "fonts": ColaTurnLabelVerification.Begin(true); break;
             }
         }
 
@@ -201,13 +210,20 @@ namespace ColaCola.Editor
                 (type == LogType.Exception || type == LogType.Error ? "\n" + trace : "") + "\n");
             if (type == LogType.Exception || type == LogType.Error || type == LogType.Assert)
             { Stop(false, message); return; }
+            if (message.StartsWith("Can't add script behaviour", StringComparison.Ordinal))
+            { Stop(false, message); return; }
             string first = message.Split('\n')[0].Trim();
             if (!first.StartsWith("COLA_") || !first.EndsWith("_PASS")) return;
             if (!run.passed.Contains(first)) run.passed.Add(first);
             run.message = first; Persist();
+            if (first == "COLA_FONT_READABILITY_PASS" && run.suite == "fonts")
+            {
+                Stop(true, "Bundled-font/UI checks completed in actual Play. Actual Game-view captures require visual review.");
+                return;
+            }
             if (first == "COLA_TURN_LABEL_PASS" && run.suite == "turn-ui")
             {
-                Stop(true, "Turn-label checks completed in actual Play. Game-view captures saved for visual review.");
+                Stop(true, "Physical turn-indicator checks completed in actual Play. Game-view captures saved for visual review.");
                 return;
             }
             if (first == "COLA_SHAKE_REVIEW_PASS" && run.suite == "shake")
