@@ -37,7 +37,7 @@ namespace ColaCola.Core
     public sealed class BottlePressureModel
     {
         public const int LowPressure = 2;
-        public const int MediumPressure = 4;
+        public const int MediumPressure = 5;
         public const int HighPressure = 8;
         public static int PressureIncreaseFor(int strength) => strength switch
         {
@@ -51,7 +51,7 @@ namespace ColaCola.Core
         public bool ForceBurst { get; set; }
         public double ProbabilityExponent { get; }
 
-        public BottlePressureModel(int limit, double exponent = 1.6, int pressure = 0)
+        public BottlePressureModel(int limit, double exponent = 2, int pressure = 0)
         {
             if (double.IsNaN(exponent) || double.IsInfinity(exponent) || exponent <= 0)
                 throw new ArgumentOutOfRangeException(nameof(exponent));

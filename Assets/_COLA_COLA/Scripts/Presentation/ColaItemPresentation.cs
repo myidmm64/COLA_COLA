@@ -466,6 +466,8 @@ namespace ColaCola.Presentation
                     if (!interaction.IsBusy) { hoveredSlot = cube.Slot; hoveredBoss = cube.IsBoss; }
                     var definition = ColaItemCatalog.Get(items.ItemAt(cube.Slot, cube.IsBoss).Value);
                     hoverTitle = definition.Name; hoverDescription = definition.Effect;
+                    if (!cube.IsBoss && items.CanAct && items.UsesRemaining() == 0)
+                        hoverDescription += "\n이번 차례 아이템을 모두 사용했습니다.";
                     return;
                 }
                 var bellTarget = hit.collider.GetComponent<ColaWaiterBellTarget>();
@@ -477,8 +479,15 @@ namespace ColaCola.Presentation
                 if (hit.collider == interaction.bottleCollider || OnTarget(hit.transform, interaction.bottle))
                 {
                     hoverTitle = "콜라";
-                    hoverDescription = interaction.Model != null && interaction.Model.SelectedStrength > 0 ?
-                        "선택한 강도로 흔듭니다. 터뜨린 쪽이 피해를 받습니다." : "먼저 압력계 아래에서 흔들기 강도를 선택하세요.";
+                    int strength = interaction.Model != null ? interaction.Model.SelectedStrength : 0;
+                    if (strength > 0)
+                    {
+                        var modifiers = items.PreviewAction(false);
+                        var prediction = interaction.Model.Predict(strength, modifiers.PressureBonus,
+                            pressureMultiplier: modifiers.PressureMultiplier);
+                        hoverDescription = $"압력 +{prediction.PressureIncrease} · 안전 {ColaItemBalance.ShakeReward(strength, false, modifiers.RewardBonus)}토큰 · 폭발 {ColaItemBalance.ShakeReward(strength, true)}토큰 / 피해 {modifiers.Damage}";
+                    }
+                    else hoverDescription = "강도를 선택한 뒤 흔드세요.";
                     return;
                 }
                 var gauge = interaction.gauge;

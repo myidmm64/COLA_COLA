@@ -8,7 +8,7 @@ namespace ColaCola.Presentation
         [Range(1, 999)] public int minimumBottleLimit = 25;
         [Range(1, 999)] public int maximumBottleLimit = 35;
         [Tooltip("1 is linear; values above 1 soften early risk. Lower values raise early burst probability.")]
-        [Min(.1f)] public float probabilityExponent = 1.6f;
+        [Min(.1f)] public float probabilityExponent = 2f;
         [Min(.1f)] public float shakeSeconds = .55f;
         [Min(.1f)] public float burstPauseSeconds = .55f;
 

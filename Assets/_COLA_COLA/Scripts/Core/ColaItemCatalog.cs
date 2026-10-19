@@ -26,24 +26,25 @@ namespace ColaCola.Core
     {
         private static readonly ColaItemDefinition[] Entries =
         {
-            new(ColaItemId.IceCup, "얼음컵", 3, 8, $"압력 -{ColaItemBalance.IceReduction}."),
-            new(ColaItemId.FizzCandy, "발포 캔디", 7, 17, $"압력 +{ColaItemBalance.CandyIncrease}."),
-            new(ColaItemId.CarbonationSyrup, "탄산 시럽", 4, 15, $"상대의 다음 흔들기 압력 +{ColaItemBalance.SyrupBonus}."),
+            new(ColaItemId.IceCup, "얼음컵", 3, 9, $"압력 -{ColaItemBalance.IceReduction}."),
+            new(ColaItemId.FizzCandy, "발포 캔디", 7, 14, $"압력 +{ColaItemBalance.CandyIncrease}."),
+            new(ColaItemId.CarbonationSyrup, "탄산 시럽", 4, 16, $"상대의 다음 흔들기 압력 +{ColaItemBalance.SyrupBonus}. 매운맛 주문서와 함께 적용 불가."),
             new(ColaItemId.QueueTicket, "취소 번호표", 3, 12, "상대 아이템 1개를 무작위로 제거."),
-            new(ColaItemId.Bill, "계산서", 5, 8, "흔들지 않고 상대에게 차례를 넘김."),
-            new(ColaItemId.SpicyOrder, "매운맛 주문서", 3, 14, $"상대의 다음 흔들기 압력 {ColaItemBalance.SpicyMultiplier}배."),
-            new(ColaItemId.SafetyCap, "안전 마개", 4, 5, $"내 다음 흔들기 피해 -{ColaItemBalance.ShieldReduction}."),
-            new(ColaItemId.PizzaSlice, "피자 한 조각", 8, 3, "체력 +1."),
-            new(ColaItemId.HotSauce, "핫소스", 3, 12, $"이 콜라가 교체될 때까지 양쪽 폭발 피해 +{ColaItemBalance.HotDamageBonus}. 중첩 불가."),
-            new(ColaItemId.DoubleStamp, "더블 스탬프", 4, 6, $"내 다음 흔들기 보상 +{ColaItemBalance.StampRewardBonus}토큰.")
+            new(ColaItemId.Bill, "계산서", 5, 7, "흔들지 않고 상대에게 차례를 넘김."),
+            new(ColaItemId.SpicyOrder, "매운맛 주문서", 3, 12, $"상대의 다음 흔들기 압력 {ColaItemBalance.SpicyMultiplier}배. 탄산 시럽과 함께 적용 불가."),
+            new(ColaItemId.SafetyCap, "안전 마개", 4, 8, $"내 다음 흔들기 피해 -{ColaItemBalance.ShieldReduction}."),
+            new(ColaItemId.PizzaSlice, "피자 한 조각", 8, 4, "체력 +1."),
+            new(ColaItemId.HotSauce, "핫소스", 3, 11, $"이 콜라가 교체될 때까지 양쪽 폭발 피해 +{ColaItemBalance.HotDamageBonus}. 중첩 불가."),
+            new(ColaItemId.DoubleStamp, "더블 스탬프", 4, 7, $"내 다음 흔들기가 안전하면 +{ColaItemBalance.StampRewardBonus}토큰.")
         };
         public static IReadOnlyList<ColaItemDefinition> All { get; } = Array.AsReadOnly(Entries);
         public static bool Contains(ColaItemId id) => (int)id >= 0 && (int)id < Entries.Length;
-        public static ColaItemId[] DrawRandom(Random random, int count)
+        public static ColaItemId[] DrawRandom(Random random, int count, ColaItemId? excluded = null)
         {
             if (random == null) throw new ArgumentNullException(nameof(random));
             if (count < 0) throw new ArgumentOutOfRangeException(nameof(count));
             var pool = new List<ColaItemDefinition>(Entries);
+            if (excluded.HasValue) pool.RemoveAll(item => item.Id == excluded.Value);
             var result = new ColaItemId[Math.Min(count, pool.Count)];
             for (int i = 0; i < result.Length; i++)
             {

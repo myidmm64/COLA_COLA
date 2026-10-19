@@ -97,7 +97,7 @@ namespace ColaCola.Presentation
             playerMaxHealth = Mathf.Clamp(playerMaxHealth, 1, 99);
             bossBaseHealth = Mathf.Clamp(bossBaseHealth, 1, 99);
             PlayerHealth = playerMaxHealth;
-            BossMaxHealth = Mathf.Min(99, bossBaseHealth + Level - 1);
+            BossMaxHealth = Mathf.Min(99, bossBaseHealth + Mathf.Min(Level - 1, ColaItemBalance.MaximumBossHealthBonus));
             BossHealth = BossMaxHealth;
             State = DuelState.Playing;
             LastActionMessage = "Choose a strength, then shake the cola.";
@@ -121,7 +121,7 @@ namespace ColaCola.Presentation
             if (!isActiveAndEnabled || State != DuelState.Playing) return;
             bool boss = interaction.LastActionWasBoss;
             var modifiers = interaction.LastItemModifiers;
-            int reward = (result.Burst ? 5 : result.Prediction.Strength) + modifiers.RewardBonus;
+            int reward = ColaItemBalance.ShakeReward(result.Prediction.Strength, result.Burst, modifiers.RewardBonus);
             int damage = result.Burst ? modifiers.Damage : 0;
             if (boss)
             {

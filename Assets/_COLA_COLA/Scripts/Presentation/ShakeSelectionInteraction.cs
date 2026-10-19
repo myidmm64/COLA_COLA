@@ -98,6 +98,7 @@ namespace ColaCola.Presentation
             CommittedActionCount = 0;
             BottleNumber = 0;
             BeginNextBottle();
+            if (items) items.BeginTurn(false);
         }
 
         public void CancelPendingActions()
@@ -127,7 +128,7 @@ namespace ColaCola.Presentation
         private void SetBottle(int limit, int pressure = 0)
         {
             if (random == null) random = new System.Random();
-            if (model == null) model = new BottlePressureModel(limit, settings ? settings.probabilityExponent : 1.6, pressure);
+            if (model == null) model = new BottlePressureModel(limit, settings ? settings.probabilityExponent : 2, pressure);
             else model.BeginBottle(limit, pressure);
             BottleNumber++;
             if (items) items.OnBottleReplaced();
@@ -274,6 +275,7 @@ namespace ColaCola.Presentation
                 busy = false;
                 IsBossTurn = false;
                 BossItemPhase = BossPassedTurn = false;
+                if (items) items.BeginTurn(false);
                 RefreshView();
                 yield break;
             }
@@ -301,17 +303,20 @@ namespace ColaCola.Presentation
                 ColaTabletopAudio.Cue(this, "Turn", bottle.position, .30f);
                 BossPassedTurn = false;
                 BossItemPhase = true;
+                if (items) items.BeginTurn(true);
                 RefreshView();
-                int strength = bossChoiceRandom.Next(1, 4);
+                var ai = items ? items.GetComponent<ColaBossItemAI>() : null;
+                int strength = ai && ai.isActiveAndEnabled ? ai.ChooseStrength() : bossChoiceRandom.Next(1, 4);
                 PlannedBossStrength = strength;
                 yield return new WaitForSecondsRealtime(Mathf.Max(0, bossThinkSeconds));
                 if (!IsCurrent(version)) yield break;
-                var ai = items ? items.GetComponent<ColaBossItemAI>() : null;
                 if (ai && ai.isActiveAndEnabled && ai.automaticItemUse && !BossPassedTurn)
                     yield return ai.PrepareTurn(strength);
                 while (IsCurrent(version) && items && items.IsUsingItem) yield return null;
                 if (!IsCurrent(version)) yield break;
                 BossItemPhase = false;
+                if (!BossPassedTurn && ai && ai.isActiveAndEnabled) strength = ai.ChooseStrength();
+                PlannedBossStrength = strength;
                 bool startsNextBottle = false;
                 if (!BossPassedTurn && model.SelectStrength(strength) && CommitSelected(true, out var bossResult))
                 {
@@ -324,6 +329,7 @@ namespace ColaCola.Presentation
             busy = false;
             IsBossTurn = false;
             BossItemPhase = BossPassedTurn = false;
+            if (items) items.BeginTurn(false);
             RefreshView();
         }
 
