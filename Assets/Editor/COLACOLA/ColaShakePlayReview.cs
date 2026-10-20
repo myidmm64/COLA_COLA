@@ -55,7 +55,9 @@ namespace ColaCola.Editor
         }
         internal static void Complete(string report, Exception failure)
         {
-            ProjectVerificationBridge.WriteReport(Folder + "/Play-review.txt", report + (failure == null ? "" : "\nFAIL: " + failure));
+            string folder = ProjectVerificationBridge.CameraMotionOnly ? ProjectVerificationBridge.Root + "/camera-motion" :
+                ProjectVerificationBridge.ArmMotionOnly ? ProjectVerificationBridge.Root + "/arm-motion" : Folder;
+            ProjectVerificationBridge.WriteReport(folder + "/Play-review.txt", report + (failure == null ? "" : "\nFAIL: " + failure));
             if (failure == null) Debug.Log("COLA_SHAKE_REVIEW_PASS\n" + report); else Debug.LogException(failure);
             EditorApplication.isPlaying = false;
         }
@@ -74,7 +76,9 @@ namespace ColaCola.Editor
             wasMaximized = SessionState.GetBool(Key + ".WasMaximized", false);
             if (gameWindow) gameWindow.maximized = wasMaximized;
             if (previousWindow) previousWindow.Focus();
-            ProjectVerificationBridge.WriteReport(Folder + "/Editor-restoration.txt",
+            string folder = ProjectVerificationBridge.CameraMotionOnly ? ProjectVerificationBridge.Root + "/camera-motion" :
+                ProjectVerificationBridge.ArmMotionOnly ? ProjectVerificationBridge.Root + "/arm-motion" : Folder;
+            ProjectVerificationBridge.WriteReport(folder + "/Editor-restoration.txt",
                 $"Game view maximized before={wasMaximized}, after={(gameWindow ? gameWindow.maximized.ToString() : "window unavailable")}. Original focus restored when the window still exists.");
         }
     }
@@ -87,7 +91,22 @@ namespace ColaCola.Editor
         private ColaBossItemAI ai;
         private bool saved, originalW, originalE, originalAi, originalAuto;
         private float originalThink;
-        public void Begin() => StartCoroutine(Guard(Run()));
+        private ColaArmMotionReview armReview;
+        private ColaCameraMotionReview cameraReview;
+        public void Begin()
+        {
+            if (ProjectVerificationBridge.CameraMotionOnly)
+            {
+                cameraReview = new ColaCameraMotionReview();
+                StartCoroutine(cameraReview.Execute());
+            }
+            else if (ProjectVerificationBridge.ArmMotionOnly)
+            {
+                armReview = new ColaArmMotionReview();
+                StartCoroutine(armReview.Execute());
+            }
+            else StartCoroutine(Guard(Run()));
+        }
         private IEnumerator Guard(IEnumerator routine)
         {
             var stack = new Stack<IEnumerator>(); stack.Push(routine);
@@ -262,6 +281,8 @@ namespace ColaCola.Editor
         }
         private void Restore()
         {
+            armReview?.Restore();
+            cameraReview?.Restore();
             if (!saved || !match) return;
             if (match.GuaranteedBurst != originalW) match.ApplyDebugCommand(ColaDuelController.DebugCommand.ToggleGuaranteedBurst);
             if (match.ItemTestMenuEnabled != originalE) match.ApplyDebugCommand(ColaDuelController.DebugCommand.ToggleFreeItemMenu);

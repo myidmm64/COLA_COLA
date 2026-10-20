@@ -25,7 +25,7 @@ namespace ColaCola.Editor
                 text.AppendLine($"Actual Play frame: {Time.frameCount}; listener volume {AudioListener.volume}; listener paused {AudioListener.pause}.");
                 var music = UnityEngine.Object.FindAnyObjectByType<ColaDuelMusic>();
                 if (!music) text.AppendLine("No live ColaDuelMusic component.");
-                else foreach (var source in new[] { music.Ambience, music.Tension })
+                else foreach (var source in new[] { music.Ambience })
                 {
                     if (!source) { text.AppendLine("Missing live music source."); continue; }
                     text.AppendLine($"Source={source.name}; playing={source.isPlaying}; mute={source.mute}; volume={source.volume:F4}; sample={source.timeSamples}");
@@ -106,27 +106,18 @@ namespace ColaCola.Editor
             if (originalGuaranteed) match.ApplyDebugCommand(ColaDuelController.DebugCommand.ToggleGuaranteedBurst);
             var interaction = match.interaction;
             var music = match.GetComponent<ColaDuelMusic>();
-            Check(music && music.Ambience && music.Tension, "Music was not automatically installed.");
+            Check(music && music.Ambience, "Music was not automatically installed.");
             yield return new WaitForSecondsRealtime(.6f);
             Check(!AudioListener.pause && AudioListener.volume > 0, "Unity AudioListener is paused or muted.");
-            Check(!music.Ambience.mute && !music.Tension.mute, "A BGM source is muted.");
-            Check(music.Ambience.isPlaying && music.Tension.isPlaying && music.Ambience.loop && music.Tension.loop &&
-                music.Ambience.spatialBlend == 0 && music.Tension.spatialBlend == 0, "Both scheduled 2D loop stems must be playing.");
-            int phaseDifference = Math.Abs(music.Ambience.timeSamples - music.Tension.timeSamples);
-            Check(phaseDifference < 1024, "Music stems are not synchronized: " + phaseDifference);
-            foreach (var clip in new[] { music.Ambience.clip, music.Tension.clip })
+            Check(!music.Ambience.mute, "The BGM source is muted.");
+            Check(music.Ambience.isPlaying && music.Ambience.loop && music.Ambience.spatialBlend == 0,
+                "The single 2D music loop must be playing.");
+            Check(music.Ambience.clip == Resources.Load<AudioClip>(ColaDuelMusic.MusicResource), "Expected Bleak Terminal.");
+            foreach (var clip in new[] { music.Ambience.clip })
             {
-                Check(clip.channels == 2 && Math.Abs(clip.length - ColaDuelMusic.ScoreSeconds) < .01f, "Expected current " + ColaDuelMusic.ScoreSeconds + "-second stereo score.");
-                Check(MusicClipEvidence.Compare(clip, AssetDatabase.GetAssetPath(clip), report), "Loaded Play PCM does not match the current WAV on disk.");
-                var pcm = new float[clip.samples * clip.channels];
-                Check(clip.GetData(pcm, 0), "Music PCM could not be read.");
-                double energy = 0; float peak = 0;
-                foreach (float value in pcm) { energy += value * value; peak = Mathf.Max(peak, Mathf.Abs(value)); }
-                double rms = Math.Sqrt(energy / pcm.Length);
-                Check(peak > .2f && peak < .9f && rms > .03 && rms < .3, "Music is silent or clipped.");
-                Check(Mathf.Abs(pcm[0] - pcm[pcm.Length - 2]) < .05f && Mathf.Abs(pcm[1] - pcm[pcm.Length - 1]) < .05f,
-                    "Music loop has a discontinuity at its seam.");
-                report.AppendLine($"PASS: {clip.name}, {ColaDuelMusic.ScoreSeconds}s stereo, peak {peak:F3}, RMS {rms:F3}; bounded level and continuous loop seam.");
+                Check(clip.length > 1, "The music clip has no duration.");
+                Check(MusicClipEvidence.Compare(clip, AssetDatabase.GetAssetPath(clip), report), "Loaded BGM does not reference the current asset.");
+                report.AppendLine($"PASS: {clip.name}, {clip.length:F2}s, {clip.channels} channels. Streaming MP3; no PCM/seam comparison claimed.");
             }
             foreach (var listener in FindObjectsByType<AudioListener>(FindObjectsSortMode.None))
                 report.AppendLine($"Listener {listener.name}: enabled={listener.isActiveAndEnabled}");
@@ -159,10 +150,10 @@ namespace ColaCola.Editor
             float low = music.Intensity;
             interaction.BeginBottle(30, 27);
             yield return new WaitForSecondsRealtime(1.5f);
-            Check(low < .05f && music.Intensity > .95f && music.Tension.volume > .05f, "Pressure did not drive the danger mix.");
-            var baseSource = music.Ambience; var tensionSource = music.Tension;
+            Check(low < .05f && music.Intensity > .95f, "Pressure state did not update.");
+            var baseSource = music.Ambience;
             match.RestartRun(123); interaction.automaticBossTurns = false;
-            Check(music.Ambience == baseSource && music.Tension == tensionSource && FindObjectsByType<ColaDuelMusic>(FindObjectsSortMode.None).Length == 1,
+            Check(music.Ambience == baseSource && FindObjectsByType<ColaDuelMusic>(FindObjectsSortMode.None).Length == 1,
                 "Restart duplicated or replaced the ongoing score.");
             interaction.BeginBottle(30);
             Check(match.ApplyDebugCommand(ColaDuelController.DebugCommand.ToggleGuaranteedBurst) && match.GuaranteedBurst, "W debug path failed to enable guaranteed burst.");
@@ -175,17 +166,17 @@ namespace ColaCola.Editor
                 if (interaction.burstPresentation.Stage == ColaBurstPresentation.BurstStage.FadeIn) faded = true;
                 yield return null;
             }
-            Check(!interaction.IsBusy && ducked && faded && music.Ambience.isPlaying && music.Tension.isPlaying,
+            Check(!interaction.IsBusy && ducked && faded && music.Ambience.isPlaying,
                 "Explosion must duck the score and preserve playback through blackout/reveal.");
             yield return new WaitForSecondsRealtime(1.4f);
             Check(music.Duck > .95f && music.Ambience.volume > .2f, "Music did not recover after fade-in.");
             int nearEnd = music.Ambience.clip.samples - 2205;
-            music.Ambience.timeSamples = music.Tension.timeSamples = nearEnd;
+            music.Ambience.timeSamples = nearEnd;
             yield return new WaitForSecondsRealtime(.4f);
-            Check(music.Ambience.isPlaying && music.Tension.isPlaying && music.Ambience.timeSamples < 22050 &&
-                Math.Abs(music.Ambience.timeSamples - music.Tension.timeSamples) < 1024, "Actual loop wrap stopped or desynchronized playback.");
-            report.AppendLine("PASS: synchronized scheduled playback and real sample-clock wrap; pressure raises the tension stem; rupture ducks music and fade-in restores it; restart retains one score and two original sources.");
-            report.AppendLine("Scope: actual Unity Play-mode source/sample state, PCM levels, loop seam, pressure mix and rupture/fade behavior. Speaker listening is not verified.");
+            Check(music.Ambience.isPlaying && music.Ambience.timeSamples < music.Ambience.clip.frequency,
+                "Actual loop wrap stopped playback.");
+            report.AppendLine("PASS: single Bleak Terminal source and real sample-clock wrap; rupture ducks music and fade-in restores it; restart retains the ongoing music source.");
+            report.AppendLine("Scope: actual Unity Play-mode asset/source/sample state, digital output and rupture/fade behavior. Speaker listening and the MP3 seam are not verified.");
             report.AppendLine("W used for burst and debug state restored. Q/E unnecessary for audio-only checks.");
         }
         private void OnDestroy() => RestoreDebug();
@@ -198,6 +189,12 @@ namespace ColaCola.Editor
         {
             if (!clip || !File.Exists(path)) { report.AppendLine("Missing source clip/file: " + path); return false; }
             byte[] file = File.ReadAllBytes(path);
+            if (!string.Equals(Path.GetExtension(path), ".wav", StringComparison.OrdinalIgnoreCase))
+            {
+                string sourceHash; using (var sha = SHA256.Create()) sourceHash = BitConverter.ToString(sha.ComputeHash(file)).Replace("-", "");
+                report.AppendLine($"Streaming asset={path}; source SHA256={sourceHash}. Asset identity only; compressed PCM comparison not performed.");
+                return clip == AssetDatabase.LoadAssetAtPath<AudioClip>(path);
+            }
             int channels = 0, rate = 0, bits = 0, format = 0, offset = 0, bytes = 0;
             for (int i = 12; i + 8 <= file.Length;)
             {

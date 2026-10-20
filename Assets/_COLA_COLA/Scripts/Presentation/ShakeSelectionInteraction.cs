@@ -97,12 +97,19 @@ namespace ColaCola.Presentation
             model = new BottlePressureModel(Mathf.Clamp(settings.minimumBottleLimit, 1, 999), settings.probabilityExponent);
             CommittedActionCount = 0;
             BottleNumber = 0;
+            if (Application.IsPlaying(gameObject))
+            {
+                ColaInteractionCamera.EnsureFor(this);
+                ColaPressureButtonPress.EnsureFor(this)?.PrepareForPlay();
+                ColaBurstPresentation.EnsureFor(this).PrepareForPlay();
+            }
             BeginNextBottle();
         }
 
         public void CancelPendingActions()
         {
             sessionVersion++;
+            GetComponent<ColaPressureButtonPress>()?.Cancel();
             GetComponent<ColaTabletopAudio>()?.CancelAll();
             if (items) items.CancelItemUsePresentation();
             if (shakeAnimator) shakeAnimator.CancelAndRestore();
@@ -134,7 +141,7 @@ namespace ColaCola.Presentation
             RestorePoses();
             RefreshView(true);
             if (Application.IsPlaying(gameObject) && (!burstPresentation || burstPresentation.Stage == ColaBurstPresentation.BurstStage.Idle))
-                ColaTabletopAudio.Cue(this, "NewBottle", bottle.position, .55f);
+                ColaTabletopAudio.Cue(this, "NewBottle", bottle.position, .55f, LastActionWasBoss);
         }
 
         private void BeginNextBottle()
@@ -152,8 +159,11 @@ namespace ColaCola.Presentation
             var sheet = items ? items.GetComponent<ColaOrderSheet>() : null;
             if (sheet && sheet.BlocksGameplay) return false;
             if (!InputEnabled || !HasBindings || !Application.IsPlaying(gameObject) || !isActiveAndEnabled || IsBusy || model == null || strength < 1 || strength > 3) return false;
+            // Already selected: consume the click without replaying the hand, gauge or camera reaction.
+            if (model.SelectedStrength == strength) return true;
             if (!model.SelectStrength(strength)) return false;
             RefreshView();
+            ColaPressureButtonPress.EnsureFor(this)?.Press(strengthButtons[strength - 1]);
             ColaTabletopAudio.Cue(this, "Button", strengthButtons[strength - 1].position, .65f);
             return true;
         }
@@ -164,6 +174,7 @@ namespace ColaCola.Presentation
             if (sheet && sheet.BlocksGameplay) return false;
             if (!InputEnabled || !HasBindings || !Application.IsPlaying(gameObject) || !isActiveAndEnabled || IsBusy || model == null) return false;
             if (!CommitSelected(false, out var result)) return false;
+            GetComponent<ColaPressureButtonPress>()?.ReturnForAction();
             busy = true;
             StartCoroutine(ResolveSequence(result, sessionVersion));
             return true;
@@ -285,6 +296,7 @@ namespace ColaCola.Presentation
             var sheet = items ? items.GetComponent<ColaOrderSheet>() : null;
             if (sheet && sheet.BlocksGameplay) return false;
             if (!InputEnabled || !HasBindings || !Application.IsPlaying(gameObject) || !isActiveAndEnabled || IsBusy || IsBossTurn) return false;
+            GetComponent<ColaPressureButtonPress>()?.ReturnForAction();
             model.ClearSelection();
             ReleaseButtons();
             RefreshView();
@@ -352,7 +364,7 @@ namespace ColaCola.Presentation
                 // One choreography owns reach, grip, strokes, result hold and set-down.
                 yield return shakeAnimator.PlayShake(boss, result.Prediction.Strength,
                     result.Burst ? () => burstPresentation.PlayBurst(boss) : (Func<IEnumerator>)null,
-                    pressureFraction, () => ColaTabletopAudio.Cue(this, "Safe", bottle.position, .40f));
+                    pressureFraction, () => ColaTabletopAudio.Cue(this, "Safe", bottle.position, .40f, boss));
                 if (!IsCurrent(version)) yield break;
                 if (!shakeAnimator.LastPlaybackCompleted)
                 {
@@ -399,7 +411,7 @@ namespace ColaCola.Presentation
                 }
                 fallbackAwaitingResult = false;
                 if (result.Burst) yield return burstPresentation.PlayBurst(boss);
-                else ColaTabletopAudio.Cue(this, "Safe", bottle.position, .40f);
+                else ColaTabletopAudio.Cue(this, "Safe", bottle.position, .40f, boss);
             }
             if (!IsCurrent(version)) yield break;
             audio.EndShake();

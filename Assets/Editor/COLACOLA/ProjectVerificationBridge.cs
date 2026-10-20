@@ -35,6 +35,8 @@ namespace ColaCola.Editor
         private static bool subscribed;
         public static bool FullRun => run != null && run.suite == "full" && run.phase == "running";
         public static bool MusicOnly => run != null && run.suite == "music";
+        public static bool ArmMotionOnly => run != null && run.id.StartsWith("shake-arms-", StringComparison.Ordinal);
+        public static bool CameraMotionOnly => run != null && run.id.StartsWith("shake-camera-", StringComparison.Ordinal);
         private static bool Active => run != null && run.phase != "passed" && run.phase != "failed";
 
         public static void Schedule(EditorApplication.CallbackFunction action)
@@ -228,7 +230,8 @@ namespace ColaCola.Editor
             }
             if (first == "COLA_SHAKE_REVIEW_PASS" && run.suite == "shake")
             {
-                Stop(true, "Original-rig shake checks completed in Play. Actual Game-view captures saved for separate visual inspection.");
+                Stop(true, CameraMotionOnly ? "Camera onset and actual frame timing measured in Play. No screenshots or continuous Game-view visual review." :
+                    "Original-rig shake checks completed in Play. Actual Game-view captures saved for separate visual inspection.");
                 return;
             }
             if (first == "COLA_MUSIC_PLAYMODE_PASS" && run.suite == "music")

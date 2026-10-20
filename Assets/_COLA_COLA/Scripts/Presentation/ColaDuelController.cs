@@ -92,6 +92,8 @@ namespace ColaCola.Presentation
         {
             TabletopReadability.Apply(transform.root);
             ColaCameraBreathing.EnsureFor(transform.root);
+            if (interaction.shakeAnimator && interaction.shakeAnimator.playerAnimator)
+                ColaFpsSleeveExtension.EnsureFor(interaction.shakeAnimator.playerAnimator);
             ColaDuelMusic.EnsureFor(this);
             ColaPizzeriaAmbience.EnsureFor(this);
             playerMaxHealth = Mathf.Clamp(playerMaxHealth, 1, ColaItemBalance.StartingHealth);

@@ -10,7 +10,7 @@ namespace ColaCola.Presentation
         private float started = -100, strength;
         public Vector3 CurrentOffset { get; private set; }
         public Vector3 CurrentEuler { get; private set; }
-        public bool IsActive => Time.unscaledTime - started < .85f;
+        public bool IsActive => Time.unscaledTime - started < .65f;
 
         public void Fire(bool boss)
         {
@@ -30,12 +30,12 @@ namespace ColaCola.Presentation
             if (stage != CinemachineCore.Stage.Noise || !Application.IsPlaying(gameObject)) return;
             float t = Time.unscaledTime - started;
             CurrentOffset = CurrentEuler = Vector3.zero;
-            if (t < 0 || t >= .85f) return;
-            float decay = Mathf.Exp(-t * 8.5f) * (1 - Mathf.SmoothStep(0, 1, Mathf.InverseLerp(.5f, .85f, t)));
+            if (t < 0 || t >= .65f) return;
+            float decay = Mathf.Exp(-t * 9.5f) * (1 - Mathf.SmoothStep(0, 1, Mathf.InverseLerp(.4f, .65f, t)));
             float kick = (1 - Mathf.Exp(-t * 100)) * decay * strength;
-            CurrentOffset = new Vector3(Mathf.Sin(t * 83) * .018f, -.024f, -.072f) * kick;
-            CurrentEuler = new Vector3(-5.5f + Mathf.Sin(t * 62) * 1.1f,
-                Mathf.Sin(t * 83) * 1.4f, Mathf.Sin(t * 49 + .4f) * 2.4f) * kick;
+            // One short recoil preserves impact without rapid yaw, roll or lateral vibration.
+            CurrentOffset = new Vector3(0, -.010f, -.040f) * kick;
+            CurrentEuler = new Vector3(-2.2f, 0, 0) * kick;
             state.PositionCorrection += state.GetCorrectedOrientation() * CurrentOffset;
             state.OrientationCorrection *= Quaternion.Euler(CurrentEuler);
         }

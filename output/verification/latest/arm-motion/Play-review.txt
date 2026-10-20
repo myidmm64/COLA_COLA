@@ -1,0 +1,23 @@
+Actual MainScene Play mode. W off; no paid purchases, Q/E unnecessary. Limit 999 isolates motion, not probability balance.
+Idle camera travel=0.0000000m; angle=0.00000deg.
+Game-view Left-press, frame=474.
+Skin Cube.001: mesh=Cube.001 / seated sleeve, readable=True, vertices=1369.
+Right sleeve shoulder-end vertices inside Game viewport: 0/20.
+Skin Cube.002: mesh=Cube.002 / seated sleeve, readable=True, vertices=1367.
+Right sleeve shoulder-end vertices inside Game viewport: 0/0.
+Button camera peak travel=0.0008303m.
+Rapid selections max left wrist Y=1.0476; button top=0.9564.
+Game-view Right-shake, frame=714.
+Skin Cube.001: mesh=Cube.001 / seated sleeve, readable=True, vertices=1369.
+Right sleeve shoulder-end vertices inside Game viewport: 0/20.
+Skin Cube.002: mesh=Cube.002 / seated sleeve, readable=True, vertices=1367.
+Right sleeve shoulder-end vertices inside Game viewport: 0/0.
+Game-view Right-return, frame=1314.
+Skin Cube.001: mesh=Cube.001 / seated sleeve, readable=True, vertices=1369.
+Right sleeve shoulder-end vertices inside Game viewport: 0/20.
+Skin Cube.002: mesh=Cube.002 / seated sleeve, readable=True, vertices=1367.
+Right sleeve shoulder-end vertices inside Game viewport: 0/0.
+Left: lengths=0.2097/0.1849m; drift=0.0000003m; elbow flex=0.00..19.50deg; max forearm step=10.37deg at action -1.000s (capture stalls included); normal-frame step=10.37deg.
+Right: lengths=0.2097/0.1849m; drift=0.0000004m; elbow flex=0.00..19.22deg; max forearm step=37.84deg at action 0.405s (capture stalls included); normal-frame step=10.21deg.
+PASS: upper arm, elbow and wrist stayed collinear during every sampled active left/right animation frame (flex < 0.15deg). Idle frames are excluded from this requirement.
+Bone metrics and three ScreenCapture screenshots are real Play/Game-view evidence. Images require separate visual inspection. No Camera.Render, preview camera or clip sampling.

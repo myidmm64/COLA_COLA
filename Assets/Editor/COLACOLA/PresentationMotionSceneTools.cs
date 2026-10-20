@@ -20,7 +20,7 @@ namespace ColaCola.Editor
                 CharacterIdleFactory.RebuildBossOnly(root);
                 var breathing = ColaCameraBreathing.EnsureFor(root.transform);
                 if (!breathing) throw new InvalidOperationException("Cinemachine camera is missing.");
-                breathing.enabled = true;
+                breathing.enabled = false;
                 var gauge = root.GetComponentInChildren<PressureGaugeDisplay>();
                 gauge.forecastTransitionSeconds = .38f;
                 EditorUtility.SetDirty(gauge);

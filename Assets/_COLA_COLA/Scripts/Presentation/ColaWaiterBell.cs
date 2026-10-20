@@ -58,6 +58,7 @@ namespace ColaCola.Presentation
         {
             if (boss || !isActiveAndEnabled) return;
             pressedAt = Time.unscaledTime;
+            ColaInteractionCamera.Cue(items.match.interaction, "Bell", root.transform.position);
             // Keep the existing bell timbre; repeated orders restart this source instead of stacking it.
             audioSource.Stop();
             audioSource.PlayOneShot(ding, .48f);

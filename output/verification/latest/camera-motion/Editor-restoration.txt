@@ -1,0 +1,1 @@
+Game view maximized before=False, after=False. Original focus restored when the window still exists.

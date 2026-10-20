@@ -34,6 +34,7 @@ namespace ColaCola.Presentation
         public bool UsesOriginalRig => current != null && current.actor && current.right.hand && current.right.hand.IsChildOf(current.actor.transform);
         public bool IsAwaitingResult => current != null && current.waiting;
         public float ShakeStrokeWeight => current != null ? current.strokeWeight : 0;
+        public float ShakeStroke => current != null ? current.stroke : 0;
 
         private struct Pose
         {
@@ -50,8 +51,11 @@ namespace ColaCola.Presentation
         private sealed class Arm
         {
             public Transform shoulder, elbow, hand;
-            public Vector3 startHand, pole, startPole, elbowLocal, handLocal;
+            public Vector3 startHand, pole, startPole;
             public Quaternion startRotation;
+            private readonly Quaternion wristRelativeRotation;
+            private readonly bool preserveFpsWrist;
+            private float continuousRoll;
             public float upperLength, lowerLength;
             public Arm(Animator actor, Transform wrist, bool boss, string side)
             {
@@ -59,29 +63,31 @@ namespace ColaCola.Presentation
                 elbow = Find(actor.transform, (boss ? "forearm." : "LowArm.") + side);
                 hand = wrist;
                 startHand = hand.position; startRotation = hand.rotation; pole = startPole = elbow.position;
-                elbowLocal = elbow.localPosition;
-                handLocal = hand.localPosition;
                 upperLength = Vector3.Distance(shoulder.position, elbow.position);
                 lowerLength = Vector3.Distance(elbow.position, hand.position);
+                wristRelativeRotation = Quaternion.Inverse(elbow.rotation) * hand.rotation;
+                preserveFpsWrist = !boss;
             }
             public void PositionFpsShoulder(Vector3 target, Camera camera, float tableHeight, float amount)
             {
-                // Route the FPS sleeve back toward the seated body ABOVE the tabletop.
-                // Pushing the arm downward hides its tail inside the table and produces
-                // a detached-looking cut. Keep a fixed reach proportion while holding.
-                const float seatedForearm = .64f;
+                // Keep the imported forearm length; reach by repositioning the shoulder, not the wrist joint.
+                float seatedForearm = lowerLength;
                 Vector3 forward = Vector3.ProjectOnPlane(camera.transform.forward, Vector3.up).normalized;
-                float down = Mathf.Min(.14f, Mathf.Max(0, target.y - (tableHeight + .075f)));
-                float back = Mathf.Sqrt(seatedForearm * seatedForearm - down * down - .12f * .12f);
-                Vector3 elbowTarget = target - forward * back - Vector3.up * down + camera.transform.right * .12f;
-                float forearmScale = seatedForearm / Mathf.Max(lowerLength, .0001f);
-                hand.localPosition = handLocal * Mathf.Lerp(1, forearmScale, amount);
-                Vector3 anchor = elbowTarget - (forward * .8f + Vector3.up * .6f) * upperLength;
+                float down = Mathf.Min(seatedForearm * .35f, Mathf.Max(0, target.y - (tableHeight + .075f)));
+                float side = Mathf.Min(.12f, seatedForearm * .28f);
+                float back = Mathf.Sqrt(Mathf.Max(0, seatedForearm * seatedForearm - down * down - side * side));
+                Vector3 elbowTarget = target - forward * back - Vector3.up * down + camera.transform.right * side;
+                Vector3 armDirection = (target - elbowTarget).normalized;
+                Vector3 anchor = target - armDirection * (upperLength + lowerLength);
                 shoulder.position = Vector3.Lerp(shoulder.position, anchor, amount);
-                pole = Vector3.Lerp(startPole, elbowTarget, amount);
             }
             public void Move(Vector3 target, Quaternion orientation, Vector3 bendPoint)
             {
+                if (preserveFpsWrist)
+                {
+                    ColaArmPose.Straighten(shoulder, elbow, hand, target, orientation, wristRelativeRotation, ref continuousRoll);
+                    return;
+                }
                 Vector3 start = shoulder.position;
                 float a = Vector3.Distance(start, elbow.position), b = Vector3.Distance(elbow.position, hand.position);
                 if (a < .0001f || b < .0001f) return;
@@ -110,7 +116,7 @@ namespace ColaCola.Presentation
         {
             public Animator actor;
             public bool boss, animatorEnabled, paused, waiting, revealed, gripBound;
-            public float time, pressure, recoil, strokeWeight, startedAt, idleNormalized, idleRate, holdElapsed;
+            public float time, pressure, recoil, stroke, strokeWeight, startedAt, idleNormalized, idleRate, holdElapsed;
             public int strength, idleHash;
             public Transform[] nodes;
             public Pose[] rest;
@@ -301,10 +307,12 @@ namespace ColaCola.Presentation
             orientation = carriedTilt * orientation;
             target += p.actorRight * (.018f * lift);
             p.strokeWeight = 0;
+            p.stroke = 0;
             if (time >= ShakeStartTime && time <= ShakeEndTime)
             {
                 float phase = Mathf.InverseLerp(ShakeStartTime, ShakeEndTime, time);
                 float stroke = Stroke(phase, p.strength + 1, out float speed);
+                p.stroke = stroke;
                 float vertical = p.strength == 1 ? .035f : p.strength == 2 ? .055f : .075f;
                 float depth = p.strength == 1 ? .018f : p.strength == 2 ? .032f : .045f;
                 float tilt = p.boss ? (p.strength == 1 ? 10 : p.strength == 2 ? 18 : 26) :

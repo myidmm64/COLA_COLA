@@ -1,0 +1,14 @@
+Actual MainScene Play, end-of-frame physical camera transform and wall-clock measurements. No screenshots, preview renders or disk I/O during sampled frames. W off; no purchases; Q/E unnecessary.
+Cold button 1: input CPU=2.435ms; first movement >0.01mm=16.27ms; initial flat frames=2; peak=1.7835mm; max frame gap=9.77ms; max camera step=0.0464mm; frames=308.
+First output frames: 8.9ms:0.0022mm 13.0ms:0.0097mm 16.3ms:0.0161mm 19.5ms:0.0233mm 22.8ms:0.0319mm 26.5ms:0.0425mm 31.5ms:0.0564mm 35.1ms:0.0787mm 38.8ms:0.0969mm 42.2ms:0.1171mm 46.4ms:0.1395mm 49.9ms:0.1648mm
+Warm button 2: input CPU=0.245ms; first movement >0.01mm=18.30ms; initial flat frames=4; peak=2.0927mm; max frame gap=5.13ms; max camera step=0.0627mm; frames=312.
+First output frames: 3.5ms:0.0004mm 7.0ms:0.0016mm 10.5ms:0.0044mm 14.4ms:0.0092mm 18.3ms:0.0167mm 21.5ms:0.0265mm 24.9ms:0.0369mm 28.7ms:0.0504mm 33.0ms:0.0686mm 37.7ms:0.0910mm 41.0ms:0.1193mm 44.8ms:0.1411mm
+Warm button 3: input CPU=0.268ms; first movement >0.01mm=17.24ms; initial flat frames=4; peak=2.3870mm; max frame gap=6.81ms; max camera step=0.0799mm; frames=285.
+First output frames: 3.8ms:0.0004mm 6.8ms:0.0018mm 10.2ms:0.0045mm 13.6ms:0.0091mm 17.2ms:0.0160mm 21.4ms:0.0260mm 25.4ms:0.0412mm 29.3ms:0.0590mm 33.3ms:0.0790mm 37.3ms:0.1039mm 41.2ms:0.1317mm 45.4ms:0.1608mm
+Isolated bell camera: input CPU=0.177ms; first movement >0.01mm=12.40ms; initial flat frames=3; peak=5.2139mm; max frame gap=9.65ms; max camera step=0.1141mm; frames=307.
+First output frames: 3.4ms:0.0008mm 6.4ms:0.0034mm 9.2ms:0.0079mm 12.4ms:0.0146mm 15.3ms:0.0254mm 22.1ms:0.0387mm 31.7ms:0.1527mm 35.1ms:0.1976mm 38.2ms:0.2411mm 41.4ms:0.2842mm 44.5ms:0.3329mm 47.8ms:0.3816mm
+Isolated grip camera: input CPU=0.201ms; first movement >0.01mm=12.63ms; initial flat frames=2; peak=6.4996mm; max frame gap=6.91ms; max camera step=0.1857mm; frames=411.
+First output frames: 3.6ms:0.0024mm 8.1ms:0.0073mm 12.6ms:0.0180mm 17.1ms:0.0368mm 21.7ms:0.0651mm 26.3ms:0.1010mm 32.0ms:0.1472mm 36.0ms:0.2161mm 39.7ms:0.2745mm 44.1ms:0.3284mm 48.4ms:0.4036mm 52.6ms:0.4840mm
+Actual shake start: input CPU=12.389ms; first movement >0.01mm=16.51ms; initial flat frames=0; peak=9.5845mm; max frame gap=16.51ms; max camera step=0.4037mm; frames=1643.
+First output frames: 16.5ms:0.0328mm 20.0ms:0.0468mm 22.7ms:0.0608mm 25.6ms:0.0736mm 28.3ms:0.0879mm 31.2ms:0.1032mm 33.8ms:0.1205mm 36.4ms:0.1377mm 38.9ms:0.1559mm 41.4ms:0.1744mm 44.2ms:0.1947mm 46.9ms:0.2182mm
+PASS: all actual camera gestures moved and settled; original debug/automatic-turn flags restored. Scope is automated camera/source/frame timing, not speaker listening or continuous Game-view visual review.

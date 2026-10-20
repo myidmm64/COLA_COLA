@@ -60,7 +60,7 @@ namespace ColaCola.Presentation
             prop = inventory.TakeModelForUse(slot, isBoss);
             if (!prop)
             {
-                ColaTabletopAudio.Cue(items.match.interaction, "Item_" + id, items.match.interaction.bottle.position, .78f);
+                ColaTabletopAudio.Cue(items.match.interaction, "Item_" + id, items.match.interaction.bottle.position, .78f, isBoss);
                 return;
             }
             current = id;
@@ -85,6 +85,7 @@ namespace ColaCola.Presentation
             impact = false;
             fading = false;
             IsPlaying = true;
+            ColaInteractionCamera.Cue(items.match.interaction, "ItemReach", origin, isBoss);
         }
 
         private Vector3 GesturePosition(ColaItemId id, bool isBoss)
@@ -158,7 +159,7 @@ namespace ColaCola.Presentation
             if (!impact && t >= ContactTime)
             {
                 impact = true;
-                ColaTabletopAudio.Cue(items.match.interaction, "Item_" + current, position, .78f);
+                ColaTabletopAudio.Cue(items.match.interaction, "Item_" + current, position, .78f, boss);
                 Scatter();
             }
             if (t > ActionEnd) Fade(1 - exit);

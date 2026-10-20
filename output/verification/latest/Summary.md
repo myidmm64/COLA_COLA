@@ -1,14 +1,14 @@
-# Latest Play verification
+# Latest Play verification — camera onset
 
-- Result: passed
-- Suite: fonts
-- Editor process: 33256
-- Batch mode: False
-- Started UTC: 2026-10-19T09:06:34.0836794Z
-- Bundled-font/UI checks completed in actual Play. Actual Game-view captures require visual review. Original scene setup restored; Editor left open.
+- Result: passed. Request: shake-camera-9c88a40b92ab4b6180efb3547cda5c6c.
+- Original MainScene in the already-open Unity Editor. Physical camera transform sampled at end of actual Play frames.
+- W off; no purchases, Q/E unnecessary. Original debug and automatic-turn flags restored.
+- Button onset (0.01mm threshold): 44–50ms before, 16–18ms after.
+- First shake input CPU: 49.80ms before, 12.39ms after. Maximum sampled first-shake frame interval: 62.35ms before, 16.51ms after.
+- Ordinary position/rotation continuity retained; no reset of camera velocity on a new interaction.
+- Burst textures, particle resources and synthesized audio now prepared during session startup. No explosion is played during preparation.
+- Isolated bell/grip camera curves measured separately; this is not a bell-payment or item-balance test.
+- No screenshots, mesh baking, preview rendering or disk I/O during measured frames. Continuous Game-view visual review not performed in this timing run.
+- Original scene setup, Game-view maximization and editor focus restored; Editor left open.
 
-- PASS: COLA_FONT_READABILITY_PASS
-
-Scope: actual Unity Play-mode automated state/input/audio checks. Game-view visual inspection and listening are separate.
-
-Typography visual review completed separately on actual Game-view captures at 1351×760: HUD/effects, waiter-bell description and the real E test menu. See [observations and scope](typography/Visual-review.md). Settled-menu label drift: 0.0070 pixels over 0.35 seconds. Original scene/window state restored; Editor left open.
+Latest detailed results: [camera-motion/Play-review.txt](camera-motion/Play-review.txt). These are observed timings from this editor session, not a hardware-independent performance guarantee.

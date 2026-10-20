@@ -1,0 +1,7 @@
+{
+  "message": "Runtime and Editor assemblies compiled with Unity Roslyn and existing Unity response settings. Existing warnings retained. Play and Game-view behavior not tested.",
+  "playMode": false,
+  "completedUtc": "2026-10-20T02:46:12.3778895Z",
+  "success": true,
+  "scope": "compile-only"
+}

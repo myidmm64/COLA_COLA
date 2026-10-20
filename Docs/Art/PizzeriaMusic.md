@@ -1,17 +1,14 @@
-# Still Table — 피자리아 대전 BGM과 환경음
+# Bleak Terminal — 현재 게임 BGM
 
-**48초·80 BPM·16마디의 차분한 긴장 루프**다. 불규칙하고 시끄럽다는 피드백을 반영해, 두 마디마다 D3–A3–F3–E3 네 음이 정확히 두 박 간격으로 반복되도록 새로 만들었다. D 베이스와 낮은 F 내성, 매 박 같은 부드러운 맥박이 받친다. 부드럽게 시작하고 끝나는 안정된 배음의 신스를 사용한다. 날카로운 시계 타격·금속 마찰·반음 충돌·엇박·옥타브 점프·불규칙한 쉼표는 제거했다.
+2026-10-20 사용자 선택에 따라 **Ruskerdax의 Bleak Terminal 한 곡만** 재생한다. 다른 음악 레이어나 후보 곡을 섞지 않는다. 기존 효과음과 피자리아 환경음은 유지한다.
 
-피자리아 안에서 상대와 마주 앉아 결과를 기다리는 긴장감을 목표로 새로 합성한 곡이다. 외부 음악의 샘플·멜로디는 사용하지 않았다.
+- 게임 에셋: `Assets/_COLA_COLA/Resources/Audio/BleakTerminal.mp3`. 사용자 요청으로 보관한 후보 원본을 그대로 복사했다. 속도·피치·편집 없음.
+- [원작·공식 배포](https://opengameart.org/content/bleak-terminal) / 작곡가 Ruskerdax / [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/). 상업적 사용과 편집이 허용되며 표기는 선택 사항이다.
+- `ColaDuelMusic`가 단일 2D 반복 AudioSource를 사용한다. MP3는 스트리밍으로 가져오도록 설정했다. 새 콜라·재시작 때 음악을 처음부터 다시 틀지 않는다.
+- 기본 `musicVolume=0.50`, 출력은 `musicVolume × 0.84 × Duck`. 압력에 따라 추가 음악이나 피치를 얹지 않는다.
+- 이전 Last Order 두 WAV와 메타는 삭제했다. `Tools/Audio/compose_pizzeria_bgm.py`는 환경음 제작과 SFX 공용 함수 의존성이 있어 남겼다. 실행하면 이전 곡을 다시 만들 수 있지만 현재 게임은 그 파일을 읽지 않는다.
 
-- `Assets/_COLA_COLA/Resources/Audio/Pizzeria_Night_Base.wav`: 네 음의 음형·낮은 내성·베이스·일정한 맥박. 기존 경로와 GUID를 유지해 교체했다.
-- `Assets/_COLA_COLA/Resources/Audio/Pizzeria_Night_Tension.wav`: 같은 박자와 음형을 따르는 옅은 상성부. 압력이 높아져도 리듬 밀도는 바뀌지 않는다.
-- `Tools/Audio/compose_pizzeria_bgm.py`: 부드러운 악기 합성·16마디 편곡·짧고 낮은 순환 잔향을 포함한 원본 제작 소스. NumPy 사용. BGM에는 난수·노이즈 음원을 쓰지 않는다.
-- `ColaDuelMusic`: MainScene 대전 시작 시 자동 설치. 두 스테레오 트랙을 같은 DSP 시각에 시작하고 계속 반복한다. 새 콜라·재시작에서 곡을 처음부터 반복 재생하거나 소스를 중복 생성하지 않는다.
-
-새 콜라에서는 기본 곡이 들린다. 공개 한계 대비 압력이 높아지면 약 1.25초 동안 같은 박자의 옅은 상성부가 섞인다. 흔들기 후 공통 결과 대기에는 음악을 평소의 58%로 낮춘다. 안전과 폭발 모두 같은 대기 믹스를 사용한다. 폭발 직전에는 음악이 낮아지고, 폭발 때는 약 10%로 내려가 폭발음을 위한 공간을 만든다. 암전에는 낮게 유지하고 화면 페이드인에 맞춰 회복한다. 승패 화면에서는 전체 음악을 더 낮춘다. 전역 AudioListener 볼륨은 건드리지 않는다.
-
-`ColaDuelMusic.musicVolume` 기본값은 **0.50**이다. 기본 트랙은 그 84%, 상성부는 최대 22%로 섞는다. 두 WAV는 22,050Hz·스테레오·16bit이며 최대 진폭은 기본 0.50·상성부 0.34다. 음원 피크와 재생 게인을 함께 낮췄다. 두 트랙은 길이와 박자가 같다. 음표와 잔향의 끝을 루프 처음으로 이어 붙여 내보낸다. 게임용 원본만 교체하며 이전 곡의 백업·별도 프리뷰·임시 녹음은 만들지 않는다. 음악만 다시 제작하려면 `python -B Tools/Audio/compose_pizzeria_bgm.py --music-only`를 사용한다.
+결과 대기에는 안전/폭발에 동일하게 음악을 58%로 낮춘다. 폭발 직전 50%, 폭발·복귀 중 10%, 암전 중 18%를 적용하고 페이드인에 맞춰 회복한다. 결과가 결정되기 전에 실제 폭발 여부로 음악을 다르게 재생하지 않는다.
 
 환경음은 `ColaPizzeriaAmbience`가 대전 시작 시 자동 연결한다. 음악과 다른 AudioSource를 사용하며 별도의 `ambienceVolume`(기본 0.28)로 조절한다.
 
@@ -22,4 +19,11 @@
 
 간헐음은 첫 6~10초 뒤, 이후 12~23초 간격으로 재생한다. 금속과 물방울의 선택·간격은 게임 난수와 독립적이며 플레이어 행동이나 폭발 결과를 암시하지 않는다. 폭발·암전에서 환경음도 낮추고 그 구간에는 새 간헐음을 시작하지 않는다. 재시작 시 소스를 중복 생성하거나 루프를 매번 처음부터 틀지 않는다. 모든 환경음은 22,050Hz·모노·16bit이며 실제 게임용 에셋이다.
 
-이번 곡의 **Unity Play·컴파일·청취 검사는 실행하지 않았다.** 기존 `music/Playmode-validation.txt`가 있더라도 이전 곡의 결과다. 음악 검증 코드의 기대 길이는 `ColaDuelMusic.ScoreSeconds`(48초)를 따르도록 수정만 했다. 제작 스크립트 실행은 원본 에셋 생성이며 검증 실행이 아니다. 실제 음량·믹스·루프 청취는 사용자가 Game 뷰에서 확인한다.
+
+이번 교체의 **Unity Play·청취·컴파일 검사는 실행하지 않았다.** 기존 음악 보고서는 이전 곡의 결과다. 요청 시 쓰는 음악 Play 검사 소스는 단일 스트리밍 MP3의 에셋·재생·루프·더킹 기준으로 수정했으나 실행하지 않았다. 압축 MP3를 이전 WAV와 PCM 비교하거나 루프 경계가 검증됐다고 주장하지 않는다.
+
+## 외부 무료 후보
+
+최초 6곡은 `References/BGM_Candidates/`에 보관한다. 추가 7곡은 `04_Faster_Industrial/`에 모았다. 모두 Kevin MacLeod의 무료 CC BY 4.0 곡으로, 게임에 채택하면 해당 곡의 크레딧을 표시한다. 새 후보는 공식 표기 135~165 BPM이며 Chase Pulse Faster·Club Diver·Harmful or Fatal·Ghostpocalypse - 7 Master·Nightmare Machine·Eternal Terminal·Burnt Spirit이다. 전자·산업·호러 질감은 제작자 설명·악기·태그 기준으로 선정했다. Bleak Terminal의 공식 BPM은 미표기이므로 속도 차이를 직접 측정했다고 표현하지 않는다.
+
+각 폴더 README에 목록, LICENSES.md에 출처·크레딧, manifest.json에 원본 경로·용량·해시를 남겼다. 추가 후보는 게임에 연결하지 않는다. 재다운로드 소스는 `Tools/Audio/download_faster_bgm.py`다.

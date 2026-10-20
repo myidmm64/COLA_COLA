@@ -2,14 +2,13 @@ using UnityEngine;
 
 namespace ColaCola.Presentation
 {
-    /// <summary>Two synchronized original music stems; pressure changes the mix without restarting the song.</summary>
+    /// <summary>One Bleak Terminal loop, ducked during result and explosion presentations.</summary>
     [DisallowMultipleComponent]
     public sealed class ColaDuelMusic : MonoBehaviour
     {
-        public const float ScoreSeconds = 48;
+        public const string MusicResource = "Audio/BleakTerminal";
         [Range(0, 1)] public float musicVolume = .50f;
         public AudioSource Ambience { get; private set; }
-        public AudioSource Tension { get; private set; }
         public float Intensity { get; private set; }
         public float Duck { get; private set; } = 1;
         private ColaDuelController match;
@@ -36,21 +35,38 @@ namespace ColaCola.Presentation
 
         private void EnsureSources()
         {
-            if (!Ambience) Ambience = Source("BGM / Still Table - Score", "Audio/Pizzeria_Night_Base");
-            if (!Tension) Tension = Source("BGM / Still Table - Pressure", "Audio/Pizzeria_Night_Tension");
-            if (!Ambience.clip || !Tension.clip)
-            { Debug.LogError("COLA_COLA original BGM stems are missing.", this); return; }
-            if (!Ambience.isPlaying || !Tension.isPlaying)
+            // Retire the old pressure layer after an editor script reload as well as on a fresh run.
+            for (int i = transform.childCount - 1; i >= 0; i--)
             {
-                Ambience.Stop(); Tension.Stop();
-                double start = AudioSettings.dspTime + .12;
-                Ambience.PlayScheduled(start); Tension.PlayScheduled(start);
+                var child = transform.GetChild(i);
+                if (child.name == "BGM / Last Order - Pressure")
+                {
+                    var oldSource = child.GetComponent<AudioSource>();
+                    if (oldSource) oldSource.Stop();
+                    Destroy(child.gameObject);
+                }
+                else if (!Ambience && (child.name == "BGM / Bleak Terminal" || child.name == "BGM / Last Order - Drive"))
+                    Ambience = child.GetComponent<AudioSource>();
+            }
+            if (!Ambience) Ambience = Source("BGM / Bleak Terminal", MusicResource);
+            var clip = Resources.Load<AudioClip>(MusicResource);
+            if (Ambience.clip != clip)
+            {
+                Ambience.Stop();
+                Ambience.clip = clip;
+            }
+            Ambience.name = "BGM / Bleak Terminal";
+            if (!Ambience.clip)
+            { Debug.LogError("COLA_COLA Bleak Terminal BGM is missing.", this); return; }
+            if (!Ambience.isPlaying)
+            {
+                Ambience.Play();
             }
         }
 
         private void Update()
         {
-            if (!Application.IsPlaying(gameObject) || !match || !Ambience || !Tension) return;
+            if (!Application.IsPlaying(gameObject) || !match || !Ambience) return;
             var interaction = match.interaction;
             float pressure = interaction && interaction.Model != null ?
                 Mathf.Clamp01((float)interaction.Model.Pressure / interaction.Model.Limit) : 0;
@@ -75,8 +91,6 @@ namespace ColaCola.Presentation
             float blend = 1 - Mathf.Exp(-Time.unscaledDeltaTime * (targetDuck < Duck ? 20 : 2.5f));
             Duck = Mathf.Lerp(Duck, targetDuck, blend);
             Ambience.volume = musicVolume * .84f * Duck;
-            // A quiet upper voice follows the same steady phrase without increasing rhythm density.
-            Tension.volume = musicVolume * .22f * Intensity * Duck;
         }
 
         private void OnEnable()
@@ -87,12 +101,10 @@ namespace ColaCola.Presentation
         private void OnDisable()
         {
             if (Ambience) Ambience.Stop();
-            if (Tension) Tension.Stop();
         }
         private void OnDestroy()
         {
             if (Ambience) Destroy(Ambience.gameObject);
-            if (Tension) Destroy(Tension.gameObject);
         }
     }
 }

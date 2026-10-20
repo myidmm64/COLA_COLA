@@ -33,8 +33,9 @@ namespace ColaCola.Presentation
             return audio;
         }
 
-        public static void Cue(ShakeSelectionInteraction interaction, string name, Vector3 position, float gain = .7f)
+        public static void Cue(ShakeSelectionInteraction interaction, string name, Vector3 position, float gain = .7f, bool bossAction = false)
         {
+            ColaInteractionCamera.Cue(interaction, name, position, bossAction);
             var audio = EnsureFor(interaction);
             if (audio && audio.isActiveAndEnabled) audio.Play(name, position, gain);
         }
@@ -96,6 +97,7 @@ namespace ColaCola.Presentation
         public void BeginShake(int strength, float pressureFraction, bool usesAnimator, float fallbackDuration)
         {
             EndShake();
+            if (owner && owner.bottle) ColaInteractionCamera.Cue(owner, "ShakeStart", owner.bottle.position, owner.LastActionWasBoss);
             pressure = Mathf.Clamp01(pressureFraction);
             animated = usesAnimator; shaking = true; gripped = setDown = false;
             shakeStarted = Time.unscaledTime; shakeDuration = Mathf.Max(.1f, fallbackDuration);
@@ -117,9 +119,9 @@ namespace ColaCola.Presentation
             float grip = animated ? ColaShakeAnimator.GripStartTime : 0;
             float release = animated ? ColaShakeAnimator.GripEndTime : shakeDuration;
             if (!gripped && clock >= grip && clear)
-            { gripped = true; Play("Grip", owner.bottle.position, .45f); }
+            { gripped = true; Cue(owner, "Grip", owner.bottle.position, .45f, owner.LastActionWasBoss); }
             if (!setDown && clock >= release && clear)
-            { setDown = true; Play("SetDown", owner.bottle.position, .65f); }
+            { setDown = true; Cue(owner, "SetDown", owner.bottle.position, .65f, owner.LastActionWasBoss); }
             float begin = animated ? ColaShakeAnimator.ShakeStartTime : 0;
             float end = animated ? ColaShakeAnimator.ShakeEndTime : shakeDuration;
             float envelope = clear ? Mathf.SmoothStep(0, 1, (clock - begin) / .08f) *
@@ -145,6 +147,7 @@ namespace ColaCola.Presentation
         public void CancelAll()
         {
             EndShake();
+            ColaInteractionCamera.ResetFor(owner);
             foreach (var voice in voices) if (voice) voice.Stop();
         }
         private void OnDisable() => CancelAll();

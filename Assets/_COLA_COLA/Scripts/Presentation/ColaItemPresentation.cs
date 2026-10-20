@@ -213,14 +213,14 @@ namespace ColaCola.Presentation
                 if (!delivery.sliding)
                 {
                     delivery.sliding = true;
-                    ColaTabletopAudio.Cue(items.match.interaction, "DeliverySlide", delivery.model.position, .48f);
+                    ColaTabletopAudio.Cue(items.match.interaction, "DeliverySlide", delivery.model.position, .48f, delivery.boss);
                 }
                 if (!delivery.landed && elapsed >= DeliverySeconds * .72f)
                 {
                     delivery.landed = true;
                     var id = items.ItemAt(delivery.slot, delivery.boss);
                     bool glass = id == ColaItemId.IceCup || id == ColaItemId.HotSauce || id == ColaItemId.CarbonationSyrup || id == ColaItemId.SodaWater;
-                    ColaTabletopAudio.Cue(items.match.interaction, glass ? "DeliveryLandGlass" : "DeliveryLand", delivery.model.position, .65f);
+                    ColaTabletopAudio.Cue(items.match.interaction, glass ? "DeliveryLandGlass" : "DeliveryLand", delivery.model.position, .65f, delivery.boss);
                 }
                 if (elapsed >= DeliverySeconds)
                 { RestoreDelivery(delivery); deliveries.RemoveAt(i); continue; }

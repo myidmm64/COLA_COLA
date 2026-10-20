@@ -57,6 +57,12 @@ namespace ColaCola.Presentation
             return presentation;
         }
 
+        /// <summary>Build effects/audio before interaction begins, never on the first shake input frame.</summary>
+        public void PrepareForPlay()
+        {
+            if (Application.IsPlaying(gameObject)) EnsureResources();
+        }
+
         public void BeginShake(bool boss)
         {
             EnsureResources();
@@ -142,7 +148,7 @@ namespace ColaCola.Presentation
             while (Time.unscaledTime - started < .22f)
             { if (version != generation) yield break; yield return null; }
             Stage = BurstStage.FadeIn;
-            ColaTabletopAudio.Cue(owner, "NewBottle", owner.bottle.position, .55f);
+            ColaTabletopAudio.Cue(owner, "NewBottle", owner.bottle.position, .55f, owner.LastActionWasBoss);
             started = Time.unscaledTime;
             while (Time.unscaledTime - started < RevealDuration)
             {
