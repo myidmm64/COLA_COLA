@@ -236,9 +236,15 @@ namespace ColaCola.Presentation
             float hemY = hipY - height * .15f;
             var apron = NewMaterial(shader, new Color(.49f, .25f, .18f));
             apron.SetFloat("_Cull", 0);
+            ColaPropPatina.BindWearMap(apron);
+            apron.SetFloat("_PatinaStrength", .55f); apron.SetFloat("_PatinaKind", 6); apron.SetFloat("_PatinaUV", 1);
             var edging = NewMaterial(shader, new Color(.67f, .58f, .40f));
             edging.SetFloat("_Cull", 0);
+            ColaPropPatina.BindWearMap(edging);
+            edging.SetFloat("_PatinaStrength", .48f); edging.SetFloat("_PatinaKind", 6); edging.SetFloat("_PatinaUV", 1);
             var paper = NewMaterial(shader, new Color(.80f, .77f, .65f));
+            ColaPropPatina.BindWearMap(paper);
+            paper.SetFloat("_PatinaStrength", .48f); paper.SetFloat("_PatinaKind", 2);
             Transform waist = Find("spine");
             if (!waist) waist = visual.transform;
             Transform chest = torso ? torso : waist;
@@ -362,6 +368,10 @@ namespace ColaCola.Presentation
         {
             var mesh = new Mesh { name = name, hideFlags = HideFlags.DontSave };
             mesh.SetVertices(vertices); mesh.SetTriangles(triangles, 0);
+            var clothUV = new List<Vector2>(vertices.Count);
+            Vector3 surfaceScale = visual.transform.lossyScale;
+            foreach (var vertex in vertices) clothUV.Add(new Vector2(vertex.x * Mathf.Abs(surfaceScale.x), vertex.y * Mathf.Abs(surfaceScale.y)));
+            mesh.SetUVs(0, clothUV);
             var weights = new BoneWeight[vertices.Count];
             for (int i = 0; i < weights.Length; i++)
             {

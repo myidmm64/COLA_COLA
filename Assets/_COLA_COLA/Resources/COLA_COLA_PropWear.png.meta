@@ -1,0 +1,34 @@
+fileFormatVersion: 2
+guid: 42a5ec5c8bdf42909d821edbccd62e3b
+TextureImporter:
+  serializedVersion: 13
+  externalObjects: {}
+  mipmaps:
+    enableMipMap: 1
+    sRGBTexture: 0
+    mipMapMode: 0
+  isReadable: 0
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 0
+    mipBias: 0
+    wrapU: 0
+    wrapV: 0
+    wrapW: 0
+  textureCompression: 0
+  maxTextureSize: 128
+  textureType: 0
+  textureShape: 1
+  alphaIsTransparency: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 128
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    overridden: 0
+  userData: PS1 grayscale wear mask. Linear data; point filtered; 128px runtime import.
+  assetBundleName:
+  assetBundleVariant:

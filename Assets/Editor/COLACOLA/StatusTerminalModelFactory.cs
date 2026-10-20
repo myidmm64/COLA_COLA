@@ -272,6 +272,7 @@ namespace ColaCola.Editor
             if (result.HasProperty("_Glossiness")) result.SetFloat("_Glossiness", smoothness);
             result.DisableKeyword("_EMISSION");
             if (result.HasProperty("_EmissionColor")) result.SetColor("_EmissionColor", Color.black);
+            ColaCola.Presentation.ColaPropPatina.Configure(result);
             EditorUtility.SetDirty(result);
             return result;
         }

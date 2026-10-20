@@ -204,6 +204,7 @@ namespace ColaCola.Editor
             material.SetColor("_BaseColor", color);
             material.SetFloat("_Metallic", metal);
             material.SetFloat("_Smoothness", smoothness);
+            ColaCola.Presentation.ColaPropPatina.Configure(material);
             EditorUtility.SetDirty(material);
             palette.Add(name, material);
         }

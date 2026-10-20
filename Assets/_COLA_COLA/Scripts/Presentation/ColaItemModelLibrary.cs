@@ -29,6 +29,7 @@ namespace ColaCola.Presentation
             surface.SetColor("_BaseColor", Color.white);
             surface.SetFloat("_Smoothness", .16f);
             surface.SetFloat("_Metallic", .02f);
+            ColaPropPatina.Configure(surface);
         }
 
         public GameObject Create(ColaItemId id, Transform parent)

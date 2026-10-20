@@ -162,8 +162,8 @@ namespace ColaCola.Presentation
             // Already selected: consume the click without replaying the hand, gauge or camera reaction.
             if (model.SelectedStrength == strength) return true;
             if (!model.SelectStrength(strength)) return false;
-            RefreshView();
             ColaPressureButtonPress.EnsureFor(this)?.Press(strengthButtons[strength - 1]);
+            RefreshView();
             ColaTabletopAudio.Cue(this, "Button", strengthButtons[strength - 1].position, .65f);
             return true;
         }
@@ -251,8 +251,8 @@ namespace ColaCola.Presentation
                 gauge.Show(model.Pressure, model.Limit, prediction.PressureAfter, prediction.BurstProbability, immediate);
             }
             else gauge.Show(model.Pressure, model.Limit, null, null, immediate);
-            for (int i = 0; i < 3; i++)
-                strengthButtons[i].localPosition = buttonRest[i] - Vector3.up * (model.SelectedStrength == i + 1 ? .012f : 0);
+            var handPress = GetComponent<ColaPressureButtonPress>();
+            if (!handPress || !handPress.AnimatesButton) RestoreSelectedButtonPose();
             // Coroutine turn completion happens after Update; show the fresh menu with the refreshed controls.
             if (items) items.GetComponent<ColaOrderSheet>()?.RefreshAvailability();
         }
@@ -423,11 +423,36 @@ namespace ColaCola.Presentation
             if (result.Burst && IsCurrent(version)) yield return burstPresentation.RevealAfterBurst();
         }
 
-        private void ReleaseButtons()
+        internal const float ButtonPressDistance = .012f;
+
+        internal void SetButtonPressPose(Transform target, float amount)
         {
-            if (!captured) return;
-            for (int i = 0; i < 3; i++) if (strengthButtons[i]) strengthButtons[i].localPosition = buttonRest[i];
+            if (!captured || strengthButtons == null) return;
+            for (int i = 0; i < Mathf.Min(3, strengthButtons.Length); i++)
+                if (strengthButtons[i]) strengthButtons[i].localPosition = buttonRest[i] -
+                    Vector3.up * (strengthButtons[i] == target ? ButtonPressDistance * Mathf.Clamp01(amount) : 0);
         }
+
+        internal Vector3 ReleasedButtonOffset(Transform target)
+        {
+            if (!captured || !target || strengthButtons == null) return Vector3.zero;
+            for (int i = 0; i < Mathf.Min(3, strengthButtons.Length); i++)
+                if (strengthButtons[i] == target)
+                {
+                    var offset = buttonRest[i] - target.localPosition;
+                    return target.parent ? target.parent.TransformVector(offset) : offset;
+                }
+            return Vector3.zero;
+        }
+
+        internal void RestoreSelectedButtonPose()
+        {
+            int selected = model != null ? model.SelectedStrength : 0;
+            SetButtonPressPose(selected > 0 && strengthButtons != null && selected <= strengthButtons.Length ?
+                strengthButtons[selected - 1] : null, 1);
+        }
+
+        private void ReleaseButtons() => SetButtonPressPose(null, 0);
 
         private void RestorePoses()
         {

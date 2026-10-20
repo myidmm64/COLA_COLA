@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Bezel_PaleMetal
-  m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
+  m_Shader: {fileID: 4800000, guid: 4c860de0bafc4f84b61782d9db6adced, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
@@ -27,6 +27,14 @@ Material:
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
+    - _SurfaceAtlas:
+        m_Texture: {fileID: 2800000, guid: 8d4f46ea086348d6b53de320302266f7, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _PatinaMap:
+        m_Texture: {fileID: 2800000, guid: 42a5ec5c8bdf42909d821edbccd62e3b, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _BaseMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -85,6 +93,12 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _PhotoStrength: 0.95
+    - _ItemPalette: 0
+    - _SurfaceMinAlbedo: 0
+    - _PatinaDensity: 256
+    - _PatinaKind: 1
+    - _PatinaStrength: 0.72
     - _AddPrecomputedVelocity: 0
     - _AlphaClip: 0
     - _AlphaToMask: 0

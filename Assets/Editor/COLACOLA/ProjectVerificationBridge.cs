@@ -38,6 +38,7 @@ namespace ColaCola.Editor
         public static bool ArmMotionOnly => run != null && run.id.StartsWith("shake-arms-", StringComparison.Ordinal);
         public static bool CameraMotionOnly => run != null && run.id.StartsWith("shake-camera-", StringComparison.Ordinal);
         public static bool RetroScreenOnly => run != null && run.id.StartsWith("shake-retro-", StringComparison.Ordinal);
+        public static bool PropPatinaOnly => run != null && run.id.StartsWith("shake-look-patina-", StringComparison.Ordinal);
         public static bool PizzeriaLookOnly => RetroScreenOnly || run != null && run.id.StartsWith("shake-look-", StringComparison.Ordinal);
         private static bool Active => run != null && run.phase != "passed" && run.phase != "failed";
 
@@ -74,6 +75,7 @@ namespace ColaCola.Editor
             if (run != null && run.id.StartsWith("shake-", StringComparison.Ordinal)) run.suite = "shake";
             if (run != null && run.id.StartsWith("turnui-", StringComparison.Ordinal)) run.suite = "turn-ui";
             if (run != null && run.id.StartsWith("fonts-", StringComparison.Ordinal)) run.suite = "fonts";
+            if (run != null && run.id.StartsWith("compile-", StringComparison.Ordinal)) run.suite = "compile";
             if (run != null && run.editorProcessId != Process.GetCurrentProcess().Id) run = null;
             EditorApplication.update += Tick;
             Application.logMessageReceived += OnLog;
@@ -122,7 +124,7 @@ namespace ColaCola.Editor
                     var request = JsonUtility.FromJson<Request>(File.ReadAllText(RequestPath));
                     File.Delete(RequestPath);
                     if (request == null || string.IsNullOrWhiteSpace(request.id) ||
-                        !new[] { "music", "full", "burst", "orders", "items", "duel" }.Contains(request.suite))
+                        !new[] { "compile", "music", "full", "burst", "orders", "items", "duel" }.Contains(request.suite))
                         return;
                     run = new Run { id = request.id, suite = request.suite, phase = "preparing",
                         message = "Importing project changes in the open Editor.", startedUtc = DateTime.UtcNow.ToString("O"),
@@ -130,6 +132,7 @@ namespace ColaCola.Editor
                     if (request.id.StartsWith("shake-", StringComparison.Ordinal)) run.suite = "shake";
                     if (request.id.StartsWith("turnui-", StringComparison.Ordinal)) run.suite = "turn-ui";
                     if (request.id.StartsWith("fonts-", StringComparison.Ordinal)) run.suite = "fonts";
+                    if (request.id.StartsWith("compile-", StringComparison.Ordinal)) run.suite = "compile";
                     Directory.CreateDirectory(Root);
                     File.WriteAllText(Root + "/verification.log", "Open-editor Play verification " + run.id + "\n");
                     Persist();
@@ -138,6 +141,7 @@ namespace ColaCola.Editor
                     return;
                 }
                 if (!Active || EditorApplication.isCompiling || EditorApplication.isUpdating) return;
+                if (run.suite == "compile") { CheckCompilationOnly(); return; }
                 if (EditorApplication.timeSinceStartup >= heartbeatAt)
                 { heartbeatAt = EditorApplication.timeSinceStartup + 2; Persist(); }
                 EditorApplication.QueuePlayerLoopUpdate();
@@ -207,11 +211,55 @@ namespace ColaCola.Editor
             }
         }
 
+        private static void CheckCompilationOnly()
+        {
+            var report = new System.Text.StringBuilder();
+            bool success = true;
+            report.AppendLine("Compilation/import inspection only. No Play transition, scene save, camera render or input.");
+            report.AppendLine("Loaded helper assembly: " + typeof(ColaCola.Presentation.ColaPropPatina).Assembly.Location);
+            foreach (string name in new[] { "COLA_COLA_PropPatina", "COLA_COLA_Staff" })
+            {
+                var shader = Resources.Load<Shader>(name);
+                if (!shader) { success = false; report.AppendLine("ERROR: missing shader " + name); continue; }
+                var material = new Material(shader) { hideFlags = HideFlags.HideAndDontSave };
+                try
+                {
+                    report.AppendLine($"{name}: supported={shader.isSupported}, passes={material.passCount}");
+                    if (material.passCount > 0)
+                    {
+                        ShaderUtil.CompilePass(material, 0, true);
+                        material.EnableKeyword("_ADDITIONAL_LIGHTS");
+                        material.EnableKeyword("_CLUSTER_LIGHT_LOOP");
+                        ShaderUtil.CompilePass(material, 0, true);
+                        if (name == "COLA_COLA_PropPatina")
+                        {
+                            material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+                            ShaderUtil.CompilePass(material, 0, true);
+                        }
+                    }
+                    foreach (var message in ShaderUtil.GetShaderMessages(shader))
+                    {
+                        report.AppendLine($"{message.severity}: {message.file}:{message.line}: {message.message}");
+                        if (message.severity.ToString() == "Error") success = false;
+                    }
+                    if (!shader.isSupported || material.passCount == 0) success = false;
+                }
+                catch (Exception error) { success = false; report.AppendLine(error.ToString()); }
+                finally { UnityEngine.Object.DestroyImmediate(material); }
+            }
+            run.success = success; run.phase = success ? "passed" : "failed";
+            run.message = "C# helper import and targeted shader compilation " + (success ? "passed" : "failed") + ". Play/scene state untouched.";
+            WriteReport(Root + "/compilation/Compilation.txt", report.ToString());
+            File.WriteAllText(Root + "/Summary.md", "# Latest compilation inspection\n\n" + run.message + "\n\n" + report);
+            Persist();
+        }
+
         private static void OnLog(string message, string trace, LogType type)
         {
             if (!Active || !subscribed) return;
             File.AppendAllText(Root + "/verification.log", DateTime.UtcNow.ToString("O") + " [" + type + "] " + message +
                 (type == LogType.Exception || type == LogType.Error ? "\n" + trace : "") + "\n");
+            if (run.suite == "compile") return;
             if (type == LogType.Exception || type == LogType.Error || type == LogType.Assert)
             { Stop(false, message); return; }
             if (message.StartsWith("Can't add script behaviour", StringComparison.Ordinal))
@@ -232,7 +280,8 @@ namespace ColaCola.Editor
             }
             if (first == "COLA_SHAKE_REVIEW_PASS" && run.suite == "shake")
             {
-                Stop(true, RetroScreenOnly ? "Retro pixel screen and natural/burst glitch paths exercised in actual Play. Actual Game-view captures saved for visual inspection." :
+                Stop(true, PropPatinaOnly ? "Live prop textures, item use and shake inspected in actual Play. Idle/mid-use Game-view captures saved for visual review; E debug state restored." :
+                    RetroScreenOnly ? "Retro pixel screen and natural/burst glitch paths exercised in actual Play. Actual Game-view captures saved for visual inspection." :
                     PizzeriaLookOnly ? "Pizzeria staff and lighting observed during actual Play actions. Two actual Game-view captures saved for visual inspection." :
                     CameraMotionOnly ? "Camera onset and actual frame timing measured in Play. No screenshots or continuous Game-view visual review." :
                     "Original-rig shake checks completed in Play. Actual Game-view captures saved for separate visual inspection.");

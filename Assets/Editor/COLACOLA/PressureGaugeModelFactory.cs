@@ -197,6 +197,7 @@ namespace ColaCola.Editor
             if (material.HasProperty("_Metallic")) material.SetFloat("_Metallic", metallic);
             if (material.HasProperty("_Smoothness")) material.SetFloat("_Smoothness", smoothness);
             if (material.HasProperty("_Glossiness")) material.SetFloat("_Glossiness", smoothness);
+            ColaCola.Presentation.ColaPropPatina.Configure(material);
             EditorUtility.SetDirty(material);
             return material;
         }

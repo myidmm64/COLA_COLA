@@ -45,6 +45,7 @@ namespace ColaCola.Presentation
             bezelMaterial.SetFloat("_Smoothness", .08f);
             bezelMaterial.SetFloat("_SpecularHighlights", 0);
             bezelMaterial.SetFloat("_EnvironmentReflections", 0);
+            ColaPropPatina.Configure(bezelMaterial);
             lensMaterial = new Material(unlit) { name = "Turn pilot / muted olive lens", hideFlags = HideFlags.DontSave };
             lensMaterial.SetColor("_BaseColor", Off);
             mesh = MakePuck();

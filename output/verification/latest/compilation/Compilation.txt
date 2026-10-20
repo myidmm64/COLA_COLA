@@ -1,0 +1,4 @@
+Compilation/import inspection only. No Play transition, scene save, camera render or input.
+Loaded helper assembly: C:\Work\COLA_COLA\Library\ScriptAssemblies\Assembly-CSharp.dll
+COLA_COLA_PropPatina: supported=True, passes=4
+COLA_COLA_Staff: supported=True, passes=1

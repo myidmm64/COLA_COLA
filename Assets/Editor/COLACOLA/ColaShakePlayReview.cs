@@ -15,7 +15,8 @@ namespace ColaCola.Editor
     {
         internal const string Key = "COLA_COLA.ShakePlayReview";
         internal const string Folder = ProjectVerificationBridge.Root + "/shake-animation";
-        private static string ActiveFolder => ProjectVerificationBridge.RetroScreenOnly ? ProjectVerificationBridge.Root + "/retro-screen" :
+        private static string ActiveFolder => ProjectVerificationBridge.PropPatinaOnly ? ProjectVerificationBridge.Root + "/prop-patina" :
+            ProjectVerificationBridge.RetroScreenOnly ? ProjectVerificationBridge.Root + "/retro-screen" :
             ProjectVerificationBridge.PizzeriaLookOnly ? ProjectVerificationBridge.Root + "/pizzeria-look" :
             ProjectVerificationBridge.CameraMotionOnly ? ProjectVerificationBridge.Root + "/camera-motion" :
             ProjectVerificationBridge.ArmMotionOnly ? ProjectVerificationBridge.Root + "/arm-motion" : Folder;

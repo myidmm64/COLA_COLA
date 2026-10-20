@@ -22,6 +22,7 @@ namespace ColaCola.Presentation
         private Quaternion displayedRotation;
         private float continuousRoll;
         public bool IsPlaying { get; private set; }
+        public bool AnimatesButton => IsPlaying && !returning;
 
         public static ColaPressureButtonPress EnsureFor(ShakeSelectionInteraction interaction)
         {
@@ -70,6 +71,8 @@ namespace ColaCola.Presentation
                 skinsOwned = true;
             }
             button = target; started = Time.unscaledTime; returning = false; IsPlaying = true;
+            // Selection remains immediate; only the key's visible travel waits for the fingertip.
+            owner.SetButtonPressPose(button, 0);
         }
 
         public void ReturnForAction()
@@ -132,8 +135,17 @@ namespace ColaCola.Presentation
                 Quaternion pressing = Quaternion.LookRotation((forward - Vector3.up * .15f).normalized, Vector3.up) * Quaternion.Inverse(localPalm);
                 Vector3 offset = Quaternion.Inverse(wrist.rotation) * (tip.position - wrist.position);
                 var hit = button.GetComponent<Collider>();
-                Vector3 point = hit ? new Vector3(hit.bounds.center.x, hit.bounds.max.y + .0025f, hit.bounds.center.z) : button.position + Vector3.up * .03f;
+                var box = hit as BoxCollider;
+                Vector3 point = box ? button.TransformPoint(box.center + Vector3.up * (box.size.y * .5f)) + Vector3.up * .0025f :
+                    hit ? new Vector3(hit.bounds.center.x, hit.bounds.max.y + .0025f, hit.bounds.center.z) : button.position + Vector3.up * .03f;
+                // Always target the released surface: reading the moving key directly would
+                // add its depression again every frame and make the fingertip sink through it.
+                point += owner.ReleasedButtonOffset(button);
+                Vector3 travel = button.parent ? button.parent.TransformVector(Vector3.up * ShakeSelectionInteraction.ButtonPressDistance) :
+                    Vector3.up * ShakeSelectionInteraction.ButtonPressDistance;
                 Vector3 contact = point - pressing * offset;
+                float depression = Ease((time - .335f) / .070f);
+                owner.SetButtonPressPose(button, depression);
                 if (time < .30f)
                 {
                     float t = Ease(time / .30f);
@@ -146,13 +158,15 @@ namespace ColaCola.Presentation
                 }
                 else if (time < .48f)
                 {
-                    float down = Ease((time - .30f) / .075f) * (1 - Ease((time - .405f) / .075f));
-                    target = contact + Vector3.up * (.012f * (1 - down)); rotation = pressing;
+                    float touch = Ease((time - .30f) / .035f);
+                    float lift = Ease((time - .405f) / .075f);
+                    target = contact - travel * depression + Vector3.up * (.012f * (1 - touch + lift));
+                    rotation = pressing;
                 }
                 else
                 {
                     float t = Ease((time - .48f) / .34f);
-                    target = Bezier(contact + Vector3.up * .012f, contact + Vector3.up * .09f,
+                    target = Bezier(contact - travel + Vector3.up * .012f, contact + Vector3.up * .09f,
                         restPosition + Vector3.up * .055f, restPosition, t);
                     rotation = Quaternion.Slerp(pressing, restRotation, t);
                 }
@@ -211,6 +225,7 @@ namespace ColaCola.Presentation
             RestoreOverrides(); ReleaseSkins(); IsPlaying = false; currentCurl = 0; button = null;
             hasDisplayedPose = retargeting = returning = false;
             continuousRoll = 0;
+            if (owner) owner.RestoreSelectedButtonPose();
         }
         private void OnDisable() => Cancel();
         private void OnDestroy() => Cancel();

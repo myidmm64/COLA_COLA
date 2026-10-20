@@ -13,7 +13,8 @@ namespace ColaCola.Editor
     /// <summary>Real gameplay and naturally scheduled staff, captured from the existing Game view.</summary>
     internal sealed class ColaPizzeriaLookReview
     {
-        private static string Folder => ProjectVerificationBridge.Root + (ProjectVerificationBridge.RetroScreenOnly ? "/retro-screen" : "/pizzeria-look");
+        private static string Folder => ProjectVerificationBridge.Root + (ProjectVerificationBridge.PropPatinaOnly ? "/prop-patina" :
+            ProjectVerificationBridge.RetroScreenOnly ? "/retro-screen" : "/pizzeria-look");
         private readonly StringBuilder report = new();
         private ColaDuelController match;
         private bool saved, originalW, originalE;
@@ -44,6 +45,11 @@ namespace ColaCola.Editor
             report.AppendLine("No user keyboard/mouse, preview camera, Camera.Render or RenderTexture capture.");
             report.AppendLine($"Debug before: W={originalW}, E={originalE}, tokens={match.PlayerTokens}. W/E off during normal gameplay. Q unnecessary: no purchases.");
             yield return new WaitForSecondsRealtime(2);
+            if (ProjectVerificationBridge.PropPatinaOnly)
+            {
+                yield return ReviewPropPatina();
+                yield break;
+            }
             Check(match.interaction.SelectStrength(2) && match.interaction.ConfirmShake(), "Actual player shake rejected.");
             float deadline = Time.unscaledTime + 35;
             while ((match.interaction.IsBusy || !match.IsPlayerTurn) && Time.unscaledTime < deadline) yield return null;
@@ -98,6 +104,51 @@ namespace ColaCola.Editor
             Check(cap && apron, "Fitted cap/apron missing.");
             report.AppendLine("PASS: naturally scheduled worker walked in Play; fitted cap/apron and supported room-light shader present.");
             report.AppendLine("Two ScreenCapture.CaptureScreenshot PNGs saved at actual Game-view end-of-frame. Visual inspection must be recorded separately after opening the images.");
+        }
+
+        private IEnumerator ReviewPropPatina()
+        {
+            // Use the existing free-menu command to inspect a varied, full tray in real Play.
+            // The wallet is untouched; this does not stand in for a bell payment test.
+            Check(match.ApplyDebugCommand(ColaDuelController.DebugCommand.ToggleFreeItemMenu), "E shared path rejected.");
+            yield return new WaitForSecondsRealtime(.8f);
+            var purchase = new List<ColaCola.Core.ColaItemId>();
+            int empty = ColaItemController.Capacity - match.Items.InventoryCount;
+            for (int i = 0; i < empty; i++) purchase.Add(ColaCola.Core.ColaItemCatalog.All[i].Id);
+            if (purchase.Count > 0) Check(match.Items.TryPurchaseBatch(purchase), "Free test props could not be granted.");
+            if (match.ItemTestMenuEnabled) match.ApplyDebugCommand(ColaDuelController.DebugCommand.ToggleFreeItemMenu);
+            yield return new WaitForSecondsRealtime(2);
+            var seen = new HashSet<Material>();
+            foreach (var renderer in UnityEngine.Object.FindObjectsByType<Renderer>(FindObjectsSortMode.None))
+                foreach (var material in renderer.sharedMaterials)
+                {
+                    if (!material || !material.shader || material.shader.name != "COLA_COLA/PS1 Prop Patina" || !seen.Add(material)) continue;
+                    Check(material.shader.isSupported, "Unsupported prop shader: " + material.name);
+                    var map = material.GetTexture("_PatinaMap");
+                    Check(map && map.width == 128 && map.height == 128 && map.filterMode == FilterMode.Point,
+                        "Missing 128px Point-filtered wear map: " + material.name);
+                    report.AppendLine($"Live material {material.name}: wear={material.GetFloat("_PatinaStrength"):F2}, density={material.GetFloat("_PatinaDensity"):F0}, map={map.name}/{map.width}x{map.height}.");
+                }
+            Check(seen.Count >= 15, "Too few live authored prop materials.");
+            int useSlot = -1;
+            for (int i = 0; i < ColaItemController.Capacity; i++)
+                if (match.Items.ItemAt(i) == ColaCola.Core.ColaItemId.FizzCandy && match.Items.CanUseSlot(i)) { useSlot = i; break; }
+            Check(useSlot >= 0 && match.Items.TryUseSlot(useSlot), "Real candy-use animation did not start.");
+            yield return new WaitForSecondsRealtime(.42f);
+            Check(match.Items.IsUsingItem, "No live item animation at the observation point.");
+            yield return Capture("Item-use-game-view.png");
+            float deadline = Time.unscaledTime + 10;
+            while (match.Items.IsUsingItem && Time.unscaledTime < deadline) yield return null;
+            Check(!match.Items.IsUsingItem, "Item animation did not settle.");
+            Check(match.interaction.SelectStrength(2) && match.interaction.ConfirmShake(), "Real shake input rejected.");
+            deadline = Time.unscaledTime + 40;
+            while ((match.interaction.IsBusy || !match.IsPlayerTurn) && Time.unscaledTime < deadline) yield return null;
+            Check(!match.interaction.IsBusy && match.IsPlayerTurn, "Shake/boss reply did not return control.");
+            foreach (var material in seen)
+                if (material) Check(material.shader.isSupported && material.GetTexture("_PatinaMap"), "Live prop lost its wear shader/map after actions.");
+            report.AppendLine("PASS: real candy-use animation and strength-2 shake/boss reply completed; original prop materials kept their wear-map binding. One mid-use Game-view image saved for separate visual assessment.");
+            yield return Capture("Game-view.png");
+            report.AppendLine($"PASS: {seen.Count} live prop materials have a supported shader and real 128px wear map. E used only for visual test inventory; Q/W not required. Actual Game-view screenshot saved; visual assessment is separate.");
         }
 
         private IEnumerator ReviewRetroScreen()

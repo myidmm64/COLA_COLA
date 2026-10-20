@@ -1,0 +1,35 @@
+Original MainScene in actual Unity Play; original player camera and maximized Game view.
+No user keyboard/mouse, preview camera, Camera.Render or RenderTexture capture.
+Debug before: W=False, E=False, tokens=0. W/E off during normal gameplay. Q unnecessary: no purchases.
+Live material Console_AgedMetal: wear=0.72, density=192, map=COLA_COLA_PropWear/128x128.
+Live material ServingTray_DarkChecks: wear=0.72, density=192, map=COLA_COLA_PropWear/128x128.
+Live material ServingTray_IvoryRim: wear=0.72, density=192, map=COLA_COLA_PropWear/128x128.
+Live material PizzeriaItems_SharedMattePalette: wear=0.72, density=192, map=COLA_COLA_PropWear/128x128.
+Live material ServingTray_TealEnamel: wear=0.72, density=192, map=COLA_COLA_PropWear/128x128.
+Live material DeliveryCrate_DarkRed: wear=0.70, density=192, map=COLA_COLA_PropWear/128x128.
+Live material Pizzeria_PaperLiner: wear=0.48, density=192, map=COLA_COLA_PropWear/128x128.
+Live material Key_Cream: wear=0.72, density=192, map=COLA_COLA_PropWear/128x128.
+Live material Rubber_Charcoal: wear=0.40, density=192, map=COLA_COLA_PropWear/128x128.
+Live material DeliveryCrate_SteelBands: wear=0.72, density=192, map=COLA_COLA_PropWear/128x128.
+Live material Bezel_AgedMetal: wear=0.72, density=192, map=COLA_COLA_PropWear/128x128.
+Live material Dial_Cream: wear=0.48, density=192, map=COLA_COLA_PropWear/128x128.
+Live material Key_Red: wear=0.72, density=192, map=COLA_COLA_PropWear/128x128.
+Live material DeliveryCrate_RedWood: wear=0.70, density=192, map=COLA_COLA_PropWear/128x128.
+Live material Practical_DarkHousing: wear=0.72, density=192, map=COLA_COLA_PropWear/128x128.
+Live material Enamel_Teal: wear=0.72, density=192, map=COLA_COLA_PropWear/128x128.
+Live material Wear_OxidizedCorners: wear=0.72, density=192, map=COLA_COLA_PropWear/128x128.
+Live material Hardware_AgedSteel: wear=0.72, density=192, map=COLA_COLA_PropWear/128x128.
+Live material Enamel_Edge: wear=0.72, density=192, map=COLA_COLA_PropWear/128x128.
+Live material Enamel_Teal: wear=0.72, density=192, map=COLA_COLA_PropWear/128x128.
+Live material Enamel_Shadow: wear=0.72, density=192, map=COLA_COLA_PropWear/128x128.
+Live material PizzeriaItems_SharedMattePalette: wear=0.72, density=192, map=COLA_COLA_PropWear/128x128.
+Live material Inset_DeepTeal: wear=0.72, density=192, map=COLA_COLA_PropWear/128x128.
+Live material Console_EnamelTeal: wear=0.72, density=192, map=COLA_COLA_PropWear/128x128.
+Live material Hub_Brass: wear=0.72, density=192, map=COLA_COLA_PropWear/128x128.
+Live material Console_TopTeal: wear=0.72, density=192, map=COLA_COLA_PropWear/128x128.
+Live material Wear_ExposedUndercoat: wear=0.72, density=192, map=COLA_COLA_PropWear/128x128.
+Live material Enamel_Edge: wear=0.72, density=192, map=COLA_COLA_PropWear/128x128.
+Live material Bezel_PaleMetal: wear=0.72, density=192, map=COLA_COLA_PropWear/128x128.
+Live material Bezel_WarmCream: wear=0.72, density=192, map=COLA_COLA_PropWear/128x128.
+PASS: real candy-use animation and strength-2 shake/boss reply completed; original prop materials kept their wear-map binding. One mid-use Game-view image saved for separate visual assessment.
+PASS: 30 live prop materials have a supported shader and real 128px wear map. E used only for visual test inventory; Q/W not required. Actual Game-view screenshot saved; visual assessment is separate.

@@ -261,6 +261,7 @@ namespace ColaCola.Presentation
             material.SetColor("_BaseColor", color);
             material.SetFloat("_Smoothness", .12f);
             material.SetFloat("_Metallic", 0);
+            ColaPropPatina.Configure(material);
             return material;
         }
 

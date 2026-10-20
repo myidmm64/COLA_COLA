@@ -135,6 +135,7 @@ namespace ColaCola.Editor
             material.EnableKeyword("_SPECULARHIGHLIGHTS_OFF");
             material.EnableKeyword("_ENVIRONMENTREFLECTIONS_OFF");
             material.DisableKeyword("_EMISSION");
+            ColaCola.Presentation.ColaPropPatina.Configure(material);
             EditorUtility.SetDirty(material);
             return material;
         }

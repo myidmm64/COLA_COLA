@@ -6,6 +6,10 @@ Shader "COLA_COLA/Background Staff"
         _BaseColor("Uniform tint", Color) = (0.68,0.74,0.64,1)
         _Visibility("Visibility", Range(0,1)) = 1
         [Enum(UnityEngine.Rendering.CullMode)] _Cull("Culling", Float) = 2
+        _PatinaStrength("Generated clothing wear", Range(0,1)) = 0
+        [NoScaleOffset] _PatinaMap("PS1 wear texture", 2D) = "gray" {}
+        _PatinaKind("Clothing type", Float) = 6
+        _PatinaUV("Cloth uses fixed garment UV", Float) = 0
     }
     SubShader
     {
@@ -24,12 +28,14 @@ Shader "COLA_COLA/Background Staff"
             #pragma multi_compile _ _CLUSTER_LIGHT_LOOP
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+            #include "COLA_COLA_PropPatina.hlsl"
             TEXTURE2D(_BaseMap); SAMPLER(sampler_BaseMap);
             CBUFFER_START(UnityPerMaterial)
                 float4 _BaseMap_ST;
                 half4 _BaseColor;
                 float _Visibility;
                 float _Cull;
+                float _PatinaStrength, _PatinaKind, _PatinaUV;
             CBUFFER_END
             struct Attributes { float4 positionOS : POSITION; float3 normalOS : NORMAL; float2 uv : TEXCOORD0; };
             struct Varyings { float4 positionCS : SV_POSITION; half3 normalWS : TEXCOORD0; float2 uv : TEXCOORD1; half fog : TEXCOORD2; float3 positionWS : TEXCOORD3; half3 vertexLight : TEXCOORD4; };
@@ -66,7 +72,13 @@ Shader "COLA_COLA/Background Staff"
                         illumination += roomLight.color * roomLight.distanceAttenuation * saturate(dot(normal, roomLight.direction));
                     LIGHT_LOOP_END
                 #endif
-                half3 color = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.uv).rgb * _BaseColor.rgb * min(illumination, 1.6h);
+                half3 baseColor = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.uv).rgb * _BaseColor.rgb;
+                if (_PatinaStrength > 0)
+                {
+                    float2 coordinates = _PatinaUV > .5 ? input.uv : ColaPatinaSurfaceMeters(input.positionWS, normal);
+                    baseColor = ColaPatinaColor(baseColor, coordinates, _PatinaKind, _PatinaStrength, 192);
+                }
+                half3 color = baseColor * min(illumination, 1.6h);
                 return half4(MixFog(color, input.fog), 1);
             }
             ENDHLSL

@@ -320,7 +320,7 @@ namespace ColaCola.Editor
                     copy.EnableKeyword("_SPECULARHIGHLIGHTS_OFF");
                     if (prefix == "Cola" && original.name.StartsWith("PET_Plastic"))
                     {
-                        copy.SetColor("_BaseColor", new Color(.65f, .72f, .65f, .07f));
+                        copy.SetColor("_BaseColor", new Color(.65f, .72f, .65f, .14f));
                         copy.SetFloat("_Surface", 1);
                         copy.SetFloat("_SrcBlend", (float)BlendMode.SrcAlpha);
                         copy.SetFloat("_DstBlend", (float)BlendMode.OneMinusSrcAlpha);
@@ -331,6 +331,9 @@ namespace ColaCola.Editor
                     }
                     if (prefix == "Cola" && original.name.StartsWith("Cola_Liquid"))
                         copy.SetColor("_BaseColor", new Color(.26f, .11f, .045f, 1));
+                    if (prefix == "Cola" && (original.name.StartsWith("PET_Plastic") || original.name.StartsWith("Cola_Liquid") ||
+                        original.name.StartsWith("Printed_Label") || original.name.StartsWith("Red_Plastic_Cap")))
+                        ColaCola.Presentation.ColaPropPatina.Configure(copy);
                     materials[i] = copy;
                 }
                 renderer.sharedMaterials = materials;
