@@ -69,6 +69,9 @@ namespace ColaCola.Presentation
             if (!Application.IsPlaying(gameObject) || !match || !fridge || !vent || !incidental) return;
             // The music's duck follows the actual explosion/blackout, keeping critical effects audible.
             float duck = music ? Mathf.Lerp(.16f, 1, music.Duck) : 1;
+            var burst = match.interaction ? match.interaction.burstPresentation : null;
+            if (burst && burst.Stage == ColaBurstPresentation.BurstStage.Strain)
+                duck *= Mathf.Lerp(1, .12f, Mathf.SmoothStep(0, 1, burst.StrainProgress));
             float level = match.isActiveAndEnabled ? ambienceVolume * duck : 0;
             float blend = 1 - Mathf.Exp(-Time.unscaledDeltaTime * 7);
             fridge.volume = Mathf.Lerp(fridge.volume, level * .55f, blend);

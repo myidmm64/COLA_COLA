@@ -11,7 +11,7 @@ namespace ColaCola.Presentation
         public static AudioClip Build(Sound sound)
         {
             const int rate = 44100;
-            float seconds = sound == Sound.Rupture ? 2.15f : sound == Sound.Strain ? .28f : .23f;
+            float seconds = sound == Sound.Rupture ? 2.4f : sound == Sound.Strain ? .30f : .23f;
             var samples = new float[Mathf.CeilToInt(seconds * rate)];
             var noise = new System.Random(7319 + (int)sound);
             double filtered = 0, phase = 0;
@@ -23,14 +23,18 @@ namespace ColaCola.Presentation
                 if (sound == Sound.Rupture)
                 {
                     // Broadband detonation crack, deep downward boom and a rolling pressure tail.
-                    phase += 2 * Math.PI * (38 + 155 * Math.Exp(-t * 28)) / rate;
-                    double crack = (white * 1.65 + Math.Sin(phase) * .8) * Math.Exp(-t * 85);
-                    double body = Math.Sin(phase) * 1.1 * Math.Exp(-t * 7);
-                    double rumble = filtered * 1.3 * (1 - Math.Exp(-t * 160)) * Math.Exp(-t * 4.8);
+                    phase += 2 * Math.PI * (32 + 185 * Math.Exp(-t * 33)) / rate;
+                    double crack = (white * 1.7 + Math.Sin(phase) * .8) * Math.Exp(-t * 95);
+                    double body = Math.Sin(phase) * 1.15 * Math.Exp(-t * 5.6);
+                    double chest = Math.Sin(2 * Math.PI * 48 * t) * .65 * (1 - Math.Exp(-t * 150)) * Math.Exp(-t * 8);
+                    double rumble = filtered * 1.2 * (1 - Math.Exp(-t * 160)) * Math.Exp(-t * 3.8);
                     double jet = (white - filtered * .55) * .36 * (1 - Math.Exp(-t * 120)) * Math.Exp(-t * 3.1);
                     double sputter = filtered * .5 * Math.Pow(.5 + .5 * Math.Sin(t * 81), 4) * Math.Exp(-Math.Max(0, t - .35) * 3);
-                    double ring = Math.Sin(2 * Math.PI * 1730 * t) * .045 * (1 - Math.Exp(-t * 70)) * Math.Exp(-t * 2.7);
-                    value = crack + body + rumble + jet + sputter + ring;
+                    double ring = Math.Sin(2 * Math.PI * 1730 * t) * .035 * (1 - Math.Exp(-t * 70)) * Math.Exp(-t * 2.2);
+                    // Low, short room reflections come from already generated samples; no live audio allocations.
+                    double reflections = (i >= 1544 ? samples[i - 1544] * .20 : 0) +
+                        (i >= 3396 ? samples[i - 3396] * .11 : 0);
+                    value = crack + body + chest + rumble + jet + sputter + ring + reflections;
                 }
                 else if (sound == Sound.Strain)
                 {

@@ -342,9 +342,9 @@ namespace ColaCola.Presentation
             }
             if (p.recoil > 0)
             {
-                target -= p.tableForward * (p.recoil * .045f);
-                target += Vector3.up * (p.recoil * .018f);
-                orientation = Quaternion.AngleAxis(p.recoil * 12, p.actorRight) * orientation;
+                target -= p.tableForward * (p.recoil * .065f);
+                target += Vector3.up * (p.recoil * .024f);
+                orientation = Quaternion.AngleAxis(p.recoil * 16, p.actorRight) * orientation;
             }
             float leaning = reach * (1 - returning) * Mathf.Lerp(1, .48f, lift);
             if (p.torso)
@@ -353,6 +353,12 @@ namespace ColaCola.Presentation
                     p.actorRight) * p.torso.rotation;
                 p.torso.position += (p.tableForward * .11f + Vector3.up * .015f) * leaning;
                 if (p.head) p.head.rotation = Quaternion.AngleAxis(-22 * leaning, p.actorRight) * p.head.rotation;
+                if (p.recoil > 0)
+                {
+                    p.torso.position -= p.tableForward * (.045f * p.recoil);
+                    p.torso.rotation = Quaternion.AngleAxis(-9 * p.recoil, p.actorRight) * p.torso.rotation;
+                    if (p.head) p.head.rotation = Quaternion.AngleAxis(5 * p.recoil, p.actorRight) * p.head.rotation;
+                }
                 float shortage = Vector3.Distance(p.right.shoulder.position, target) - (p.right.upperLength + p.right.lowerLength - .008f);
                 if (shortage > 0)
                     p.torso.position += Vector3.ClampMagnitude(target - p.right.shoulder.position, Mathf.Min(shortage, .15f)) * reach * (1 - returning);

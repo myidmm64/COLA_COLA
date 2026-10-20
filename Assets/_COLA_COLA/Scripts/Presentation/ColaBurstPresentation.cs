@@ -25,11 +25,14 @@ namespace ColaCola.Presentation
         public float BlackoutOpacity { get; private set; }
         public float ShockwaveRadius { get; private set; }
         public float MaximumAudioSample { get; private set; }
+        public float StrainProgress => Stage == BurstStage.Strain ? anticipation : 0;
         public ColaBurstCameraImpulse CameraImpulse { get; private set; }
 
         private ShakeSelectionInteraction owner;
         private GameObject runtimeRoot, flyingCap, shockwave;
         private ParticleSystem liquid, foam, mist, blastCloud, fragments;
+        private ParticleSystem[] impactLayers;
+        private float particleSpeed = 1;
         private Light blastLight;
         private AudioSource fluidAudio, impactAudio, capAudio;
         private AudioClip strainSound, ruptureSound, capSound;
@@ -86,15 +89,18 @@ namespace ColaCola.Presentation
             fluidAudio.volume = soundVolume * .55f;
             fluidAudio.Play();
             float started = Time.unscaledTime;
-            // A very short pressure stall makes the crack feel sudden without a long result reveal.
-            while (Time.unscaledTime - started < .24f)
+            // The last fraction falls quiet before the pressure breaks; the hand and game clock keep running.
+            while (Time.unscaledTime - started < .30f)
             {
                 if (version != generation) yield break;
-                anticipation = (Time.unscaledTime - started) / .24f;
+                anticipation = (Time.unscaledTime - started) / .30f;
+                fluidAudio.volume = soundVolume * Mathf.Lerp(.55f, .015f, Mathf.SmoothStep(0, 1,
+                    Mathf.InverseLerp(.48f, .88f, anticipation)));
                 yield return null;
             }
             if (version != generation) yield break;
             anticipation = 0;
+            fluidAudio.Stop();
             Stage = BurstStage.Rupture;
             impactAt = Time.unscaledTime;
             BurstCount++;
@@ -114,20 +120,20 @@ namespace ColaCola.Presentation
                     float x = i % 2 == 0 ? Range(.02f, .23f) : Range(.72f, .94f);
                     lensSpots.Add(new Rect(x, Range(.08f, .86f), Range(.025f, .075f), Range(.045f, .12f)));
                 }
-            float nextSpurt = .05f;
+            float nextSpurt = .09f;
             while (Time.unscaledTime - impactAt < 1.05f)
             {
                 if (version != generation) yield break;
                 float t = Time.unscaledTime - impactAt;
                 // Cover the authored set-down jump and all bottle/health resets before revealing the table.
-                BlackoutOpacity = Mathf.SmoothStep(0, 1, Mathf.InverseLerp(.34f, .56f, t));
-                if (t >= nextSpurt && t < .43f)
+                BlackoutOpacity = Mathf.SmoothStep(0, 1, Mathf.InverseLerp(.44f, .66f, t));
+                if (t >= nextSpurt && t < .48f)
                 {
                     nextSpurt += .05f;
                     EmitJetSpurt(boss);
                 }
-                Stage = BlackoutOpacity >= 1 ? BurstStage.Blackout : t < .15f ? BurstStage.Rupture : BurstStage.Recovery;
-                if (owner.shakeAnimator) owner.shakeAnimator.SetBurstRecoil((1 - Mathf.Exp(-t * 110)) * Mathf.Exp(-t * 5.5f));
+                Stage = BlackoutOpacity >= 1 ? BurstStage.Blackout : t < .18f ? BurstStage.Rupture : BurstStage.Recovery;
+                if (owner.shakeAnimator) owner.shakeAnimator.SetBurstRecoil((1 - Mathf.Exp(-t * 120)) * Mathf.Exp(-t * 6));
                 yield return null;
             }
             if (owner.shakeAnimator) owner.shakeAnimator.SetBurstRecoil(0);
@@ -168,8 +174,10 @@ namespace ColaCola.Presentation
             if (CameraImpulse) CameraImpulse.Clear();
             if (blastLight) blastLight.enabled = false;
             if (shockwave) shockwave.SetActive(false);
-            foreach (var particles in new[] { liquid, foam, mist, blastCloud, fragments })
-                if (particles) particles.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            SetParticleSpeed(1);
+            if (impactLayers != null)
+                foreach (var particles in impactLayers)
+                    if (particles) particles.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
             if (flyingCap) flyingCap.SetActive(false);
             foreach (var puddle in puddles) if (puddle) Release(puddle.gameObject);
             puddles.Clear(); lensSpots.Clear();
@@ -205,11 +213,13 @@ namespace ColaCola.Presentation
         {
             if (!owner || !owner.bottle || !runtimeRoot) return;
             float t = Time.unscaledTime - impactAt;
-            FlashOpacity = t < 0 || t > .17f ? 0 : .88f * Mathf.Exp(-t * 26);
+            // Suspend only the spray briefly, not Time.timeScale or the camera/arm animation.
+            SetParticleSpeed(t >= 0 && t < .09f ? .30f : 1);
+            FlashOpacity = t < 0 || t > .12f ? 0 : .90f * Mathf.Exp(-t * 38);
             if (blastLight)
             {
-                blastLight.enabled = t >= 0 && t < .16f;
-                blastLight.intensity = 7 * Mathf.Exp(-Mathf.Max(0, t) * 32);
+                blastLight.enabled = t >= 0 && t < .12f;
+                blastLight.intensity = 10 * Mathf.Exp(-Mathf.Max(0, t) * 42);
             }
             if (shockwave)
             {
@@ -217,7 +227,7 @@ namespace ColaCola.Presentation
                 shockwave.SetActive(live);
                 if (live)
                 {
-                    ShockwaveRadius = Mathf.Lerp(.04f, 1.35f, 1 - Mathf.Pow(1 - t / .30f, 2));
+                    ShockwaveRadius = Mathf.Lerp(.04f, 1.55f, 1 - Mathf.Pow(1 - t / .30f, 2));
                     shockwave.transform.localScale = Vector3.one * ShockwaveRadius;
                     float alpha = .66f * Mathf.Pow(1 - t / .30f, 2);
                     for (int i = 0; i < shockwaveColors.Length; i++) shockwaveColors[i] = new Color(.95f, .74f, .39f, alpha);
@@ -226,7 +236,7 @@ namespace ColaCola.Presentation
             }
             if (anticipation > 0)
                 owner.bottle.localScale = Vector3.Scale(bottleScale,
-                    new Vector3(1 + anticipation * .035f, 1 - anticipation * .008f, 1 + anticipation * .035f));
+                    new Vector3(1 + anticipation * .065f, 1 - anticipation * .012f, 1 + anticipation * .065f));
             else if (shaking && t >= 0 && t < .75f)
                 owner.bottle.localScale = Vector3.Scale(bottleScale, new Vector3(1 + .018f * Mathf.Exp(-t * 12), 1, 1 + .018f * Mathf.Exp(-t * 12)));
             if (flyingCap && flyingCap.activeSelf && t >= 0)
@@ -252,7 +262,7 @@ namespace ColaCola.Presentation
                 flyingCap.transform.rotation = capRotation * Quaternion.Euler(spinTime * 730, spinTime * 380, spinTime * 590);
                 if (t > 2.4f) flyingCap.SetActive(false);
             }
-            LensOpacity = LastBurstWasBoss || t < 0 || t > 2.25f ? 0 : .32f * (1 - Mathf.SmoothStep(0, 1, Mathf.InverseLerp(.35f, 2.25f, t)));
+            LensOpacity = LastBurstWasBoss || t < 0 || t > 2.25f ? 0 : .40f * (1 - Mathf.SmoothStep(0, 1, Mathf.InverseLerp(.35f, 2.25f, t)));
             foreach (var puddle in puddles)
                 if (puddle)
                 {
@@ -263,6 +273,14 @@ namespace ColaCola.Presentation
         }
 
         private Vector3 MouthPosition() => owner.cap ? owner.cap.position : owner.bottle.position + Vector3.up * .35f;
+
+        private void SetParticleSpeed(float value)
+        {
+            if (impactLayers == null || Mathf.Approximately(particleSpeed, value)) return;
+            particleSpeed = value;
+            foreach (var particles in impactLayers)
+                if (particles) { var main = particles.main; main.simulationSpeed = value; }
+        }
 
         private void LaunchCap()
         {
@@ -310,13 +328,13 @@ namespace ColaCola.Presentation
             {
                 float angle = Range(0, Mathf.PI * 2), spread = Range(.05f, 1);
                 Vector3 radial = new Vector3(Mathf.Cos(angle), 0, Mathf.Sin(angle));
-                Vector3 velocity = Vector3.up * Range(1.6f, 4.7f) + radial * (spread * Range(.8f, 2.6f)) + towardActor * Range(.2f, 1.3f);
+                Vector3 velocity = Vector3.up * Range(1.9f, 5.2f) + radial * (spread * Range(1, 3.0f)) + towardActor * Range(.3f, 1.6f);
                 var emit = new ParticleSystem.EmitParams
                 {
                     position = mouth + radial * .015f,
                     velocity = velocity,
                     startLifetime = Range(.28f, 1.0f),
-                    startSize = Range(.012f, .043f),
+                    startSize = Range(.014f, .048f),
                     startColor = Color.Lerp(new Color(.16f, .065f, .018f, 1), new Color(.38f, .18f, .045f, .9f), Unit())
                 };
                 liquid.Emit(emit, 1); EmittedParticleCount++;
@@ -327,7 +345,7 @@ namespace ColaCola.Presentation
                 {
                     position = mouth,
                     velocity = new Vector3(Range(-1.3f, 1.3f), Range(1, 3.5f), Range(-1.2f, 1.2f)) + towardActor * .6f,
-                    startLifetime = Range(.3f, 1.15f), startSize = Range(.017f, .065f),
+                    startLifetime = Range(.3f, 1.15f), startSize = Range(.024f, .078f),
                     startColor = Color.Lerp(new Color(.72f, .65f, .43f, .85f), new Color(.46f, .29f, .10f, .8f), Unit())
                 };
                 foam.Emit(emit, 1); EmittedParticleCount++;
@@ -379,10 +397,10 @@ namespace ColaCola.Presentation
                 blastCloud.Emit(new ParticleSystem.EmitParams
                 {
                     position = origin + direction * .025f,
-                    velocity = direction * (core ? Range(2, 4.5f) : Range(.7f, 2.0f)),
+                    velocity = direction * (core ? Range(2.6f, 5.0f) : Range(.8f, 2.3f)),
                     startLifetime = core ? Range(.08f, .18f) : Range(.45f, .9f),
                     startSize = core ? Range(.15f, .32f) : Range(.18f, .38f),
-                    startColor = core ? new Color(1, .77f, .30f, .85f) : new Color(.24f, .19f, .13f, .58f)
+                    startColor = core ? new Color(.94f, .88f, .66f, .85f) : new Color(.28f, .23f, .16f, .58f)
                 }, 1);
                 EmittedParticleCount++;
             }
@@ -443,6 +461,7 @@ namespace ColaCola.Presentation
             mist = ParticleLayer("Fine spray cloud", .05f, false);
             blastCloud = ParticleLayer("Explosive pressure core and vapour", -.06f, false);
             fragments = ParticleLayer("PET and label fragments", 1, true);
+            impactLayers = new[] { liquid, foam, mist, blastCloud, fragments };
             var spin = fragments.rotationOverLifetime; spin.enabled = true; spin.separateAxes = true;
             spin.x = 7; spin.y = 11; spin.z = 9;
             var lightObject = new GameObject("Single rupture light pulse"); lightObject.transform.SetParent(runtimeRoot.transform, false);
@@ -576,12 +595,17 @@ namespace ColaCola.Presentation
             var screen = new Rect(0, 0, Screen.width, Screen.height);
             if (t >= 0 && t <= 2.25f)
             {
-                GUI.color = new Color(.05f, .025f, .012f, (LastBurstWasBoss ? .1f : .42f) * Mathf.Exp(-t * 2.8f));
+                GUI.color = new Color(.05f, .025f, .012f, (LastBurstWasBoss ? .18f : .54f) * Mathf.Exp(-t * 2.8f));
                 GUI.DrawTexture(screen, vignetteTexture);
                 GUI.color = new Color(.24f, .10f, .025f, LensOpacity);
                 foreach (var spot in lensSpots)
                     GUI.DrawTexture(new Rect(spot.x * Screen.width, (spot.y + t * .015f) * Screen.height, spot.width * Screen.width, spot.height * Screen.height), sprayTexture);
-                GUI.color = new Color(1, .89f, .65f, FlashOpacity);
+                GUI.color = new Color(1, .94f, .78f, FlashOpacity);
+                GUI.DrawTexture(screen, Texture2D.whiteTexture);
+                // A single soft exposure dip after the flash gives weight without a sequence of flickers.
+                float shade = t > .055f && t < .28f ?
+                    Mathf.Sin(Mathf.PI * Mathf.InverseLerp(.055f, .28f, t)) * (LastBurstWasBoss ? .07f : .14f) : 0;
+                GUI.color = new Color(.025f, .025f, .02f, shade);
                 GUI.DrawTexture(screen, Texture2D.whiteTexture);
             }
             GUI.color = new Color(0, 0, 0, BlackoutOpacity);

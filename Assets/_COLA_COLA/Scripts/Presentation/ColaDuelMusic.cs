@@ -79,12 +79,13 @@ namespace ColaCola.Presentation
             {
                 switch (burst.Stage)
                 {
-                    case ColaBurstPresentation.BurstStage.Strain: targetDuck *= .5f; break;
+                    case ColaBurstPresentation.BurstStage.Strain:
+                        targetDuck *= Mathf.Lerp(.28f, .025f, Mathf.SmoothStep(0, 1, burst.StrainProgress)); break;
                     case ColaBurstPresentation.BurstStage.Rupture:
-                    case ColaBurstPresentation.BurstStage.Recovery: targetDuck *= .10f; break;
-                    case ColaBurstPresentation.BurstStage.Blackout: targetDuck *= .18f; break;
+                    case ColaBurstPresentation.BurstStage.Recovery: targetDuck *= .06f; break;
+                    case ColaBurstPresentation.BurstStage.Blackout: targetDuck *= .10f; break;
                     case ColaBurstPresentation.BurstStage.FadeIn:
-                        targetDuck *= Mathf.Lerp(.18f, 1, 1 - burst.BlackoutOpacity); break;
+                        targetDuck *= Mathf.Lerp(.10f, 1, 1 - burst.BlackoutOpacity); break;
                 }
             }
             if (match.State != ColaDuelController.DuelState.Playing) targetDuck *= .45f;
