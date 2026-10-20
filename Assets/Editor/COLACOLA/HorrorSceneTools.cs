@@ -159,6 +159,7 @@ namespace ColaCola.Editor
             Fixture(atmosphere, "EmergencyLamp_Glow", new Vector3(2.80f, 1.95f, 5.005f), new Vector3(.095f, .13f, .035f), red);
             Light(group, "Horror_Emergency_WallGlow", new Vector3(2.80f, 1.95f, 4.78f), Vector3.zero,
                 new Color(1, .075f, .025f), .65f, 1.75f, LightType.Point);
+            TabletopReadability.ApplyLighting(root.transform);
         }
 
         internal static void ApplyTabletopFocusLighting(GameObject root)
@@ -220,52 +221,11 @@ namespace ColaCola.Editor
             child.GetComponent<Renderer>().sharedMaterial = material;
         }
 
-        private static T Effect<T>(VolumeProfile profile) where T : VolumeComponent
-        {
-            if (!profile.TryGet<T>(out var effect)) effect = profile.Add<T>(true);
-            effect.active = true;
-            return effect;
-        }
-
         private static void SetupVolume(GameObject root)
         {
             var profile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(ProfilePath);
             if (!profile) { profile = ScriptableObject.CreateInstance<VolumeProfile>(); profile.name = "PizzeriaHorror"; AssetDatabase.CreateAsset(profile, ProfilePath); }
-            var tone = Effect<Tonemapping>(profile);
-            tone.mode.Override(TonemappingMode.ACES);
-            var color = Effect<ColorAdjustments>(profile);
-            color.postExposure.Override(.40f);
-            color.contrast.Override(13);
-            color.saturation.Override(-19);
-            color.colorFilter.Override(new Color(.98f, .975f, .94f));
-            var white = Effect<WhiteBalance>(profile);
-            white.temperature.Override(-2);
-            white.tint.Override(0);
-            // A small black lift gives the grain room in shadows without washing out the room.
-            var wheels = Effect<LiftGammaGain>(profile);
-            wheels.lift.Override(new Vector4(1f, 1f, 1f, .006f));
-            var ranges = Effect<ShadowsMidtonesHighlights>(profile);
-            ranges.shadows.Override(new Vector4(.91f, .99f, 1.01f, 0));
-            ranges.midtones.Override(new Vector4(.99f, 1.00f, .96f, 0));
-            ranges.highlights.Override(new Vector4(1.04f, 1.01f, .94f, 0));
-            var bloom = Effect<Bloom>(profile);
-            bloom.threshold.Override(1.0f);
-            bloom.intensity.Override(0);
-            bloom.clamp.Override(2);
-            bloom.scatter.Override(.50f);
-            bloom.tint.Override(new Color(.85f, 1, .87f));
-            bloom.highQualityFiltering.Override(true);
-            var grain = Effect<FilmGrain>(profile);
-            grain.type.Override(FilmGrainLookup.Thin2);
-            grain.intensity.Override(.26f);
-            grain.response.Override(.60f);
-            var vignette = Effect<Vignette>(profile);
-            vignette.intensity.Override(.25f);
-            vignette.smoothness.Override(.62f);
-            vignette.color.Override(new Color(.003f, .009f, .007f));
-            vignette.rounded.Override(true);
-            var aberration = Effect<ChromaticAberration>(profile);
-            aberration.intensity.Override(.018f);
+            TabletopReadability.ConfigureProfile(profile);
             foreach (var component in profile.components)
             {
                 if (!AssetDatabase.Contains(component)) AssetDatabase.AddObjectToAsset(component, profile);
@@ -391,7 +351,7 @@ namespace ColaCola.Editor
                 if (stack.GetComponent<Vignette>().intensity.value <= 0 || stack.GetComponent<FilmGrain>().intensity.value <= 0 || stack.GetComponent<Tonemapping>().mode.value != TonemappingMode.ACES)
                     throw new InvalidOperationException("Global Volume was not evaluated by URP.");
                 var liveGrain = stack.GetComponent<FilmGrain>();
-                if (liveGrain.type.value != FilmGrainLookup.Thin2 || Mathf.Abs(liveGrain.intensity.value - .26f) > .001f || !data.dithering || stack.GetComponent<LiftGammaGain>().lift.value.w <= 0)
+                if (liveGrain.type.value != FilmGrainLookup.Thin2 || Mathf.Abs(liveGrain.intensity.value - TabletopReadability.GrainIntensity) > .001f || !data.dithering || stack.GetComponent<LiftGammaGain>().lift.value.w <= 0)
                     throw new InvalidOperationException("Indie grain, lifted blacks or dithering were not evaluated.");
                 var cmPackage = UnityEditor.PackageManager.PackageInfo.FindForAssembly(typeof(CinemachineBrain).Assembly);
                 var report = new StringBuilder();

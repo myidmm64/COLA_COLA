@@ -15,6 +15,10 @@ namespace ColaCola.Editor
     {
         internal const string Key = "COLA_COLA.ShakePlayReview";
         internal const string Folder = ProjectVerificationBridge.Root + "/shake-animation";
+        private static string ActiveFolder => ProjectVerificationBridge.RetroScreenOnly ? ProjectVerificationBridge.Root + "/retro-screen" :
+            ProjectVerificationBridge.PizzeriaLookOnly ? ProjectVerificationBridge.Root + "/pizzeria-look" :
+            ProjectVerificationBridge.CameraMotionOnly ? ProjectVerificationBridge.Root + "/camera-motion" :
+            ProjectVerificationBridge.ArmMotionOnly ? ProjectVerificationBridge.Root + "/arm-motion" : Folder;
         private static EditorWindow previousWindow;
         private static EditorWindow gameWindow;
         private static bool wasMaximized;
@@ -55,8 +59,7 @@ namespace ColaCola.Editor
         }
         internal static void Complete(string report, Exception failure)
         {
-            string folder = ProjectVerificationBridge.CameraMotionOnly ? ProjectVerificationBridge.Root + "/camera-motion" :
-                ProjectVerificationBridge.ArmMotionOnly ? ProjectVerificationBridge.Root + "/arm-motion" : Folder;
+            string folder = ActiveFolder;
             ProjectVerificationBridge.WriteReport(folder + "/Play-review.txt", report + (failure == null ? "" : "\nFAIL: " + failure));
             if (failure == null) Debug.Log("COLA_SHAKE_REVIEW_PASS\n" + report); else Debug.LogException(failure);
             EditorApplication.isPlaying = false;
@@ -76,8 +79,7 @@ namespace ColaCola.Editor
             wasMaximized = SessionState.GetBool(Key + ".WasMaximized", false);
             if (gameWindow) gameWindow.maximized = wasMaximized;
             if (previousWindow) previousWindow.Focus();
-            string folder = ProjectVerificationBridge.CameraMotionOnly ? ProjectVerificationBridge.Root + "/camera-motion" :
-                ProjectVerificationBridge.ArmMotionOnly ? ProjectVerificationBridge.Root + "/arm-motion" : Folder;
+            string folder = ActiveFolder;
             ProjectVerificationBridge.WriteReport(folder + "/Editor-restoration.txt",
                 $"Game view maximized before={wasMaximized}, after={(gameWindow ? gameWindow.maximized.ToString() : "window unavailable")}. Original focus restored when the window still exists.");
         }
@@ -93,9 +95,15 @@ namespace ColaCola.Editor
         private float originalThink;
         private ColaArmMotionReview armReview;
         private ColaCameraMotionReview cameraReview;
+        private ColaPizzeriaLookReview lookReview;
         public void Begin()
         {
-            if (ProjectVerificationBridge.CameraMotionOnly)
+            if (ProjectVerificationBridge.PizzeriaLookOnly)
+            {
+                lookReview = new ColaPizzeriaLookReview();
+                StartCoroutine(lookReview.Execute());
+            }
+            else if (ProjectVerificationBridge.CameraMotionOnly)
             {
                 cameraReview = new ColaCameraMotionReview();
                 StartCoroutine(cameraReview.Execute());
@@ -283,6 +291,7 @@ namespace ColaCola.Editor
         {
             armReview?.Restore();
             cameraReview?.Restore();
+            lookReview?.Restore();
             if (!saved || !match) return;
             if (match.GuaranteedBurst != originalW) match.ApplyDebugCommand(ColaDuelController.DebugCommand.ToggleGuaranteedBurst);
             if (match.ItemTestMenuEnabled != originalE) match.ApplyDebugCommand(ColaDuelController.DebugCommand.ToggleFreeItemMenu);

@@ -96,6 +96,7 @@ namespace ColaCola.Presentation
                 ColaFpsSleeveExtension.EnsureFor(interaction.shakeAnimator.playerAnimator);
             ColaDuelMusic.EnsureFor(this);
             ColaPizzeriaAmbience.EnsureFor(this);
+            ColaPizzeriaStaff.EnsureFor(this);
             playerMaxHealth = Mathf.Clamp(playerMaxHealth, 1, ColaItemBalance.StartingHealth);
             bossBaseHealth = Mathf.Clamp(bossBaseHealth, 1, ColaItemBalance.StartingHealth);
             PlayerHealth = playerMaxHealth;

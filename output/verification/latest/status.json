@@ -1,24 +1,23 @@
 {
-  "id": "shake-camera-9c88a40b92ab4b6180efb3547cda5c6c",
-  "suite": "shake",
-  "phase": "passed",
-  "message": "Camera onset and actual frame timing measured in Play. Original scene and window restored; Editor left open. No screenshots or continuous Game-view visual review.",
-  "startedUtc": "2026-10-20T03:58:59.3338663Z",
-  "heartbeatUtc": "2026-10-20T03:59:26.0734938Z",
-  "editorProcessId": 33256,
-  "batchMode": false,
-  "success": true,
-  "playMode": false,
-  "frameCount": 0,
-  "passed": [
-    "COLA_SHAKE_REVIEW_PASS"
-  ],
-  "scenes": [
-    {
-      "path": "Assets/Scenes/MainScene.unity",
-      "isLoaded": true,
-      "isActive": true
-    }
-  ],
-  "measurementReport": "camera-motion/Play-review.txt"
+    "id": "shake-retro-2dd5dd2d57b047338a176fed2d8396f9",
+    "suite": "shake",
+    "phase": "passed",
+    "message": "Retro pixel screen and natural/burst glitch paths exercised in actual Play. Actual Game-view captures saved for visual inspection. Original scene setup restored; Editor left open.",
+    "startedUtc": "2026-10-20T06:22:17.3936618Z",
+    "heartbeatUtc": "2026-10-20T06:22:58.4531605Z",
+    "editorProcessId": 33256,
+    "batchMode": false,
+    "success": true,
+    "playMode": false,
+    "frameCount": 0,
+    "passed": [
+        "COLA_SHAKE_REVIEW_PASS"
+    ],
+    "scenes": [
+        {
+            "path": "Assets/Scenes/MainScene.unity",
+            "isLoaded": true,
+            "isActive": true
+        }
+    ]
 }

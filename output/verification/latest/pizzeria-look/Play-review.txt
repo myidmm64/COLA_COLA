@@ -1,0 +1,14 @@
+Original MainScene in actual Unity Play; original player camera and maximized Game view.
+No user keyboard/mouse, preview camera, Camera.Render or RenderTexture capture.
+Debug before: W=False, E=False, tokens=0. W/E off during normal gameplay. Q unnecessary: no purchases.
+Real strength-2 input resolved; action count=2, player HP=5, boss HP=5, pressure=10.
+Staff part arms: parent=simple-character-psx_fbx, world center=(-1.976, 1.026, 4.351), size=(0.345, 0.686, 0.742).
+Staff part body: parent=simple-character-psx_fbx, world center=(-1.958, 0.702, 4.352), size=(0.627, 1.405, 0.856).
+Staff part head: parent=simple-character-psx_fbx, world center=(-1.978, 1.472, 4.350), size=(0.248, 0.294, 0.172).
+Staff part Fitted folded paper cap: parent=spine.005, world center=(-1.974, 1.607, 4.350), size=(0.225, 0.153, 0.178).
+Staff part Tailored bib and apron skirt: parent=Existing PSX model / kitchen uniform, world center=(-1.826, 0.922, 4.345), size=(0.378, 0.617, 0.374).
+Staff part Shoulder strap -1: parent=Existing PSX model / kitchen uniform, world center=(-1.899, 1.251, 4.452), size=(0.035, 0.090, 0.063).
+Staff part Shoulder strap 1: parent=Existing PSX model / kitchen uniform, world center=(-1.896, 1.251, 4.251), size=(0.033, 0.090, 0.061).
+Staff part Fitted waist tie: parent=Existing PSX model / kitchen uniform, world center=(-1.958, 0.936, 4.350), size=(0.272, 0.162, 0.349).
+PASS: naturally scheduled worker walked in Play; fitted cap/apron and supported room-light shader present.
+Two ScreenCapture.CaptureScreenshot PNGs saved at actual Game-view end-of-frame. Visual inspection must be recorded separately after opening the images.

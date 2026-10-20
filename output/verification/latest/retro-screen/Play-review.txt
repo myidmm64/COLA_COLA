@@ -1,0 +1,7 @@
+Original MainScene in actual Unity Play; original player camera and maximized Game view.
+No user keyboard/mouse, preview camera, Camera.Render or RenderTexture capture.
+Debug before: W=False, E=False, tokens=0. W/E off during normal gameplay. Q unnecessary: no purchases.
+Real strength-2 input resolved; action count=2, player HP=5, boss HP=5, pressure=10.
+Original lighting/color grade preserved: exposure=.40, contrast=13. Grain=0.10; retro pass frames=3082, pixel height=540, blend=0.48, halation=0.025, edge softness=0.08.
+Natural glitch strength at capture request=0.078, pulses=1.
+PASS: natural short tear and actual W-triggered burst glitch; burst peak=0.300, sampled active duration=0.115s. Gameplay returned control; original W/E restored on exit. No camera motion, time-scale freeze, RGB split or new overlay text added.

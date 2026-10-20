@@ -37,6 +37,8 @@ namespace ColaCola.Editor
         public static bool MusicOnly => run != null && run.suite == "music";
         public static bool ArmMotionOnly => run != null && run.id.StartsWith("shake-arms-", StringComparison.Ordinal);
         public static bool CameraMotionOnly => run != null && run.id.StartsWith("shake-camera-", StringComparison.Ordinal);
+        public static bool RetroScreenOnly => run != null && run.id.StartsWith("shake-retro-", StringComparison.Ordinal);
+        public static bool PizzeriaLookOnly => RetroScreenOnly || run != null && run.id.StartsWith("shake-look-", StringComparison.Ordinal);
         private static bool Active => run != null && run.phase != "passed" && run.phase != "failed";
 
         public static void Schedule(EditorApplication.CallbackFunction action)
@@ -230,7 +232,9 @@ namespace ColaCola.Editor
             }
             if (first == "COLA_SHAKE_REVIEW_PASS" && run.suite == "shake")
             {
-                Stop(true, CameraMotionOnly ? "Camera onset and actual frame timing measured in Play. No screenshots or continuous Game-view visual review." :
+                Stop(true, RetroScreenOnly ? "Retro pixel screen and natural/burst glitch paths exercised in actual Play. Actual Game-view captures saved for visual inspection." :
+                    PizzeriaLookOnly ? "Pizzeria staff and lighting observed during actual Play actions. Two actual Game-view captures saved for visual inspection." :
+                    CameraMotionOnly ? "Camera onset and actual frame timing measured in Play. No screenshots or continuous Game-view visual review." :
                     "Original-rig shake checks completed in Play. Actual Game-view captures saved for separate visual inspection.");
                 return;
             }

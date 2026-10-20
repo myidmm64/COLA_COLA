@@ -1,14 +1,14 @@
-# Latest Play verification — camera onset
+# Latest Play verification
 
-- Result: passed. Request: shake-camera-9c88a40b92ab4b6180efb3547cda5c6c.
-- Original MainScene in the already-open Unity Editor. Physical camera transform sampled at end of actual Play frames.
-- W off; no purchases, Q/E unnecessary. Original debug and automatic-turn flags restored.
-- Button onset (0.01mm threshold): 44–50ms before, 16–18ms after.
-- First shake input CPU: 49.80ms before, 12.39ms after. Maximum sampled first-shake frame interval: 62.35ms before, 16.51ms after.
-- Ordinary position/rotation continuity retained; no reset of camera velocity on a new interaction.
-- Burst textures, particle resources and synthesized audio now prepared during session startup. No explosion is played during preparation.
-- Isolated bell/grip camera curves measured separately; this is not a bell-payment or item-balance test.
-- No screenshots, mesh baking, preview rendering or disk I/O during measured frames. Continuous Game-view visual review not performed in this timing run.
-- Original scene setup, Game-view maximization and editor focus restored; Editor left open.
+- Result: passed
+- Suite: shake
+- Editor process: 33256
+- Batch mode: False
+- Started UTC: 2026-10-20T06:22:17.3936618Z
+- Retro pixel screen and natural/burst glitch paths exercised in actual Play. Actual Game-view captures saved for visual inspection. Original scene setup restored; Editor left open.
 
-Latest detailed results: [camera-motion/Play-review.txt](camera-motion/Play-review.txt). These are observed timings from this editor session, not a hardware-independent performance guarantee.
+- PASS: COLA_SHAKE_REVIEW_PASS
+
+Scope: actual Unity Play-mode automated state/input/audio checks. Game-view visual inspection and listening are separate.
+
+Visual follow-up: opened both final native Game-view PNGs in `retro-screen/`. The 540-row/.48 blend, reduced grain/RGB aberration and softer vignette improve cola/button/terminal legibility while preserving the original lighting and color grade. Subtle highlight halation and peripheral softness are enabled. Idle tearing is barely visible in the still; actual W-burst glitch reached .300 for .115s and settled. See `retro-screen/Visual-review.md`. No continuous-video, speaker-listening or full balance verification claimed.
