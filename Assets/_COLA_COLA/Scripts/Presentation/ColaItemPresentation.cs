@@ -5,7 +5,7 @@ using UnityEngine.InputSystem;
 
 namespace ColaCola.Presentation
 {
-    /// <summary>Debug order slip and eight-slot tabletop inventories containing original physical item models.</summary>
+    /// <summary>Debug order slip and expandable tabletop inventories containing original physical item models.</summary>
     [DisallowMultipleComponent]
     public sealed class ColaItemPresentation : MonoBehaviour
     {
@@ -16,30 +16,31 @@ namespace ColaCola.Presentation
         private ColaWaiterBell hoveredBell;
         private ColaItemController items;
         private GameObject inventoryRoot, bossInventoryRoot;
-        private readonly GameObject[] cubes = new GameObject[ColaItemController.Capacity];
-        private readonly GameObject[] bossCubes = new GameObject[ColaItemController.Capacity];
-        private readonly GameObject[] playerModels = new GameObject[ColaItemController.Capacity];
-        private readonly GameObject[] bossModels = new GameObject[ColaItemController.Capacity];
-        private readonly ColaItemId?[] playerModelIds = new ColaItemId?[ColaItemController.Capacity];
-        private readonly ColaItemId?[] bossModelIds = new ColaItemId?[ColaItemController.Capacity];
-        private readonly Vector3[] playerRestPositions = new Vector3[ColaItemController.Capacity];
-        private readonly Vector3[] bossRestPositions = new Vector3[ColaItemController.Capacity];
-        private readonly float[] playerHover = new float[ColaItemController.Capacity];
-        private readonly float[] bossHover = new float[ColaItemController.Capacity];
+        private readonly GameObject[] cubes = new GameObject[ColaItemController.MaxCapacity];
+        private readonly GameObject[] bossCubes = new GameObject[ColaItemController.MaxCapacity];
+        private readonly GameObject[] playerModels = new GameObject[ColaItemController.MaxCapacity];
+        private readonly GameObject[] bossModels = new GameObject[ColaItemController.MaxCapacity];
+        private readonly ColaItemId?[] playerModelIds = new ColaItemId?[ColaItemController.MaxCapacity];
+        private readonly ColaItemId?[] bossModelIds = new ColaItemId?[ColaItemController.MaxCapacity];
+        private readonly Vector3[] playerRestPositions = new Vector3[ColaItemController.MaxCapacity];
+        private readonly Vector3[] bossRestPositions = new Vector3[ColaItemController.MaxCapacity];
+        private readonly float[] playerHover = new float[ColaItemController.MaxCapacity];
+        private readonly float[] bossHover = new float[ColaItemController.MaxCapacity];
         private const float HoverLift = .035f, HoverSeconds = .16f;
         private ColaItemModelLibrary modelLibrary;
         private Material playerShell, bossShell, ivoryRim, steelRim, paperLiner, playerAccent, bossAccent;
         private readonly List<Material> storageMaterials = new();
         private readonly List<Mesh> storageMeshes = new();
         private Font menuFont;
-        private GUIStyle label, detail, hoverText, hoverNameShadow, hoverTextShadow;
-        private const int SlotColumns = 4;
+        private GUIStyle label, detail, hoverText, hoverNameShadow, hoverTextShadow, returnHintStyle, returnHintShadow;
+        private int builtPlayerCapacity, builtBossCapacity;
         private const float SlotPitch = .17f;
-        private const float TrayWidth = SlotColumns * SlotPitch + .04f;
         private int hoveredSlot = -1;
         private bool hoveredBoss;
+        private int inspectedSlot = -1;
+        private bool inspectedBoss;
         private Vector2 mousePosition;
-        private string hoverTitle, hoverDescription;
+        private string hoverTitle, hoverDescription, hoverReturnHint;
         private readonly List<Delivery> deliveries = new();
         private const float DeliverySeconds = .46f;
         private sealed class Delivery
@@ -122,7 +123,7 @@ namespace ColaCola.Presentation
                 var hit = CubeCollider(slot, boss);
                 var delivery = new Delivery { slot = slot, boss = boss, model = model, collider = hit,
                     position = model.localPosition, rotation = model.localRotation, scale = model.localScale,
-                    started = Time.unscaledTime + .045f + i * .10f };
+                    started = ColaGameClock.Time + .045f + i * .10f };
                 deliveries.Add(delivery);
                 if (hit) hit.enabled = false;
                 model.gameObject.SetActive(false);
@@ -169,8 +170,9 @@ namespace ColaCola.Presentation
         {
             CancelDeliveries();
             hoveredSlot = -1; hoveredBell = null;
-            hoverTitle = hoverDescription = null;
-            for (int i = 0; i < ColaItemController.Capacity; i++)
+            inspectedSlot = -1;
+            hoverTitle = hoverDescription = hoverReturnHint = null;
+            for (int i = 0; i < ColaItemController.MaxCapacity; i++)
             {
                 ResetHover(i, false); ResetHover(i, true);
             }
@@ -189,7 +191,7 @@ namespace ColaCola.Presentation
                     if (!models[i] || !models[i].activeInHierarchy || IsSlotArriving(i, boss))
                     { weights[i] = 0; continue; }
                     float target = CanShowHints && hoveredSlot == i && hoveredBoss == boss ? 1 : 0;
-                    weights[i] = Mathf.MoveTowards(weights[i], target, Time.unscaledDeltaTime / HoverSeconds);
+                    weights[i] = Mathf.MoveTowards(weights[i], target, ColaGameClock.Delta / HoverSeconds);
                     float eased = weights[i] * weights[i] * (3 - 2 * weights[i]);
                     models[i].transform.localPosition = rests[i] + Vector3.up * (HoverLift * eased);
                 }
@@ -208,7 +210,7 @@ namespace ColaCola.Presentation
                 var delivery = deliveries[i];
                 if (!delivery.model)
                 { RestoreDelivery(delivery); deliveries.RemoveAt(i); continue; }
-                float elapsed = Time.unscaledTime - delivery.started;
+                float elapsed = ColaGameClock.Time - delivery.started;
                 if (elapsed < 0) continue;
                 if (!delivery.sliding)
                 {
@@ -219,7 +221,7 @@ namespace ColaCola.Presentation
                 {
                     delivery.landed = true;
                     var id = items.ItemAt(delivery.slot, delivery.boss);
-                    bool glass = id == ColaItemId.IceCup || id == ColaItemId.HotSauce || id == ColaItemId.CarbonationSyrup || id == ColaItemId.SodaWater;
+                    bool glass = id == ColaItemId.IceCup || id == ColaItemId.HotSauce || id == ColaItemId.SodaWater;
                     ColaTabletopAudio.Cue(items.match.interaction, glass ? "DeliveryLandGlass" : "DeliveryLand", delivery.model.position, .65f, delivery.boss);
                 }
                 if (elapsed >= DeliverySeconds)
@@ -242,7 +244,7 @@ namespace ColaCola.Presentation
 
         public GameObject TakeModelForUse(int slot, bool boss)
         {
-            if (slot < 0 || slot >= ColaItemController.Capacity) return null;
+            if (slot < 0 || slot >= ColaItemController.MaxCapacity) return null;
             var models = boss ? bossModels : playerModels;
             var ids = boss ? bossModelIds : playerModelIds;
             var model = models[slot];
@@ -267,7 +269,12 @@ namespace ColaCola.Presentation
 
         private void EnsureProps()
         {
-            if (inventoryRoot && bossInventoryRoot) return;
+            if (inventoryRoot && bossInventoryRoot)
+            {
+                if (builtPlayerCapacity != items.CapacityFor()) RebuildTray(false);
+                if (builtBossCapacity != items.CapacityFor(true)) RebuildTray(true);
+                return;
+            }
             modelLibrary = new ColaItemModelLibrary();
             playerShell = StorageMaterial("ServingTray_TealEnamel", new Color(.11f, .34f, .30f));
             bossShell = StorageMaterial("DeliveryCrate_RedWood", new Color(.38f, .13f, .085f));
@@ -277,7 +284,24 @@ namespace ColaCola.Presentation
             playerAccent = StorageMaterial("ServingTray_DarkChecks", new Color(.07f, .20f, .17f));
             bossAccent = StorageMaterial("DeliveryCrate_DarkRed", new Color(.22f, .055f, .035f));
             inventoryRoot = BuildInventory(false);
+            builtPlayerCapacity = items.CapacityFor();
             bossInventoryRoot = BuildInventory(true);
+            builtBossCapacity = items.CapacityFor(true);
+        }
+
+        private void RebuildTray(bool boss)
+        {
+            ResetPresentation();
+            var root = boss ? bossInventoryRoot : inventoryRoot;
+            root.SetActive(false);
+            foreach (var filter in root.GetComponentsInChildren<MeshFilter>(true))
+                if (filter.sharedMesh && storageMeshes.Remove(filter.sharedMesh)) Destroy(filter.sharedMesh);
+            Destroy(root);
+            System.Array.Clear(boss ? bossCubes : cubes, 0, cubes.Length);
+            System.Array.Clear(boss ? bossModels : playerModels, 0, playerModels.Length);
+            System.Array.Clear(boss ? bossModelIds : playerModelIds, 0, playerModelIds.Length);
+            if (boss) { bossInventoryRoot = BuildInventory(true); builtBossCapacity = items.CapacityFor(true); }
+            else { inventoryRoot = BuildInventory(false); builtPlayerCapacity = items.CapacityFor(); }
         }
 
         private Material StorageMaterial(string name, Color color)
@@ -340,6 +364,8 @@ namespace ColaCola.Presentation
 
         private GameObject BuildInventory(bool boss)
         {
+            int columns = items.CapacityFor(boss) / 2;
+            float pitch = SlotPitch * 4 / columns, width = pitch * columns + .04f;
             var root = new GameObject(boss ? "BossItemCubes_Runtime" : "PlayerItemCubes_Runtime") { hideFlags = HideFlags.DontSave };
             root.transform.SetParent(items.transform.root, false);
             // Both trays share one grid and yaw. The rear tray sits higher and farther right in perspective.
@@ -348,44 +374,44 @@ namespace ColaCola.Presentation
                 Quaternion.Euler(0, 8, 0));
             root.transform.localScale = Vector3.one * .84f;
             Material shell = boss ? bossShell : playerShell, trim = boss ? steelRim : ivoryRim;
-            if (boss) BeveledStorage(root.transform, "CrateRaisedStand", new Vector3(0, -.112f, 0), TrayWidth - .04f, .35f, .112f, bossAccent);
-            BeveledStorage(root.transform, boss ? "DeliveryCrateShell" : "ServingTrayShell", Vector3.zero, TrayWidth, .39f, .022f, shell);
-            BeveledStorage(root.transform, "EightSlotRearShelf", new Vector3(0, .022f, .095f), TrayWidth - .024f, .178f, .078f, shell);
-            StorageBlock(root.transform, "FrontRolledRim", new Vector3(0, .029f, -.188f), new Vector3(TrayWidth, .014f, .014f), trim);
-            StorageBlock(root.transform, "BackRim", new Vector3(0, .111f, .188f), new Vector3(TrayWidth, .022f, .014f), shell);
-            StorageBlock(root.transform, "RearShelfEdge", new Vector3(0, .093f, .003f), new Vector3(TrayWidth - .024f, .014f, .008f), trim);
+            if (boss) BeveledStorage(root.transform, "CrateRaisedStand", new Vector3(0, -.112f, 0), width - .04f, .35f, .112f, bossAccent);
+            BeveledStorage(root.transform, boss ? "DeliveryCrateShell" : "ServingTrayShell", Vector3.zero, width, .39f, .022f, shell);
+            BeveledStorage(root.transform, "EightSlotRearShelf", new Vector3(0, .022f, .095f), width - .024f, .178f, .078f, shell);
+            StorageBlock(root.transform, "FrontRolledRim", new Vector3(0, .029f, -.188f), new Vector3(width, .014f, .014f), trim);
+            StorageBlock(root.transform, "BackRim", new Vector3(0, .111f, .188f), new Vector3(width, .022f, .014f), shell);
+            StorageBlock(root.transform, "RearShelfEdge", new Vector3(0, .093f, .003f), new Vector3(width - .024f, .014f, .008f), trim);
             foreach (int side in new[] { -1, 1 })
             {
-                StorageBlock(root.transform, "FrontSideRim_" + side, new Vector3(side * (TrayWidth / 2 - .007f), .029f, -.095f), new Vector3(.014f, .014f, .178f), trim);
-                StorageBlock(root.transform, "RearSideRim_" + side, new Vector3(side * (TrayWidth / 2 - .007f), .109f, .095f),
+                StorageBlock(root.transform, "FrontSideRim_" + side, new Vector3(side * (width / 2 - .007f), .029f, -.095f), new Vector3(.014f, .014f, .178f), trim);
+                StorageBlock(root.transform, "RearSideRim_" + side, new Vector3(side * (width / 2 - .007f), .109f, .095f),
                     new Vector3(.014f, .018f, .178f), trim);
-                StorageBlock(root.transform, "RecessedSideGrip_" + side, new Vector3(side * (TrayWidth / 2 + .001f), .109f, .095f),
+                StorageBlock(root.transform, "RecessedSideGrip_" + side, new Vector3(side * (width / 2 + .001f), .109f, .095f),
                     new Vector3(.003f, .008f, .062f), boss ? bossAccent : playerAccent, false);
                 if (boss)
                 {
-                    StorageBlock(root.transform, "SteelFrontCorner_" + side, new Vector3(side * (TrayWidth / 2 - .021f), .029f, -.198f), new Vector3(.016f, .020f, .006f), steelRim);
-                    StorageBlock(root.transform, "SteelRearCorner_" + side, new Vector3(side * (TrayWidth / 2 - .021f), .109f, .198f), new Vector3(.016f, .024f, .006f), steelRim);
+                    StorageBlock(root.transform, "SteelFrontCorner_" + side, new Vector3(side * (width / 2 - .021f), .029f, -.198f), new Vector3(.016f, .020f, .006f), steelRim);
+                    StorageBlock(root.transform, "SteelRearCorner_" + side, new Vector3(side * (width / 2 - .021f), .109f, .198f), new Vector3(.016f, .024f, .006f), steelRim);
                 }
             }
-            for (int column = 1; column < SlotColumns; column++)
+            for (int column = 1; column < columns; column++)
             {
-                float x = (column - SlotColumns / 2f) * SlotPitch;
+                float x = (column - columns / 2f) * pitch;
                 StorageBlock(root.transform, "FrontSlotDivider_" + column, new Vector3(x, .031f, -.095f), new Vector3(.006f, .018f, .178f), shell);
                 StorageBlock(root.transform, "RearSlotDivider_" + column, new Vector3(x, .109f, .095f), new Vector3(.006f, .018f, .178f), shell);
             }
             if (boss)
             {
-                StorageBlock(root.transform, "CrateTopBand", new Vector3(0, .125f, .188f), new Vector3(TrayWidth, .006f, .016f), steelRim);
+                StorageBlock(root.transform, "CrateTopBand", new Vector3(0, .125f, .188f), new Vector3(width, .006f, .016f), steelRim);
                 PizzaBadge(root.transform);
             }
             var owned = boss ? bossCubes : cubes;
-            for (int i = 0; i < owned.Length; i++)
+            for (int i = 0; i < items.CapacityFor(boss); i++)
             {
-                float x = (i % SlotColumns - (SlotColumns - 1) / 2f) * SlotPitch;
-                float z = i / SlotColumns == 0 ? -.095f : .095f, floor = i / SlotColumns == 0 ? .022f : .100f;
-                StorageBlock(root.transform, "CompartmentLiner_" + i, new Vector3(x, floor + .0005f, z), new Vector3(.154f, .001f, .154f), paperLiner, false);
+                float x = (i % columns - (columns - 1) / 2f) * pitch;
+                float z = i / columns == 0 ? -.095f : .095f, floor = i / columns == 0 ? .022f : .100f;
+                StorageBlock(root.transform, "CompartmentLiner_" + i, new Vector3(x, floor + .0005f, z), new Vector3(pitch - .016f, .001f, .154f), paperLiner, false);
                 StorageBlock(root.transform, "LinerCheck_" + i, new Vector3(x, floor + .0011f, z - .060f),
-                    new Vector3(.134f, .0004f, .008f), boss ? bossAccent : playerAccent, false);
+                    new Vector3(pitch - .036f, .0004f, .008f), boss ? bossAccent : playerAccent, false);
                 var cube = new GameObject("ItemSlot_" + (i + 1), typeof(BoxCollider));
                 cube.transform.SetParent(root.transform, false);
                 cube.transform.localPosition = new Vector3(x, floor + .001f, z);
@@ -397,6 +423,7 @@ namespace ColaCola.Presentation
         private void RefreshInventory()
         {
             if (!items || !inventoryRoot) return;
+            EnsureProps();
             for (int actor = 0; actor < 2; actor++)
             {
                 bool boss = actor == 1;
@@ -405,6 +432,7 @@ namespace ColaCola.Presentation
                 var modelIds = boss ? bossModelIds : playerModelIds;
                 for (int i = 0; i < owned.Length; i++)
                 {
+                    if (!owned[i]) continue;
                     var id = items.ItemAt(i, boss);
                     if (!id.HasValue || modelIds[i] != id)
                     { CancelDelivery(i, boss); ResetHover(i, boss); }
@@ -420,6 +448,8 @@ namespace ColaCola.Presentation
                             Destroy(models[i]);
                         }
                         models[i] = modelLibrary.Create(id.Value, owned[i].transform);
+                        if (items.CapacityFor(boss) > ColaItemController.Capacity)
+                            models[i].transform.localScale *= .8f;
                         modelIds[i] = id;
                         (boss ? bossRestPositions : playerRestPositions)[i] = models[i].transform.localPosition;
                         var hitTarget = owned[i].GetComponent<BoxCollider>();
@@ -437,19 +467,29 @@ namespace ColaCola.Presentation
             AnimateDeliveries();
             UpdateHoverTarget();
             AnimateHover();
+            UpdateReturnClick();
+        }
+
+        private void UpdateReturnClick()
+        {
+            var mouse = Mouse.current;
+            if (mouse == null || !mouse.rightButton.wasPressedThisFrame) return;
+            bool eligible = CanShowHints && !inspectedBoss && inspectedSlot >= 0 && items.CanReturnSlot(inspectedSlot);
+            if (eligible) items.TryReturnItem(inspectedSlot);
         }
 
         private void UpdateHoverTarget()
         {
             if (Mouse.current != null) InspectPointer(Mouse.current.position.ReadValue());
-            else { hoveredSlot = -1; hoveredBell = null; hoverTitle = hoverDescription = null; }
+            else { hoveredSlot = inspectedSlot = -1; hoveredBell = null; hoverTitle = hoverDescription = hoverReturnHint = null; }
         }
 
         // Shared mouse/Play-review path; changes inspection only, never OS pointer state.
         public void InspectPointer(Vector2 screenPoint)
         {
             hoveredSlot = -1; hoveredBell = null;
-            hoverTitle = hoverDescription = null;
+            inspectedSlot = -1;
+            hoverTitle = hoverDescription = hoverReturnHint = null;
             if (!items || !items.match || !items.match.interaction) return;
             if (!orderSheet) orderSheet = GetComponent<ColaOrderSheet>();
             var interaction = items.match.interaction;
@@ -464,9 +504,11 @@ namespace ColaCola.Presentation
                 var cube = hit.collider.GetComponentInParent<ColaItemCube>();
                 if (cube && items.ItemAt(cube.Slot, cube.IsBoss).HasValue && !IsSlotArriving(cube.Slot, cube.IsBoss))
                 {
+                    inspectedSlot = cube.Slot; inspectedBoss = cube.IsBoss;
                     if (!interaction.IsBusy) { hoveredSlot = cube.Slot; hoveredBoss = cube.IsBoss; }
                     var definition = ColaItemCatalog.Get(items.ItemAt(cube.Slot, cube.IsBoss).Value);
-                    hoverTitle = definition.Name; hoverDescription = definition.Effect;
+                    hoverTitle = definition.Name; hoverDescription = items.EffectDescription(definition.Id, cube.IsBoss);
+                    if (!cube.IsBoss && items.CanReturnSlot(cube.Slot)) hoverReturnHint = ColaLocalization.Get("ui.return_item", "우클릭: 반납 +1토큰");
                     return;
                 }
                 var bellTarget = hit.collider.GetComponent<ColaWaiterBellTarget>();
@@ -477,22 +519,22 @@ namespace ColaCola.Presentation
                 if (!items.CanAct) return;
                 if (hit.collider == interaction.bottleCollider || OnTarget(hit.transform, interaction.bottle))
                 {
-                    hoverTitle = "콜라";
+                    hoverTitle = ColaLocalization.Get("ui.cola", "콜라");
                     int strength = interaction.Model != null ? interaction.Model.SelectedStrength : 0;
                     if (strength > 0)
                     {
                         var modifiers = items.PreviewAction(false);
                         var prediction = interaction.Model.Predict(strength, modifiers.PressureBonus,
-                            pressureMultiplier: modifiers.PressureMultiplier);
-                        hoverDescription = $"압력 +{prediction.PressureIncrease} · 안전 {ColaItemBalance.ShakeReward(strength, false, modifiers.RewardBonus)}토큰 · 폭발 {ColaItemBalance.ShakeReward(strength, true)}토큰 / 피해 {modifiers.Damage}";
+                            probabilityReduction: modifiers.ProbabilityReduction, pressureMultiplier: modifiers.PressureMultiplier, probabilityIncrease: modifiers.ProbabilityIncrease);
+                        hoverDescription = string.Format(ColaLocalization.Get("ui.shake_preview", "압력 +{0} · 안전 {1}토큰 · 폭발 {2}토큰 / 피해 {3}"), prediction.PressureIncrease, items.match.Progression.Reward(prediction, false, modifiers, false), items.match.Progression.Reward(prediction, true, modifiers, false), modifiers.Damage);
                     }
-                    else hoverDescription = "강도를 선택한 뒤 흔드세요.";
+                    else hoverDescription = ColaLocalization.Get("ui.choose_strength", "강도를 선택한 뒤 흔드세요.");
                     return;
                 }
                 var gauge = interaction.gauge;
                 if (gauge && OnTarget(hit.transform, gauge.transform) && IsOverGaugeDial(ray, gauge.transform))
                 {
-                    hoverDescription = $"현재 압력 {gauge.CurrentPressure} / 한계 압력 {gauge.CurrentLimit}";
+                    hoverDescription = string.Format(ColaLocalization.Get("ui.pressure", "현재 압력 {0} / 한계 압력 {1}"), gauge.CurrentPressure, gauge.CurrentLimit);
                 }
             }
         }
@@ -525,6 +567,10 @@ namespace ColaCola.Presentation
             hoverTextShadow = new GUIStyle(hoverText);
             SetFixedLabelColor(hoverNameShadow, new Color(0, 0, 0, .8f));
             SetFixedLabelColor(hoverTextShadow, new Color(0, 0, 0, .8f));
+            returnHintStyle = new GUIStyle(hoverText) { fontSize = 11 };
+            SetFixedLabelColor(returnHintStyle, new Color(.51f, .53f, .49f, .9f));
+            returnHintShadow = new GUIStyle(returnHintStyle);
+            SetFixedLabelColor(returnHintShadow, new Color(0, 0, 0, .5f));
         }
 
         private static void SetFixedLabelColor(GUIStyle style, Color color)
@@ -547,16 +593,9 @@ namespace ColaCola.Presentation
             float scale = Scale;
             label.fontSize = hoverNameShadow.fontSize = Mathf.RoundToInt(15 * scale);
             detail.fontSize = hoverText.fontSize = hoverTextShadow.fontSize = Mathf.RoundToInt(14 * scale);
-            float padding = Mathf.Round(15 * scale);
-            float width = Mathf.Round(Screen.width - padding * 2);
-            string playerEffects = "내 효과: " + items.EffectsText(false), bossEffects = "보스 효과: " + items.EffectsText(true);
-            float playerHeight = Mathf.Ceil(Mathf.Max(detail.lineHeight + 6, detail.CalcHeight(new GUIContent(playerEffects), width) + 4));
-            float bossHeight = Mathf.Ceil(Mathf.Max(detail.lineHeight + 6, detail.CalcHeight(new GUIContent(bossEffects), width) + 4));
-            float bottom = Screen.height - Mathf.Round(8 * scale);
-            float footerTop = bottom - bossHeight - playerHeight - 4;
+            returnHintStyle.fontSize = returnHintShadow.fontSize = Mathf.Max(10, Mathf.RoundToInt(11 * scale));
+            float footerTop = Screen.height - Mathf.Round(18 * scale);
             if (HasHoverDescription) DrawHoverDescription(scale, footerTop);
-            GUI.Label(new Rect(padding, footerTop, width, playerHeight), playerEffects, detail);
-            GUI.Label(new Rect(padding, bottom - bossHeight, width, bossHeight), bossEffects, detail);
             GUI.color = previousTint;
             GUI.contentColor = previousContent;
         }
@@ -566,11 +605,13 @@ namespace ColaCola.Presentation
             float maximumWidth = Mathf.Min(Mathf.Max(600 * scale, 460), Screen.width - 32 * scale);
             float contentWidth = Mathf.Max(label.CalcSize(new GUIContent(hoverTitle ?? "")).x,
                 hoverText.CalcSize(new GUIContent(hoverDescription)).x);
+            if (!string.IsNullOrEmpty(hoverReturnHint)) contentWidth = Mathf.Max(contentWidth, returnHintStyle.CalcSize(new GUIContent(hoverReturnHint)).x);
             float width = Mathf.Ceil(Mathf.Min(maximumWidth, contentWidth + 20));
             float bodyHeight = Mathf.Ceil(Mathf.Max(hoverText.lineHeight + 8, hoverText.CalcHeight(new GUIContent(hoverDescription), width) + 8));
             float titleHeight = string.IsNullOrEmpty(hoverTitle) ? 0 : Mathf.Ceil(label.lineHeight + 8);
+            float returnHeight = string.IsNullOrEmpty(hoverReturnHint) ? 0 : Mathf.Ceil(returnHintStyle.CalcHeight(new GUIContent(hoverReturnHint), width) + 4);
             float x = Mathf.Round((Screen.width - width) * .5f);
-            float y = Mathf.Round(footerTop - 10 - bodyHeight - titleHeight);
+            float y = Mathf.Round(footerTop - 10 - bodyHeight - titleHeight - returnHeight);
             int depth = GUI.depth;
             bool wasEnabled = GUI.enabled;
             GUI.depth = -15; GUI.enabled = true;
@@ -582,6 +623,12 @@ namespace ColaCola.Presentation
             var body = new Rect(x, y + titleHeight, width, bodyHeight);
             GUI.Label(new Rect(body.x + 1, body.y + 1, body.width, body.height), hoverDescription, hoverTextShadow);
             GUI.Label(body, hoverDescription, hoverText);
+            if (returnHeight > 0)
+            {
+                var hint = new Rect(x, body.yMax, width, returnHeight);
+                GUI.Label(new Rect(hint.x + 1, hint.y + 1, hint.width, hint.height), hoverReturnHint, returnHintShadow);
+                GUI.Label(hint, hoverReturnHint, returnHintStyle);
+            }
             GUI.depth = depth; GUI.enabled = wasEnabled;
         }
 

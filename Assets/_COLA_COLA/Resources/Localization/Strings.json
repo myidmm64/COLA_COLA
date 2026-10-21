@@ -1,0 +1,5107 @@
+{
+    "rows": [
+        {
+            "key": "item.IceCup.name",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "얼음컵",
+                "Ice Cup",
+                "氷カップ",
+                "冰杯",
+                "冰杯",
+                "Gobelet de glace",
+                "Eisbecher",
+                "Vaso con hielo",
+                "Copo de gelo",
+                "Стакан со льдом"
+            ]
+        },
+        {
+            "key": "item.IceCup.effect",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "압력 -5.",
+                "Pressure -5.",
+                "圧力 -5。",
+                "压力 -5。",
+                "壓力 -5。",
+                "Pression -5.",
+                "Druck -5.",
+                "Presión -5.",
+                "Pressão -5.",
+                "Давление -5."
+            ]
+        },
+        {
+            "key": "item.FizzCandy.name",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "발포 캔디",
+                "Fizz Candy",
+                "発泡キャンディ",
+                "跳跳糖",
+                "跳跳糖",
+                "Bonbon pétillant",
+                "Brausebonbon",
+                "Caramelo efervescente",
+                "Bala efervescente",
+                "Шипучая конфета"
+            ]
+        },
+        {
+            "key": "item.FizzCandy.effect",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "상대의 다음 흔들기 압력 +4. 중복 가능.",
+                "Opponent's next shake: pressure +4.",
+                "相手の次のシェイク：圧力 +4。重ねがけ可。",
+                "对手下次摇晃：压力 +4。可叠加。",
+                "對手下次搖晃：壓力 +4。可疊加。",
+                "Prochaine secousse adverse : pression +4. Cumulable.",
+                "Nächstes Schütteln des Gegners: Druck +4. Stapelbar.",
+                "Próxima sacudida rival: presión +4. Acumulable.",
+                "Próxima sacudida do rival: pressão +4. Acumulável.",
+                "Следующее встряхивание соперника: давление +4. Суммируется."
+            ]
+        },
+        {
+            "key": "item.QueueTicket.name",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "취소 번호표",
+                "Cancellation Ticket",
+                "キャンセル券",
+                "取消号牌",
+                "取消號碼牌",
+                "Ticket d'annulation",
+                "Stornomarke",
+                "Turno cancelado",
+                "Senha de cancelamento",
+                "Талон отмены"
+            ]
+        },
+        {
+            "key": "item.QueueTicket.effect",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "토큰 +1. 상대 아이템 1개 제거.",
+                "Gain 1 token. Remove 1 enemy item.",
+                "トークン +1。相手のアイテムを1個除去。",
+                "获得1枚代币。移除对手1件道具。",
+                "獲得1枚代幣。移除對手1件道具。",
+                "Gagnez 1 jeton. Retirez 1 objet adverse.",
+                "Erhalte 1 Marke. Entferne 1 gegnerischen Gegenstand.",
+                "Gana 1 ficha. Elimina 1 objeto rival.",
+                "Ganhe 1 ficha. Remova 1 item do rival.",
+                "Получите 1 жетон. Удалите 1 предмет соперника."
+            ]
+        },
+        {
+            "key": "item.Bill.name",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "계산서",
+                "Bill",
+                "伝票",
+                "账单",
+                "帳單",
+                "Addition",
+                "Rechnung",
+                "Cuenta",
+                "Conta",
+                "Счёт"
+            ]
+        },
+        {
+            "key": "item.Bill.effect",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "흔들지 않고 상대에게 차례를 넘김.",
+                "Pass your turn without shaking.",
+                "振らずに相手へ手番を渡す。",
+                "不摇晃，直接交给对手行动。",
+                "不搖晃，直接交給對手行動。",
+                "Passez votre tour sans secouer.",
+                "Gib deinen Zug ab, ohne zu schütteln.",
+                "Pasa el turno sin agitar.",
+                "Passe a vez sem sacudir.",
+                "Передайте ход без встряхивания."
+            ]
+        },
+        {
+            "key": "item.SpicyOrder.name",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "매운맛 주문서",
+                "Spicy Order",
+                "激辛オーダー",
+                "加辣订单",
+                "加辣訂單",
+                "Commande épicée",
+                "Scharfe Bestellung",
+                "Pedido picante",
+                "Pedido apimentado",
+                "Острый заказ"
+            ]
+        },
+        {
+            "key": "item.SpicyOrder.effect",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "상대의 다음 흔들기 폭발 확률 +15%p. 중복 가능.",
+                "Opponent's next shake: burst chance +15pp.",
+                "相手の次のシェイク：破裂確率 +15ポイント。重ねがけ可。",
+                "对手下次摇晃：爆炸概率 +15个百分点。可叠加。",
+                "對手下次搖晃：爆炸機率 +15個百分點。可疊加。",
+                "Prochaine secousse adverse : risque d'éclatement +15 points. Cumulable.",
+                "Nächstes Schütteln des Gegners: Platzrisiko +15 Prozentpunkte. Stapelbar.",
+                "Próxima sacudida rival: riesgo de estallido +15 puntos porcentuales. Acumulable.",
+                "Próxima sacudida do rival: chance de explosão +15 pontos percentuais. Acumulável.",
+                "Следующее встряхивание соперника: шанс взрыва +15 п. п. Суммируется."
+            ]
+        },
+        {
+            "key": "item.SafetyCap.name",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "안전 마개",
+                "Safety Cap",
+                "安全キャップ",
+                "安全瓶塞",
+                "安全瓶塞",
+                "Bouchon de sécurité",
+                "Sicherheitsverschluss",
+                "Tapón de seguridad",
+                "Tampa de segurança",
+                "Защитная пробка"
+            ]
+        },
+        {
+            "key": "item.SafetyCap.effect",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "내 다음 흔들기 폭발 확률 -15%p. 중복 가능. 한계 도달 시 100%.",
+                "Next shake: burst chance -15pp. Stacks. Limit: 100%.",
+                "次のシェイクの破裂確率 -15ポイント。重ねがけ可。限界到達時は100%。",
+                "下次摇晃爆炸概率 -15个百分点。可叠加。达到上限仍为100%。",
+                "下次搖晃爆炸機率 -15個百分點。可疊加。達到上限仍為100%。",
+                "Prochaine secousse : risque d'éclatement -15 points. Cumulable. À la limite : 100 %.",
+                "Nächstes Schütteln: Platzrisiko -15 Prozentpunkte. Stapelbar. Am Drucklimit: 100 %.",
+                "Próxima sacudida: riesgo de estallido -15 puntos porcentuales. Acumulable. Al llegar al límite: 100 %.",
+                "Próxima sacudida: chance de explosão -15 pontos percentuais. Acumulável. No limite: 100%.",
+                "Следующее встряхивание: шанс взрыва -15 п. п. Суммируется. На пределе: 100%."
+            ]
+        },
+        {
+            "key": "item.PizzaSlice.name",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "피자 한 조각",
+                "Pizza Slice",
+                "ピザ1切れ",
+                "一片披萨",
+                "一片披薩",
+                "Part de pizza",
+                "Pizzastück",
+                "Porción de pizza",
+                "Fatia de pizza",
+                "Кусок пиццы"
+            ]
+        },
+        {
+            "key": "item.PizzaSlice.effect",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "체력 +1.",
+                "Restore 1 HP.",
+                "体力 +1。",
+                "恢复1点生命。",
+                "恢復1點生命。",
+                "Récupérez 1 PV.",
+                "Stellt 1 LP wieder her.",
+                "Recupera 1 PV.",
+                "Recupere 1 PV.",
+                "Восстановите 1 ОЗ."
+            ]
+        },
+        {
+            "key": "item.HotSauce.name",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "핫소스",
+                "Hot Sauce",
+                "ホットソース",
+                "辣酱",
+                "辣醬",
+                "Sauce piquante",
+                "Chilisoße",
+                "Salsa picante",
+                "Molho picante",
+                "Острый соус"
+            ]
+        },
+        {
+            "key": "item.HotSauce.effect",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "이 콜라의 양쪽 폭발 피해 +1.",
+                "This cola: burst damage +1 for both players.",
+                "このコーラの破裂ダメージが双方 +1。",
+                "本瓶可乐：双方爆炸伤害 +1。",
+                "本瓶可樂：雙方爆炸傷害 +1。",
+                "Ce cola : dégâts d'éclatement +1 pour les deux joueurs.",
+                "Diese Cola: Platzschaden +1 für beide Spieler.",
+                "Esta cola: daño de estallido +1 para ambos.",
+                "Esta cola: dano de explosão +1 para os dois.",
+                "Эта кола: урон от взрыва +1 для обоих."
+            ]
+        },
+        {
+            "key": "item.DoubleStamp.name",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "더블 스탬프",
+                "Double Stamp",
+                "ダブルスタンプ",
+                "双倍印章",
+                "雙倍印章",
+                "Double tampon",
+                "Doppelstempel",
+                "Sello doble",
+                "Carimbo duplo",
+                "Двойной штамп"
+            ]
+        },
+        {
+            "key": "item.DoubleStamp.effect",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "내 다음 흔들기가 안전하면 +3토큰.",
+                "Survive your next shake: gain 3 extra tokens.",
+                "次のシェイクで生存すると追加で3トークン。",
+                "下次摇晃存活：额外获得3枚代币。",
+                "下次搖晃存活：額外獲得3枚代幣。",
+                "Survivez à la prochaine secousse : gagnez 3 jetons supplémentaires.",
+                "Überlebe dein nächstes Schütteln: 3 zusätzliche Marken.",
+                "Sobrevive a tu próxima sacudida: gana 3 fichas extra.",
+                "Sobreviva à próxima sacudida: ganhe 3 fichas extras.",
+                "Переживите следующее встряхивание: получите ещё 3 жетона."
+            ]
+        },
+        {
+            "key": "item.BottleOpener.name",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "병따개",
+                "Bottle Opener",
+                "栓抜き",
+                "开瓶器",
+                "開瓶器",
+                "Décapsuleur",
+                "Flaschenöffner",
+                "Abrebotellas",
+                "Abridor",
+                "Открывашка"
+            ]
+        },
+        {
+            "key": "item.BottleOpener.effect",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "이 콜라의 한계 압력 -4.",
+                "Cola pressure limit -4.",
+                "このコーラの限界圧力 -4。",
+                "本瓶可乐的压力上限 -4。",
+                "本瓶可樂的壓力上限 -4。",
+                "Limite de pression de ce cola -4.",
+                "Drucklimit dieser Cola -4.",
+                "Límite de presión de esta cola -4.",
+                "Limite de pressão desta cola -4.",
+                "Предел давления этой колы -4."
+            ]
+        },
+        {
+            "key": "item.Straw.name",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "빨대",
+                "Straw",
+                "ストロー",
+                "吸管",
+                "吸管",
+                "Paille",
+                "Strohhalm",
+                "Pajita",
+                "Canudo",
+                "Соломинка"
+            ]
+        },
+        {
+            "key": "item.Straw.effect",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "토큰 +2. 상대 토큰을 그만큼 빼앗음.",
+                "Gain 2 tokens, taking what the opponent has.",
+                "トークン +2。その分を相手から奪う。",
+                "获得2枚代币，并从对手处扣除相应数量。",
+                "獲得2枚代幣，並從對手處扣除相應數量。",
+                "Gagnez 2 jetons et prenez autant de jetons disponibles à l'adversaire.",
+                "Erhalte 2 Marken und nimm dem Gegner entsprechend viele vorhandene Marken ab.",
+                "Gana 2 fichas y quita al rival esa cantidad, hasta las que tenga.",
+                "Ganhe 2 fichas e tire essa quantia do rival, até o saldo disponível.",
+                "Получите 2 жетона и отнимите у соперника столько же, в пределах его запаса."
+            ]
+        },
+        {
+            "key": "item.SodaWater.name",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "탄산수",
+                "Soda Water",
+                "炭酸水",
+                "苏打水",
+                "蘇打水",
+                "Eau gazeuse",
+                "Sprudelwasser",
+                "Agua con gas",
+                "Água com gás",
+                "Газированная вода"
+            ]
+        },
+        {
+            "key": "item.SodaWater.effect",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "압력을 한계의 절반으로 맞춤.",
+                "Set pressure to half the limit.",
+                "圧力を限界の半分にする。",
+                "将压力设为上限的一半。",
+                "將壓力設為上限的一半。",
+                "Réglez la pression à la moitié de la limite.",
+                "Setzt den Druck auf die Hälfte des Limits.",
+                "Fija la presión en la mitad del límite.",
+                "Defina a pressão como metade do limite.",
+                "Установите давление на половине предела."
+            ]
+        },
+        {
+            "key": "item.CoinCup.name",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "동전컵",
+                "Coin Cup",
+                "小銭カップ",
+                "零钱杯",
+                "零錢杯",
+                "Gobelet à monnaie",
+                "Münzbecher",
+                "Vaso de monedas",
+                "Copo de moedas",
+                "Стакан с монетами"
+            ]
+        },
+        {
+            "key": "item.CoinCup.effect",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "토큰 +3.",
+                "Gain 3 tokens.",
+                "トークン +3。",
+                "获得3枚代币。",
+                "獲得3枚代幣。",
+                "Gagnez 3 jetons.",
+                "Erhalte 3 Marken.",
+                "Gana 3 fichas.",
+                "Ganhe 3 fichas.",
+                "Получите 3 жетона."
+            ]
+        },
+        {
+            "key": "item.SwapTongs.name",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "교환 집게",
+                "Serving Tongs",
+                "交換トング",
+                "交换夹",
+                "交換夾",
+                "Pince d'échange",
+                "Tauschzange",
+                "Pinzas de intercambio",
+                "Pegador de troca",
+                "Щипцы для обмена"
+            ]
+        },
+        {
+            "key": "item.SwapTongs.effect",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "상대 아이템 1개 획득. 없으면 무작위 획득.",
+                "Take 1 enemy item. If none, gain a random item.",
+                "相手のアイテムを1個獲得。なければランダムに獲得。",
+                "夺取对手1件道具。对手没有道具时，随机获得1件。",
+                "奪取對手1件道具。對手沒有道具時，隨機獲得1件。",
+                "Prenez 1 objet adverse. S'il n'y en a pas, obtenez un objet aléatoire.",
+                "Nimm 1 gegnerischen Gegenstand. Hat der Gegner keinen, erhalte einen zufälligen.",
+                "Toma 1 objeto rival. Si no tiene, recibe uno aleatorio.",
+                "Pegue 1 item do rival. Se ele não tiver nenhum, receba um aleatório.",
+                "Заберите 1 предмет соперника. Если их нет, получите случайный."
+            ]
+        },
+        {
+            "key": "item.SaltPacket.name",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "소금 봉지",
+                "Salt Packet",
+                "塩の小袋",
+                "盐包",
+                "鹽包",
+                "Sachet de sel",
+                "Salztütchen",
+                "Sobre de sal",
+                "Sachê de sal",
+                "Пакетик соли"
+            ]
+        },
+        {
+            "key": "item.SaltPacket.effect",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "상대의 다음 흔들기 압력 +2. 중복 가능.",
+                "Opponent's next shake: pressure +2.",
+                "相手の次のシェイク：圧力 +2。重ねがけ可。",
+                "对手下次摇晃：压力 +2。可叠加。",
+                "對手下次搖晃：壓力 +2。可疊加。",
+                "Prochaine secousse adverse : pression +2. Cumulable.",
+                "Nächstes Schütteln des Gegners: Druck +2. Stapelbar.",
+                "Próxima sacudida rival: presión +2. Acumulable.",
+                "Próxima sacudida do rival: pressão +2. Acumulável.",
+                "Следующее встряхивание соперника: давление +2. Суммируется."
+            ]
+        },
+        {
+            "key": "item.CoolingPack.name",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "보냉팩",
+                "Cooling Pack",
+                "保冷パック",
+                "冰袋",
+                "冰袋",
+                "Poche froide",
+                "Kühlpack",
+                "Bolsa de frío",
+                "Bolsa térmica",
+                "Хладопакет"
+            ]
+        },
+        {
+            "key": "item.CoolingPack.effect",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "내 다음 흔들기 압력 -2.",
+                "Next shake: pressure increase -2.",
+                "次のシェイクの圧力増加量 -2。",
+                "下次摇晃的压力增量 -2。",
+                "下次搖晃的壓力增量 -2。",
+                "Prochaine secousse : augmentation de pression -2.",
+                "Nächstes Schütteln: Druckanstieg -2.",
+                "Próxima sacudida: aumento de presión -2.",
+                "Próxima sacudida: aumento de pressão -2.",
+                "Следующее встряхивание: прирост давления -2."
+            ]
+        },
+        {
+            "key": "item.TokenPunch.name",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "계산 펀치",
+                "Token Punch",
+                "会計パンチ",
+                "结算打孔器",
+                "結帳打孔器",
+                "Poinçon de caisse",
+                "Kassenlocher",
+                "Perforadora de caja",
+                "Perfurador de caixa",
+                "Кассовый дырокол"
+            ]
+        },
+        {
+            "key": "item.TokenPunch.effect",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "상대 다음 흔들기 토큰 -3.",
+                "Opponent's next shake: token reward -3.",
+                "相手の次のシェイク：獲得トークン -3。",
+                "对手下次摇晃：代币奖励 -3。",
+                "對手下次搖晃：代幣獎勵 -3。",
+                "Prochaine secousse adverse : récompense -3 jetons.",
+                "Nächstes Schütteln des Gegners: Belohnung -3 Marken.",
+                "Próxima sacudida rival: recompensa -3 fichas.",
+                "Próxima sacudida do rival: recompensa -3 fichas.",
+                "Следующее встряхивание соперника: награда -3 жетона."
+            ]
+        },
+        {
+            "key": "item.FreshLid.name",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "새 뚜껑",
+                "Fresh Lid",
+                "新品キャップ",
+                "新瓶盖",
+                "新瓶蓋",
+                "Bouchon neuf",
+                "Neuer Deckel",
+                "Tapón nuevo",
+                "Tampa nova",
+                "Новая крышка"
+            ]
+        },
+        {
+            "key": "item.FreshLid.effect",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "이 콜라의 한계 압력 +3.",
+                "Cola pressure limit +3.",
+                "このコーラの限界圧力 +3。",
+                "本瓶可乐的压力上限 +3。",
+                "本瓶可樂的壓力上限 +3。",
+                "Limite de pression de ce cola +3.",
+                "Drucklimit dieser Cola +3.",
+                "Límite de presión de esta cola +3.",
+                "Limite de pressão desta cola +3.",
+                "Предел давления этой колы +3."
+            ]
+        },
+        {
+            "key": "item.ExchangeCoupon.name",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "교환권",
+                "Exchange Coupon",
+                "交換券",
+                "兑换券",
+                "兌換券",
+                "Bon d'échange",
+                "Tauschgutschein",
+                "Vale de cambio",
+                "Cupom de troca",
+                "Купон обмена"
+            ]
+        },
+        {
+            "key": "item.ExchangeCoupon.effect",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "무작위 다른 아이템으로 교체.",
+                "Replace with a different random item.",
+                "別のランダムなアイテムに交換。",
+                "换成另一件随机道具。",
+                "換成另一件隨機道具。",
+                "Remplacez cet objet par un autre objet aléatoire.",
+                "Tauscht sich gegen einen anderen zufälligen Gegenstand.",
+                "Cámbialo por otro objeto aleatorio.",
+                "Troque por outro item aleatório.",
+                "Замените на другой случайный предмет."
+            ]
+        },
+        {
+            "key": "ability.RegularDiscount.name",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "단골 할인",
+                "Regular Discount",
+                "常連割引",
+                "常客折扣",
+                "常客折扣",
+                "Remise habitué",
+                "Stammkundenrabatt",
+                "Descuento habitual",
+                "Desconto de freguês",
+                "Скидка постоянного гостя"
+            ]
+        },
+        {
+            "key": "ability.RegularDiscount.description",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "웨이터벨 가격 -1토큰",
+                "Bell orders cost 1 less token.",
+                "ベルの注文料金 -1トークン。",
+                "摇铃订购费用 -1枚代币。",
+                "搖鈴訂購費用 -1枚代幣。",
+                "Commandes à la sonnette : coût -1 jeton.",
+                "Klingelbestellungen kosten 1 Marke weniger.",
+                "Pedidos con campana: coste -1 ficha.",
+                "Pedidos pela campainha custam 1 ficha a menos.",
+                "Заказы по звонку стоят на 1 жетон меньше."
+            ]
+        },
+        {
+            "key": "ability.LightHand.name",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "가벼운 손",
+                "Light Hand",
+                "軽い手つき",
+                "轻巧之手",
+                "輕巧之手",
+                "Main légère",
+                "Leichte Hand",
+                "Mano ligera",
+                "Mão leve",
+                "Лёгкая рука"
+            ]
+        },
+        {
+            "key": "ability.LightHand.description",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "강도 1로 생존하면 토큰 +1",
+                "Survive strength 1: gain 1 extra token.",
+                "強度1で生存するとトークン +1。",
+                "以强度1存活：额外获得1枚代币。",
+                "以強度1存活：額外獲得1枚代幣。",
+                "Survivez à l'intensité 1 : gagnez 1 jeton supplémentaire.",
+                "Überlebe Stärke 1: 1 zusätzliche Marke.",
+                "Sobrevive con intensidad 1: gana 1 ficha extra.",
+                "Sobreviva com intensidade 1: ganhe 1 ficha extra.",
+                "Выживите на силе 1: получите ещё 1 жетон."
+            ]
+        },
+        {
+            "key": "ability.BoldChoice.name",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "과감한 선택",
+                "Bold Choice",
+                "大胆な選択",
+                "大胆抉择",
+                "大膽抉擇",
+                "Choix audacieux",
+                "Mutige Wahl",
+                "Elección audaz",
+                "Escolha ousada",
+                "Смелый выбор"
+            ]
+        },
+        {
+            "key": "ability.BoldChoice.description",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "강도 3으로 생존하면 토큰 +2",
+                "Survive strength 3: gain 2 extra tokens.",
+                "強度3で生存するとトークン +2。",
+                "以强度3存活：额外获得2枚代币。",
+                "以強度3存活：額外獲得2枚代幣。",
+                "Survivez à l'intensité 3 : gagnez 2 jetons supplémentaires.",
+                "Überlebe Stärke 3: 2 zusätzliche Marken.",
+                "Sobrevive con intensidad 3: gana 2 fichas extra.",
+                "Sobreviva com intensidade 3: ganhe 2 fichas extras.",
+                "Выживите на силе 3: получите ещё 2 жетона."
+            ]
+        },
+        {
+            "key": "ability.BreakagePay.name",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "파손 보상",
+                "Breakage Pay",
+                "破損補償",
+                "破损补偿",
+                "破損補償",
+                "Indemnité de casse",
+                "Bruchgeld",
+                "Compensación por rotura",
+                "Compensação por quebra",
+                "Выплата за ущерб"
+            ]
+        },
+        {
+            "key": "ability.BreakagePay.description",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "내 차례에 폭발하면 토큰 +2",
+                "Burst on your turn: gain 2 extra tokens.",
+                "自分の手番で破裂するとトークン +2。",
+                "在自己回合爆炸：额外获得2枚代币。",
+                "在自己回合爆炸：額外獲得2枚代幣。",
+                "Éclatement à votre tour : gagnez 2 jetons supplémentaires.",
+                "Platzen in deinem Zug: 2 zusätzliche Marken.",
+                "Si estalla en tu turno: gana 2 fichas extra.",
+                "Se explodir na sua vez: ganhe 2 fichas extras.",
+                "Взрыв в ваш ход: получите ещё 2 жетона."
+            ]
+        },
+        {
+            "key": "ability.FirstOrderService.name",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "첫 주문 서비스",
+                "First Order Service",
+                "初回サービス",
+                "首单赠品",
+                "首單贈品",
+                "Cadeau de bienvenue",
+                "Erste Bestellung gratis dazu",
+                "Regalo del primer pedido",
+                "Brinde do primeiro pedido",
+                "Бонус первого заказа"
+            ]
+        },
+        {
+            "key": "ability.FirstOrderService.description",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "보스마다 벨 배달 1회 +1개. 획득 후 빈 칸이 충분한 다음 주문에 적용",
+                "One bell delivery per stage contains 1 extra item when there is room.",
+                "各ボスで1回、ベルの配達 +1個。獲得後、空きが十分な次の注文に適用。",
+                "每个首领可有一次摇铃配送多1件道具。获得后，在空位足够的下一单生效。",
+                "每個首領可有一次搖鈴配送多1件道具。獲得後，在空位足夠的下一單生效。",
+                "Une livraison par boss contient 1 objet de plus. Après acquisition, s'applique à la prochaine commande avec assez de place.",
+                "Einmal pro Boss liefert die Klingel 1 Gegenstand mehr. Gilt nach Erhalt für die nächste Bestellung mit genug Platz.",
+                "Una entrega por jefe incluye 1 objeto extra. Tras obtenerla, se aplica al siguiente pedido con espacio suficiente.",
+                "Uma entrega por chefe inclui 1 item extra. Após obter, vale para o próximo pedido com espaço suficiente.",
+                "Одна доставка за каждого босса даёт ещё 1 предмет. После получения действует на ближайший заказ с достаточным местом."
+            ]
+        },
+        {
+            "key": "ability.TidyCoupon.name",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "정리 쿠폰",
+                "Tidy Coupon",
+                "整理クーポン",
+                "整理券",
+                "整理券",
+                "Bon de rangement",
+                "Aufräumgutschein",
+                "Vale de orden",
+                "Cupom de organização",
+                "Купон на порядок"
+            ]
+        },
+        {
+            "key": "ability.TidyCoupon.description",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "획득할 때와 새 보스 시작 시 교환권 1개. 가득 차면 빈 칸을 기다림",
+                "Gain an exchange coupon on acquisition and each new stage. Waits for space.",
+                "獲得時と新しいボス開始時に交換券1枚。満杯なら空きを待つ。",
+                "获得时及新首领开始时，获得1张兑换券。托盘满时等待空位。",
+                "獲得時及新首領開始時，獲得1張兌換券。托盤滿時等待空位。",
+                "Recevez 1 bon d'échange à l'acquisition et à chaque nouveau boss. Attend une place libre si le plateau est plein.",
+                "Bei Erhalt und jedem neuen Boss: 1 Tauschgutschein. Wartet bei vollem Tablett auf Platz.",
+                "Recibe 1 vale de cambio al obtenerla y al empezar cada jefe. Espera a que haya espacio si está lleno.",
+                "Receba 1 cupom de troca ao obter e no início de cada chefe. Aguarda espaço se a bandeja estiver cheia.",
+                "При получении и в начале каждого босса: 1 купон обмена. Если поднос полон, ждёт свободного места."
+            ]
+        },
+        {
+            "key": "ability.SaltyTaste.name",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "알맞은 힘",
+                "Measured Force",
+                "ほどよい力",
+                "恰到好处",
+                "恰到好處",
+                "Force mesurée",
+                "Dosierte Kraft",
+                "Fuerza justa",
+                "Força na medida",
+                "Точная сила"
+            ]
+        },
+        {
+            "key": "ability.SaltyTaste.description",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "강도 2로 생존하면 토큰 +1",
+                "Survive strength 2: gain 1 extra token.",
+                "強度2で生存するとトークン +1。",
+                "以强度2存活：额外获得1枚代币。",
+                "以強度2存活：額外獲得1枚代幣。",
+                "Survivez à l'intensité 2 : gagnez 1 jeton supplémentaire.",
+                "Überlebe Stärke 2: 1 zusätzliche Marke.",
+                "Sobrevive con intensidad 2: gana 1 ficha extra.",
+                "Sobreviva com intensidade 2: ganhe 1 ficha extra.",
+                "Выживите на силе 2: получите ещё 1 жетон."
+            ]
+        },
+        {
+            "key": "ability.CoolingExpert.name",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "침착한 손",
+                "Steady Hand",
+                "落ち着いた手",
+                "沉着之手",
+                "沉著之手",
+                "Main calme",
+                "Ruhige Hand",
+                "Pulso firme",
+                "Mão firme",
+                "Твёрдая рука"
+            ]
+        },
+        {
+            "key": "ability.CoolingExpert.description",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "체력 2 이하일 때 폭발 확률 -5%p. 한계 도달 시 100%",
+                "At 2 HP or less: burst chance -5pp. Limit: 100%.",
+                "体力2以下で破裂確率 -5ポイント。限界到達時は100%。",
+                "生命不高于2时，爆炸概率 -5个百分点。达到上限仍为100%。",
+                "生命不高於2時，爆炸機率 -5個百分點。達到上限仍為100%。",
+                "À 2 PV ou moins : risque d'éclatement -5 points. À la limite : 100 %.",
+                "Bei höchstens 2 LP: Platzrisiko -5 Prozentpunkte. Am Drucklimit: 100 %.",
+                "Con 2 PV o menos: riesgo de estallido -5 puntos porcentuales. En el límite: 100 %.",
+                "Com 2 PV ou menos: chance de explosão -5 pontos percentuais. No limite: 100%.",
+                "При 2 ОЗ и ниже: шанс взрыва -5 п. п. На пределе: 100%."
+            ]
+        },
+        {
+            "key": "ability.HotDeal.name",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "여유 자금",
+                "Spare Change",
+                "余裕資金",
+                "余裕资金",
+                "餘裕資金",
+                "Petite réserve",
+                "Finanzpolster",
+                "Fondos de sobra",
+                "Dinheiro de sobra",
+                "Запас средств"
+            ]
+        },
+        {
+            "key": "ability.HotDeal.description",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "12토큰 이상 가진 채 흔들어 생존하면 토큰 +1",
+                "Survive a shake started with 12+ tokens: gain 1 extra token.",
+                "12トークン以上を持って振り、生存するとトークン +1。",
+                "持有至少12枚代币时摇晃并存活：额外获得1枚代币。",
+                "持有至少12枚代幣時搖晃並存活：額外獲得1枚代幣。",
+                "Survivez à une secousse commencée avec au moins 12 jetons : gagnez 1 jeton supplémentaire.",
+                "Überlebe ein Schütteln, das du mit mindestens 12 Marken beginnst: 1 zusätzliche Marke.",
+                "Sobrevive a una sacudida iniciada con 12 fichas o más: gana 1 ficha extra.",
+                "Sobreviva a uma sacudida iniciada com 12 fichas ou mais: ganhe 1 ficha extra.",
+                "Переживите встряхивание, начатое с 12 жетонами или больше: получите ещё 1 жетон."
+            ]
+        },
+        {
+            "key": "ability.RecyclingCredit.name",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "재활용 적립",
+                "Recycling Credit",
+                "リサイクル積立",
+                "回收返利",
+                "回收回饋",
+                "Prime de recyclage",
+                "Recyclingbonus",
+                "Bono de reciclaje",
+                "Bônus de reciclagem",
+                "Бонус за переработку"
+            ]
+        },
+        {
+            "key": "ability.RecyclingCredit.description",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "획득 후 아이템을 3개 사용할 때마다 토큰 +1",
+                "Every 3 items used after acquisition: gain 1 token.",
+                "獲得後、アイテムを3個使うたびにトークン +1。",
+                "获得后每使用3件道具，获得1枚代币。",
+                "獲得後每使用3件道具，獲得1枚代幣。",
+                "Après acquisition, gagnez 1 jeton tous les 3 objets utilisés.",
+                "Nach Erhalt: für je 3 benutzte Gegenstände 1 Marke.",
+                "Tras obtenerla, gana 1 ficha por cada 3 objetos usados.",
+                "Após obter, ganhe 1 ficha a cada 3 itens usados.",
+                "После получения за каждые 3 использованных предмета получите 1 жетон."
+            ]
+        },
+        {
+            "key": "ability.ExtraStorage.name",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "넉넉한 수납",
+                "Extra Storage",
+                "収納上手",
+                "额外收纳",
+                "額外收納",
+                "Rangement étendu",
+                "Mehr Stauraum",
+                "Espacio extra",
+                "Espaço extra",
+                "Дополнительное место"
+            ]
+        },
+        {
+            "key": "ability.ExtraStorage.description",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "내 트레이 +2칸",
+                "Tray capacity +2.",
+                "自分のトレイの容量 +2。",
+                "自己的托盘容量 +2格。",
+                "自己的托盤容量 +2格。",
+                "Capacité de votre plateau +2.",
+                "Dein Tablett erhält 2 zusätzliche Plätze.",
+                "Capacidad de tu bandeja +2.",
+                "Capacidade da sua bandeja +2.",
+                "Вместимость вашего подноса +2."
+            ]
+        },
+        {
+            "key": "ability.DangerPay.name",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "위험 수당",
+                "Danger Pay",
+                "危険手当",
+                "危险津贴",
+                "危險津貼",
+                "Prime de risque",
+                "Gefahrenzulage",
+                "Plus de riesgo",
+                "Adicional de risco",
+                "Доплата за риск"
+            ]
+        },
+        {
+            "key": "ability.DangerPay.description",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "예상 폭발 확률 50% 이상에서 생존하면 토큰 +1",
+                "Survive at 50%+ predicted burst chance: gain 1 extra token.",
+                "予想破裂確率50%以上で生存するとトークン +1。",
+                "预计爆炸概率至少50%时存活：额外获得1枚代币。",
+                "預計爆炸機率至少50%時存活：額外獲得1枚代幣。",
+                "Survivez avec un risque prévu d'au moins 50 % : gagnez 1 jeton supplémentaire.",
+                "Überlebe bei mindestens 50 % vorhergesagtem Platzrisiko: 1 zusätzliche Marke.",
+                "Sobrevive con un riesgo previsto de al menos el 50 %: gana 1 ficha extra.",
+                "Sobreviva com chance prevista de pelo menos 50%: ganhe 1 ficha extra.",
+                "Выживите при прогнозе взрыва от 50%: получите ещё 1 жетон."
+            ]
+        },
+        {
+            "key": "ability.RegularSupply.name",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "정기 납품",
+                "Regular Supply",
+                "定期納品",
+                "定期补给",
+                "定期補給",
+                "Livraison régulière",
+                "Regelmäßige Lieferung",
+                "Suministro regular",
+                "Entrega regular",
+                "Регулярные поставки"
+            ]
+        },
+        {
+            "key": "ability.RegularSupply.description",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "새 콜라마다 무작위 아이템 1개. 가득 차면 빈 칸을 기다림",
+                "New cola: gain 1 random item. Waits for space.",
+                "新しいコーラごとにランダムなアイテム1個。満杯なら空きを待つ。",
+                "每瓶新可乐获得1件随机道具。托盘满时等待空位。",
+                "每瓶新可樂獲得1件隨機道具。托盤滿時等待空位。",
+                "Chaque nouveau cola donne 1 objet aléatoire. Attend une place libre si le plateau est plein.",
+                "Jede neue Cola: 1 zufälliger Gegenstand. Wartet bei vollem Tablett auf Platz.",
+                "Cada cola nueva da 1 objeto aleatorio. Espera si no hay espacio.",
+                "Cada cola nova dá 1 item aleatório. Aguarda se não houver espaço.",
+                "Каждая новая кола даёт 1 случайный предмет. Если поднос полон, ждёт места."
+            ]
+        },
+        {
+            "key": "ability.RoughHands.name",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "거친 손맛",
+                "Rough Hands",
+                "荒っぽい手つき",
+                "粗犷手法",
+                "粗獷手法",
+                "Poigne rude",
+                "Grobe Hände",
+                "Manos bruscas",
+                "Mãos pesadas",
+                "Грубые руки"
+            ]
+        },
+        {
+            "key": "ability.RoughHands.description",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "강도 3으로 생존하면 상대의 다음 흔들기 압력 +2",
+                "Survive strength 3: opponent's next shake pressure +2.",
+                "強度3で生存すると相手の次のシェイクの圧力 +2。",
+                "以强度3存活：对手下次摇晃的压力 +2。",
+                "以強度3存活：對手下次搖晃的壓力 +2。",
+                "Survivez à l'intensité 3 : pression +2 à la prochaine secousse adverse.",
+                "Überlebe Stärke 3: nächstes Schütteln des Gegners Druck +2.",
+                "Sobrevive con intensidad 3: presión +2 en la próxima sacudida rival.",
+                "Sobreviva com intensidade 3: pressão +2 na próxima sacudida do rival.",
+                "Выживите на силе 3: давление +2 при следующем встряхивании соперника."
+            ]
+        },
+        {
+            "key": "ability.CrisisManagement.name",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "위기 대처",
+                "Crisis Management",
+                "危機対応",
+                "危机应对",
+                "危機應對",
+                "Gestion de crise",
+                "Krisenmanagement",
+                "Gestión de crisis",
+                "Gestão de crise",
+                "Антикризисные меры"
+            ]
+        },
+        {
+            "key": "ability.CrisisManagement.description",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "체력 2 이하일 때 폭발 확률 -10%p. 한계 도달 시 100%",
+                "At 2 HP or less: burst chance -10pp. Limit: 100%.",
+                "体力2以下で破裂確率 -10ポイント。限界到達時は100%。",
+                "生命不高于2时，爆炸概率 -10个百分点。达到上限仍为100%。",
+                "生命不高於2時，爆炸機率 -10個百分點。達到上限仍為100%。",
+                "À 2 PV ou moins : risque d'éclatement -10 points. À la limite : 100 %.",
+                "Bei höchstens 2 LP: Platzrisiko -10 Prozentpunkte. Am Drucklimit: 100 %.",
+                "Con 2 PV o menos: riesgo de estallido -10 puntos porcentuales. En el límite: 100 %.",
+                "Com 2 PV ou menos: chance de explosão -10 pontos percentuais. No limite: 100%.",
+                "При 2 ОЗ и ниже: шанс взрыва -10 п. п. На пределе: 100%."
+            ]
+        },
+        {
+            "key": "ability.PrepaidContract.name",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "선불 계약",
+                "Prepaid Contract",
+                "前払い契約",
+                "预付合约",
+                "預付合約",
+                "Contrat prépayé",
+                "Vorauszahlungsvertrag",
+                "Contrato prepago",
+                "Contrato pré-pago",
+                "Предоплаченный контракт"
+            ]
+        },
+        {
+            "key": "ability.PrepaidContract.description",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "각 콜라의 첫 벨 주문 가격 -2토큰",
+                "First bell order per cola costs 2 fewer tokens.",
+                "各コーラで最初のベル注文は2トークン引き。",
+                "每瓶可乐的首次摇铃订购，费用 -2枚代币。",
+                "每瓶可樂的首次搖鈴訂購，費用 -2枚代幣。",
+                "Première commande à la sonnette de chaque cola : coût -2 jetons.",
+                "Erste Klingelbestellung je Cola kostet 2 Marken weniger.",
+                "Primer pedido con campana de cada cola: coste -2 fichas.",
+                "Primeiro pedido pela campainha de cada cola: custo -2 fichas.",
+                "Первый заказ по звонку для каждой колы стоит на 2 жетона меньше."
+            ]
+        },
+        {
+            "key": "ability.AccidentSubsidy.name",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "사고 수당",
+                "Accident Subsidy",
+                "事故手当",
+                "事故津贴",
+                "事故津貼",
+                "Prime d'accident",
+                "Unfallzulage",
+                "Subsidio por accidente",
+                "Auxílio por acidente",
+                "Пособие при аварии"
+            ]
+        },
+        {
+            "key": "ability.AccidentSubsidy.description",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "내 차례에 폭발하면 토큰 +4",
+                "Burst on your turn: gain 4 extra tokens.",
+                "自分の手番で破裂するとトークン +4。",
+                "在自己回合爆炸：额外获得4枚代币。",
+                "在自己回合爆炸：額外獲得4枚代幣。",
+                "Éclatement à votre tour : gagnez 4 jetons supplémentaires.",
+                "Platzen in deinem Zug: 4 zusätzliche Marken.",
+                "Si estalla en tu turno: gana 4 fichas extra.",
+                "Se explodir na sua vez: ganhe 4 fichas extras.",
+                "Взрыв в ваш ход: получите ещё 4 жетона."
+            ]
+        },
+        {
+            "key": "achievement.FirstGuest.name",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "첫 손님",
+                "First Guest",
+                "最初のお客",
+                "首位客人",
+                "首位客人",
+                "Premier client",
+                "Erster Gast",
+                "Primer cliente",
+                "Primeiro cliente",
+                "Первый гость"
+            ]
+        },
+        {
+            "key": "achievement.FirstGuest.description",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "1단계 보스 격파",
+                "Defeat stage 1.",
+                "ステージ1のボスを倒す。",
+                "击败第1关首领。",
+                "擊敗第1關首領。",
+                "Battez le boss du niveau 1.",
+                "Besiege den Boss von Stufe 1.",
+                "Derrota al jefe de la fase 1.",
+                "Derrote o chefe da fase 1.",
+                "Победите босса 1-го этапа."
+            ]
+        },
+        {
+            "key": "achievement.DeliveryDone.name",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "배달 완료",
+                "Delivery Complete",
+                "配達完了",
+                "配送完成",
+                "配送完成",
+                "Livraison terminée",
+                "Lieferung abgeschlossen",
+                "Entrega completada",
+                "Entrega concluída",
+                "Доставка завершена"
+            ]
+        },
+        {
+            "key": "achievement.DeliveryDone.description",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "2단계 보스 격파",
+                "Defeat stage 2.",
+                "ステージ2のボスを倒す。",
+                "击败第2关首领。",
+                "擊敗第2關首領。",
+                "Battez le boss du niveau 2.",
+                "Besiege den Boss von Stufe 2.",
+                "Derrota al jefe de la fase 2.",
+                "Derrote o chefe da fase 2.",
+                "Победите босса 2-го этапа."
+            ]
+        },
+        {
+            "key": "achievement.ChefOffDuty.name",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "주방장 퇴근",
+                "Chef Off Duty",
+                "シェフの退勤",
+                "主厨下班",
+                "主廚下班",
+                "Le chef débauche",
+                "Feierabend für den Koch",
+                "El chef sale de turno",
+                "Chef de folga",
+                "Повар ушёл домой"
+            ]
+        },
+        {
+            "key": "achievement.ChefOffDuty.description",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "3단계 보스 격파",
+                "Defeat stage 3.",
+                "ステージ3のボスを倒す。",
+                "击败第3关首领。",
+                "擊敗第3關首領。",
+                "Battez le boss du niveau 3.",
+                "Besiege den Boss von Stufe 3.",
+                "Derrota al jefe de la fase 3.",
+                "Derrote o chefe da fase 3.",
+                "Победите босса 3-го этапа."
+            ]
+        },
+        {
+            "key": "achievement.ManagerApproval.name",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "관리자 승인",
+                "Manager Approved",
+                "マネージャー公認",
+                "经理认可",
+                "經理認可",
+                "Accord du responsable",
+                "Vom Manager genehmigt",
+                "Visto bueno del gerente",
+                "Aprovação do gerente",
+                "Менеджер одобряет"
+            ]
+        },
+        {
+            "key": "achievement.ManagerApproval.description",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "4단계 보스 격파",
+                "Defeat stage 4.",
+                "ステージ4のボスを倒す。",
+                "击败第4关首领。",
+                "擊敗第4關首領。",
+                "Battez le boss du niveau 4.",
+                "Besiege den Boss von Stufe 4.",
+                "Derrota al jefe de la fase 4.",
+                "Derrote o chefe da fase 4.",
+                "Победите босса 4-го этапа."
+            ]
+        },
+        {
+            "key": "achievement.ClosingTime.name",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "영업 종료",
+                "Closing Time",
+                "閉店時間",
+                "打烊时间",
+                "打烊時間",
+                "Fermeture",
+                "Ladenschluss",
+                "Hora de cerrar",
+                "Hora de fechar",
+                "Время закрываться"
+            ]
+        },
+        {
+            "key": "achievement.ClosingTime.description",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "5단계까지 도전 완료",
+                "Complete all 5 stages.",
+                "全5ステージをクリアする。",
+                "完成全部5关挑战。",
+                "完成全部5關挑戰。",
+                "Terminez les 5 niveaux du défi.",
+                "Schließe alle 5 Stufen ab.",
+                "Completa las 5 fases del desafío.",
+                "Conclua as 5 fases do desafio.",
+                "Пройдите все 5 этапов испытания."
+            ]
+        },
+        {
+            "key": "achievement.AccidentFree.name",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "무사고 영업",
+                "Accident Free",
+                "無事故営業",
+                "无事故营业",
+                "無事故營業",
+                "Service sans accident",
+                "Unfallfreier Betrieb",
+                "Servicio sin accidentes",
+                "Serviço sem acidentes",
+                "Без происшествий"
+            ]
+        },
+        {
+            "key": "achievement.AccidentFree.description",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "내 폭발 없이 보스 1명 격파",
+                "Defeat a boss without bursting.",
+                "自分のコーラを破裂させずにボスを倒す。",
+                "自己未爆炸的情况下击败一名首领。",
+                "自己未爆炸的情況下擊敗一名首領。",
+                "Battez un boss sans faire éclater votre cola.",
+                "Besiege einen Boss, ohne selbst eine Cola platzen zu lassen.",
+                "Derrota a un jefe sin que la cola estalle en tu turno.",
+                "Derrote um chefe sem a cola explodir na sua vez.",
+                "Победите босса без взрывов в свой ход."
+            ]
+        },
+        {
+            "key": "achievement.LastSip.name",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "마지막 한 모금",
+                "Last Sip",
+                "最後のひと口",
+                "最后一口",
+                "最後一口",
+                "Dernière gorgée",
+                "Letzter Schluck",
+                "Último sorbo",
+                "Último gole",
+                "Последний глоток"
+            ]
+        },
+        {
+            "key": "achievement.LastSip.description",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "체력 1로 보스 격파",
+                "Defeat a boss with 1 HP left.",
+                "残り体力1でボスを倒す。",
+                "剩余1点生命时击败首领。",
+                "剩餘1點生命時擊敗首領。",
+                "Battez un boss avec 1 PV restant.",
+                "Besiege einen Boss mit 1 verbleibenden LP.",
+                "Derrota a un jefe con 1 PV restante.",
+                "Derrote um chefe com 1 PV restante.",
+                "Победите босса с 1 оставшимся ОЗ."
+            ]
+        },
+        {
+            "key": "achievement.DaringSip.name",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "대담한 한 모금",
+                "Daring Sip",
+                "大胆なひと口",
+                "大胆一口",
+                "大膽一口",
+                "Gorgée audacieuse",
+                "Wagemutiger Schluck",
+                "Sorbo audaz",
+                "Gole ousado",
+                "Дерзкий глоток"
+            ]
+        },
+        {
+            "key": "achievement.DaringSip.description",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "예상 폭발 확률 75% 이상에서 생존",
+                "Survive a predicted burst chance of 75% or more.",
+                "予想破裂確率75%以上で生存する。",
+                "在预计爆炸概率至少75%时存活。",
+                "在預計爆炸機率至少75%時存活。",
+                "Survivez avec un risque d'éclatement prévu d'au moins 75 %.",
+                "Überlebe bei mindestens 75 % vorhergesagtem Platzrisiko.",
+                "Sobrevive con un riesgo de estallido previsto de al menos el 75 %.",
+                "Sobreviva com chance de explosão prevista de pelo menos 75%.",
+                "Выживите при прогнозе взрыва от 75%."
+            ]
+        },
+        {
+            "key": "achievement.PaperThin.name",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "종이 한 장 차이",
+                "Paper Thin",
+                "紙一重",
+                "千钧一发",
+                "千鈞一髮",
+                "À un fil",
+                "Hauchdünn",
+                "Por los pelos",
+                "Por um fio",
+                "На волоске"
+            ]
+        },
+        {
+            "key": "achievement.PaperThin.description",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "흔든 뒤 압력이 한계보다 정확히 1 낮은 상태로 생존",
+                "Survive with pressure exactly 1 below the limit.",
+                "振った後の圧力が限界よりちょうど1低い状態で生存する。",
+                "摇晃后压力恰好低于上限1点并存活。",
+                "搖晃後壓力恰好低於上限1點並存活。",
+                "Survivez après une secousse avec une pression exactement 1 sous la limite.",
+                "Überlebe mit einem Druck genau 1 unter dem Limit nach dem Schütteln.",
+                "Sobrevive tras agitar con la presión exactamente 1 por debajo del límite.",
+                "Sobreviva após sacudir com a pressão exatamente 1 abaixo do limite.",
+                "Переживите встряхивание с давлением ровно на 1 ниже предела."
+            ]
+        },
+        {
+            "key": "achievement.BellRegular.name",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "벨 단골",
+                "Bell Regular",
+                "ベルの常連",
+                "摇铃常客",
+                "搖鈴常客",
+                "Habitué de la sonnette",
+                "Klingel-Stammgast",
+                "Habitual de la campana",
+                "Freguês da campainha",
+                "Завсегдатай звонка"
+            ]
+        },
+        {
+            "key": "achievement.BellRegular.description",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "한 도전에서 벨 5회 사용",
+                "Use the bell 5 times in one run.",
+                "1回の挑戦でベルを5回使う。",
+                "单次挑战中摇铃5次。",
+                "單次挑戰中搖鈴5次。",
+                "Utilisez la sonnette 5 fois en une tentative.",
+                "Benutze die Klingel 5-mal in einem Durchlauf.",
+                "Usa la campana 5 veces en una partida.",
+                "Use a campainha 5 vezes em uma tentativa.",
+                "Используйте звонок 5 раз за одно прохождение."
+            ]
+        },
+        {
+            "key": "achievement.SelfSufficient.name",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "자급자족",
+                "Self Sufficient",
+                "自給自足",
+                "自给自足",
+                "自給自足",
+                "Autonome",
+                "Selbstversorger",
+                "Autosuficiente",
+                "Autossuficiente",
+                "Самообеспечение"
+            ]
+        },
+        {
+            "key": "achievement.SelfSufficient.description",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "벨 없이 보스 1명 격파",
+                "Defeat a boss without bell orders.",
+                "ベルで注文せずにボスを倒す。",
+                "不摇铃订购便击败一名首领。",
+                "不搖鈴訂購便擊敗一名首領。",
+                "Battez un boss sans commander à la sonnette.",
+                "Besiege einen Boss ohne Klingelbestellungen.",
+                "Derrota a un jefe sin pedidos con campana.",
+                "Derrote um chefe sem pedidos pela campainha.",
+                "Победите босса без заказов по звонку."
+            ]
+        },
+        {
+            "key": "achievement.HeadOn.name",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "정면승부",
+                "Head On",
+                "真っ向勝負",
+                "正面交锋",
+                "正面交鋒",
+                "Face à face",
+                "Direktes Duell",
+                "De frente",
+                "Cara a cara",
+                "Лицом к лицу"
+            ]
+        },
+        {
+            "key": "achievement.HeadOn.description",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "아이템을 사용하지 않고 보스 1명 격파",
+                "Defeat a boss without using items.",
+                "アイテムを使わずにボスを倒す。",
+                "不使用道具便击败一名首领。",
+                "不使用道具便擊敗一名首領。",
+                "Battez un boss sans utiliser d'objet.",
+                "Besiege einen Boss, ohne Gegenstände zu benutzen.",
+                "Derrota a un jefe sin usar objetos.",
+                "Derrote um chefe sem usar itens.",
+                "Победите босса без использования предметов."
+            ]
+        },
+        {
+            "key": "achievement.GentleShakes.name",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "살살 흔들기",
+                "Gentle Shakes",
+                "やさしくシェイク",
+                "轻轻摇晃",
+                "輕輕搖晃",
+                "Secousses douces",
+                "Sanft geschüttelt",
+                "Sacudidas suaves",
+                "Sacudidas leves",
+                "Лёгкие встряхивания"
+            ]
+        },
+        {
+            "key": "achievement.GentleShakes.description",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "강도 1만 사용해 보스 1명 격파",
+                "Defeat a boss using only strength 1.",
+                "強度1だけでボスを倒す。",
+                "仅使用强度1击败一名首领。",
+                "僅使用強度1擊敗一名首領。",
+                "Battez un boss en n'utilisant que l'intensité 1.",
+                "Besiege einen Boss nur mit Stärke 1.",
+                "Derrota a un jefe usando solo intensidad 1.",
+                "Derrote um chefe usando apenas intensidade 1.",
+                "Победите босса, используя только силу 1."
+            ]
+        },
+        {
+            "key": "achievement.StrongShakes.name",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "세게 흔들기",
+                "Strong Shakes",
+                "激しくシェイク",
+                "用力摇晃",
+                "用力搖晃",
+                "Secousses fortes",
+                "Kräftig geschüttelt",
+                "Sacudidas fuertes",
+                "Sacudidas fortes",
+                "Сильные встряхивания"
+            ]
+        },
+        {
+            "key": "achievement.StrongShakes.description",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "강도 3만 사용해 보스 1명 격파",
+                "Defeat a boss using only strength 3.",
+                "強度3だけでボスを倒す。",
+                "仅使用强度3击败一名首领。",
+                "僅使用強度3擊敗一名首領。",
+                "Battez un boss en n'utilisant que l'intensité 3.",
+                "Besiege einen Boss nur mit Stärke 3.",
+                "Derrota a un jefe usando solo intensidad 3.",
+                "Derrote um chefe usando apenas intensidade 3.",
+                "Победите босса, используя только силу 3."
+            ]
+        },
+        {
+            "key": "achievement.FullCourse.name",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "풀코스",
+                "Full Course",
+                "フルコース",
+                "全套菜单",
+                "全套菜單",
+                "Menu complet",
+                "Volles Menü",
+                "Menú completo",
+                "Menu completo",
+                "Полное меню"
+            ]
+        },
+        {
+            "key": "achievement.FullCourse.description",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "누적 기록으로 서로 다른 아이템 19종 사용",
+                "Use all 19 item types across your records.",
+                "累計で19種類すべてのアイテムを使う。",
+                "累计使用全部19种道具。",
+                "累計使用全部19種道具。",
+                "Utilisez les 19 types d'objets au fil de vos parties.",
+                "Benutze über alle Durchläufe hinweg alle 19 Gegenstandsarten.",
+                "Usa los 19 tipos de objetos entre todas tus partidas.",
+                "Use os 19 tipos de itens ao longo das suas partidas.",
+                "Используйте все 19 видов предметов за все прохождения."
+            ]
+        },
+        {
+            "key": "achievement.MenuExchange.name",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "메뉴 교체",
+                "Menu Exchange",
+                "メニュー交換",
+                "换换菜单",
+                "換換菜單",
+                "Changement de menu",
+                "Menüwechsel",
+                "Cambio de menú",
+                "Troca de menu",
+                "Замена меню"
+            ]
+        },
+        {
+            "key": "achievement.MenuExchange.description",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "교환권으로 받은 아이템을 사용",
+                "Use an item obtained with an exchange coupon.",
+                "交換券で手に入れたアイテムを使う。",
+                "使用兑换券换来的道具。",
+                "使用兌換券換來的道具。",
+                "Utilisez un objet obtenu avec un bon d'échange.",
+                "Benutze einen Gegenstand aus einem Tauschgutschein.",
+                "Usa un objeto obtenido con un vale de cambio.",
+                "Use um item obtido com um cupom de troca.",
+                "Используйте предмет, полученный по купону обмена."
+            ]
+        },
+        {
+            "key": "achievement.FirstOrder.name",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "첫 주문",
+                "First Order",
+                "初注文",
+                "首次下单",
+                "首次下單",
+                "Première commande",
+                "Erste Bestellung",
+                "Primer pedido",
+                "Primeiro pedido",
+                "Первый заказ"
+            ]
+        },
+        {
+            "key": "achievement.FirstOrder.description",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "웨이터벨로 첫 주문",
+                "Place your first bell order.",
+                "ベルで初めて注文する。",
+                "首次摇铃订购。",
+                "首次搖鈴訂購。",
+                "Passez votre première commande à la sonnette.",
+                "Gib deine erste Klingelbestellung auf.",
+                "Haz tu primer pedido con la campana.",
+                "Faça seu primeiro pedido pela campainha.",
+                "Сделайте первый заказ по звонку."
+            ]
+        },
+        {
+            "key": "achievement.MenuExplorer.name",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "메뉴 탐방",
+                "Menu Explorer",
+                "メニュー巡り",
+                "菜单探索",
+                "菜單探索",
+                "Explorateur du menu",
+                "Menüentdecker",
+                "Explorador del menú",
+                "Explorador do menu",
+                "Знаток меню"
+            ]
+        },
+        {
+            "key": "achievement.MenuExplorer.description",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "누적 기록으로 서로 다른 아이템 5종 사용",
+                "Use 5 different item types across your records.",
+                "累計で5種類のアイテムを使う。",
+                "累计使用5种不同道具。",
+                "累計使用5種不同道具。",
+                "Utilisez 5 types d'objets au fil de vos parties.",
+                "Benutze über alle Durchläufe hinweg 5 verschiedene Gegenstandsarten.",
+                "Usa 5 tipos distintos de objetos entre todas tus partidas.",
+                "Use 5 tipos diferentes de itens ao longo das suas partidas.",
+                "Используйте 5 разных видов предметов за все прохождения."
+            ]
+        },
+        {
+            "key": "achievement.SafeStreak.name",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "연속 생존",
+                "Safe Streak",
+                "連続生還",
+                "连续生还",
+                "連續生還",
+                "Série de survies",
+                "Überlebensserie",
+                "Racha de supervivencia",
+                "Sequência de sobrevivência",
+                "Череда спасений"
+            ]
+        },
+        {
+            "key": "achievement.SafeStreak.description",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "한 도전에서 내 흔들기 5회 연속 생존",
+                "Survive 5 consecutive shakes in one run.",
+                "1回の挑戦で自分のシェイクを5回連続で生き延びる。",
+                "单次挑战中连续5次摇晃存活。",
+                "單次挑戰中連續5次搖晃存活。",
+                "Survivez à 5 secousses consécutives en une tentative.",
+                "Überlebe 5 eigene Schüttelzüge in Folge in einem Durchlauf.",
+                "Sobrevive a 5 sacudidas propias seguidas en una partida.",
+                "Sobreviva a 5 sacudidas suas seguidas em uma tentativa.",
+                "Переживите 5 своих встряхиваний подряд за одно прохождение."
+            ]
+        },
+        {
+            "key": "achievement.EmergencyCooling.name",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "위기 냉각",
+                "Emergency Cooling",
+                "緊急冷却",
+                "紧急降温",
+                "緊急降溫",
+                "Refroidissement d'urgence",
+                "Notkühlung",
+                "Enfriamiento de emergencia",
+                "Resfriamento de emergência",
+                "Экстренное охлаждение"
+            ]
+        },
+        {
+            "key": "achievement.EmergencyCooling.description",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "압력이 한계의 75% 이상일 때 얼음컵 사용",
+                "Use an ice cup at 75% pressure or more.",
+                "圧力が限界の75%以上のときに氷カップを使う。",
+                "压力达到上限的75%或以上时使用冰杯。",
+                "壓力達到上限的75%或以上時使用冰杯。",
+                "Utilisez un gobelet de glace à au moins 75 % de la limite de pression.",
+                "Benutze einen Eisbecher bei mindestens 75 % des Drucklimits.",
+                "Usa un vaso con hielo con la presión al menos al 75 % del límite.",
+                "Use um copo de gelo com pressão de pelo menos 75% do limite.",
+                "Используйте стакан со льдом при давлении от 75% предела."
+            ]
+        },
+        {
+            "key": "achievement.SafetyCheck.name",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "안전 점검",
+                "Safety Check",
+                "安全点検",
+                "安全检查",
+                "安全檢查",
+                "Contrôle de sécurité",
+                "Sicherheitsprüfung",
+                "Control de seguridad",
+                "Verificação de segurança",
+                "Проверка безопасности"
+            ]
+        },
+        {
+            "key": "achievement.SafetyCheck.description",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "안전 마개 사용",
+                "Use a safety cap.",
+                "安全キャップを使う。",
+                "使用安全瓶塞。",
+                "使用安全瓶塞。",
+                "Utilisez un bouchon de sécurité.",
+                "Benutze einen Sicherheitsverschluss.",
+                "Usa un tapón de seguridad.",
+                "Use uma tampa de segurança.",
+                "Используйте защитную пробку."
+            ]
+        },
+        {
+            "key": "achievement.EmptyWallet.name",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "잔고 정리",
+                "Empty Wallet",
+                "残高整理",
+                "清空余额",
+                "清空餘額",
+                "Compte soldé",
+                "Konto geleert",
+                "Saldo a cero",
+                "Saldo zerado",
+                "Нулевой остаток"
+            ]
+        },
+        {
+            "key": "achievement.EmptyWallet.description",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "계산 펀치로 상대 흔들기 보상 0 만들기",
+                "Reduce an opponent's shake reward to zero with a token punch.",
+                "会計パンチで相手のシェイク報酬を0にする。",
+                "用结算打孔器将对手摇晃奖励降为0。",
+                "用結帳打孔器將對手搖晃獎勵降為0。",
+                "Réduisez la récompense adverse à 0 avec un poinçon de caisse.",
+                "Senke die Schüttelbelohnung des Gegners mit dem Kassenlocher auf 0.",
+                "Reduce a 0 la recompensa de una sacudida rival con la perforadora de caja.",
+                "Reduza a 0 a recompensa de uma sacudida do rival com o perfurador de caixa.",
+                "Снизьте награду соперника за встряхивание до 0 кассовым дыроколом."
+            ]
+        },
+        {
+            "key": "achievement.SpicyVictory.name",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "매운 승부",
+                "Spicy Victory",
+                "辛口の勝利",
+                "火辣胜利",
+                "火辣勝利",
+                "Victoire pimentée",
+                "Scharfer Sieg",
+                "Victoria picante",
+                "Vitória apimentada",
+                "Острая победа"
+            ]
+        },
+        {
+            "key": "achievement.SpicyVictory.description",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "핫소스가 적용된 폭발로 보스 격파",
+                "Defeat a boss with a hot-sauce burst.",
+                "ホットソースが効いた破裂でボスを倒す。",
+                "用受辣酱影响的爆炸击败首领。",
+                "用受辣醬影響的爆炸擊敗首領。",
+                "Battez un boss avec un éclatement affecté par la sauce piquante.",
+                "Besiege einen Boss durch Platzen mit aktiver Chilisoße.",
+                "Derrota a un jefe con un estallido afectado por salsa picante.",
+                "Derrote um chefe com uma explosão sob efeito do molho picante.",
+                "Победите босса взрывом под действием острого соуса."
+            ]
+        },
+        {
+            "key": "achievement.DoubleTension.name",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "두 배의 긴장",
+                "Double Tension",
+                "倍増する緊張",
+                "双倍紧张",
+                "雙倍緊張",
+                "Tension doublée",
+                "Doppelte Spannung",
+                "Tensión doble",
+                "Tensão em dobro",
+                "Двойное напряжение"
+            ]
+        },
+        {
+            "key": "achievement.DoubleTension.description",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "매운맛 주문서가 적용된 흔들기에서 생존",
+                "Survive a shake affected by a spicy order.",
+                "激辛オーダーが効いたシェイクを生き延びる。",
+                "在加辣订单生效的摇晃中存活。",
+                "在加辣訂單生效的搖晃中存活。",
+                "Survivez à une secousse affectée par une commande épicée.",
+                "Überlebe ein Schütteln mit aktiver scharfer Bestellung.",
+                "Sobrevive a una sacudida afectada por un pedido picante.",
+                "Sobreviva a uma sacudida sob efeito do pedido apimentado.",
+                "Переживите встряхивание под действием острого заказа."
+            ]
+        },
+        {
+            "key": "achievement.ExchangeRegular.name",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "교환 단골",
+                "Exchange Regular",
+                "交換の常連",
+                "兑换常客",
+                "兌換常客",
+                "Habitué des échanges",
+                "Tausch-Stammgast",
+                "Habitual del cambio",
+                "Freguês das trocas",
+                "Постоянный обмен"
+            ]
+        },
+        {
+            "key": "achievement.ExchangeRegular.description",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "한 도전에서 교환권 3회 사용",
+                "Use 3 exchange coupons in one run.",
+                "1回の挑戦で交換券を3枚使う。",
+                "单次挑战中使用3张兑换券。",
+                "單次挑戰中使用3張兌換券。",
+                "Utilisez 3 bons d'échange en une tentative.",
+                "Benutze 3 Tauschgutscheine in einem Durchlauf.",
+                "Usa 3 vales de cambio en una partida.",
+                "Use 3 cupons de troca em uma tentativa.",
+                "Используйте 3 купона обмена за одно прохождение."
+            ]
+        },
+        {
+            "key": "achievement.AbilityCollector.name",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "능력 수집",
+                "Ability Collector",
+                "能力コレクター",
+                "能力收藏家",
+                "能力收藏家",
+                "Collectionneur de talents",
+                "Fähigkeitensammler",
+                "Coleccionista de habilidades",
+                "Colecionador de habilidades",
+                "Коллекционер способностей"
+            ]
+        },
+        {
+            "key": "achievement.AbilityCollector.description",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "한 도전에서 능력 4개 획득",
+                "Obtain 4 abilities in one run.",
+                "1回の挑戦で能力を4個獲得する。",
+                "单次挑战中获得4项能力。",
+                "單次挑戰中獲得4項能力。",
+                "Obtenez 4 capacités en une tentative.",
+                "Erhalte 4 Fähigkeiten in einem Durchlauf.",
+                "Obtén 4 habilidades en una partida.",
+                "Obtenha 4 habilidades em uma tentativa.",
+                "Получите 4 способности за одно прохождение."
+            ]
+        },
+        {
+            "key": "ui.tab_hint",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "TAB 능력 / 업적",
+                "TAB Abilities / Achievements",
+                "TAB 能力 / 実績",
+                "TAB 能力 / 成就",
+                "TAB 能力 / 成就",
+                "TAB Capacités / Succès",
+                "TAB Fähigkeiten / Erfolge",
+                "TAB Habilidades / Logros",
+                "TAB Habilidades / Conquistas",
+                "TAB Способности / Достижения"
+            ]
+        },
+        {
+            "key": "ui.run_complete",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "도전 완료",
+                "Challenge Complete",
+                "挑戦クリア",
+                "挑战完成",
+                "挑戰完成",
+                "Défi terminé",
+                "Herausforderung geschafft",
+                "Desafío completado",
+                "Desafio concluído",
+                "Испытание пройдено"
+            ]
+        },
+        {
+            "key": "ui.boss_defeated",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "보스 격파",
+                "Boss Defeated",
+                "ボス撃破",
+                "击败首领",
+                "擊敗首領",
+                "Boss vaincu",
+                "Boss besiegt",
+                "Jefe derrotado",
+                "Chefe derrotado",
+                "Босс побеждён"
+            ]
+        },
+        {
+            "key": "ui.run_over",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "도전 종료",
+                "Run Over",
+                "挑戦終了",
+                "挑战结束",
+                "挑戰結束",
+                "Fin de la tentative",
+                "Durchlauf beendet",
+                "Partida terminada",
+                "Fim da tentativa",
+                "Прохождение окончено"
+            ]
+        },
+        {
+            "key": "ui.run_resources",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "체력 {0}/{1}    ·    토큰 {2}",
+                "HP {0}/{1}    ·    Tokens {2}",
+                "体力 {0}/{1}    ·    トークン {2}",
+                "生命 {0}/{1}    ·    代币 {2}",
+                "生命 {0}/{1}    ·    代幣 {2}",
+                "PV {0}/{1}    ·    Jetons {2}",
+                "LP {0}/{1}    ·    Marken {2}",
+                "PV {0}/{1}    ·    Fichas {2}",
+                "PV {0}/{1}    ·    Fichas {2}",
+                "ОЗ {0}/{1}    ·    Жетоны {2}"
+            ]
+        },
+        {
+            "key": "ui.next_boss",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "다음 보스",
+                "Next Boss",
+                "次のボス",
+                "下一位首领",
+                "下一位首領",
+                "Boss suivant",
+                "Nächster Boss",
+                "Siguiente jefe",
+                "Próximo chefe",
+                "Следующий босс"
+            ]
+        },
+        {
+            "key": "ui.new_run",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "새 도전",
+                "New Run",
+                "新たな挑戦",
+                "重新挑战",
+                "重新挑戰",
+                "Nouvelle tentative",
+                "Neuer Durchlauf",
+                "Nueva partida",
+                "Nova tentativa",
+                "Новое прохождение"
+            ]
+        },
+        {
+            "key": "ui.enter_next",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "ENTER  다음 보스",
+                "ENTER  Next Boss",
+                "ENTER  次のボス",
+                "ENTER  下一位首领",
+                "ENTER  下一位首領",
+                "ENTER  Boss suivant",
+                "ENTER  Nächster Boss",
+                "ENTER  Siguiente jefe",
+                "ENTER  Próximo chefe",
+                "ENTER  Следующий босс"
+            ]
+        },
+        {
+            "key": "ui.enter_new",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "ENTER  새 도전",
+                "ENTER  New Run",
+                "ENTER  新たな挑戦",
+                "ENTER  重新挑战",
+                "ENTER  重新挑戰",
+                "ENTER  Nouvelle tentative",
+                "ENTER  Neuer Durchlauf",
+                "ENTER  Nueva partida",
+                "ENTER  Nova tentativa",
+                "ENTER  Новое прохождение"
+            ]
+        },
+        {
+            "key": "ui.start",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "게임 시작",
+                "Start Game",
+                "ゲーム開始",
+                "开始游戏",
+                "開始遊戲",
+                "Jouer",
+                "Spiel starten",
+                "Jugar",
+                "Jogar",
+                "Начать игру"
+            ]
+        },
+        {
+            "key": "ui.settings",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "설정",
+                "Settings",
+                "設定",
+                "设置",
+                "設定",
+                "Paramètres",
+                "Einstellungen",
+                "Ajustes",
+                "Configurações",
+                "Настройки"
+            ]
+        },
+        {
+            "key": "ui.quit",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "게임 종료",
+                "Quit Game",
+                "ゲーム終了",
+                "退出游戏",
+                "離開遊戲",
+                "Quitter",
+                "Spiel beenden",
+                "Salir",
+                "Sair do jogo",
+                "Выйти из игры"
+            ]
+        },
+        {
+            "key": "ui.credits",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "크레딧",
+                "Credits",
+                "クレジット",
+                "制作人员",
+                "製作人員",
+                "Crédits",
+                "Mitwirkende",
+                "Créditos",
+                "Créditos",
+                "Авторы"
+            ]
+        },
+        {
+            "key": "ui.master_volume",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "메인 볼륨",
+                "Master Volume",
+                "マスター音量",
+                "主音量",
+                "主音量",
+                "Volume général",
+                "Gesamtlautstärke",
+                "Volumen general",
+                "Volume geral",
+                "Общая громкость"
+            ]
+        },
+        {
+            "key": "ui.resolution",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "해상도",
+                "Resolution",
+                "解像度",
+                "分辨率",
+                "解析度",
+                "Résolution",
+                "Auflösung",
+                "Resolución",
+                "Resolução",
+                "Разрешение"
+            ]
+        },
+        {
+            "key": "ui.fullscreen",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "전체화면",
+                "Fullscreen",
+                "フルスクリーン",
+                "全屏",
+                "全螢幕",
+                "Plein écran",
+                "Vollbild",
+                "Pantalla completa",
+                "Tela cheia",
+                "Полный экран"
+            ]
+        },
+        {
+            "key": "ui.main_menu",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "메인 메뉴로 이동",
+                "Main Menu",
+                "メインメニューへ",
+                "返回主菜单",
+                "返回主選單",
+                "Menu principal",
+                "Zum Hauptmenü",
+                "Menú principal",
+                "Menu principal",
+                "В главное меню"
+            ]
+        },
+        {
+            "key": "ui.back",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "돌아가기",
+                "Back",
+                "戻る",
+                "返回",
+                "返回",
+                "Retour",
+                "Zurück",
+                "Volver",
+                "Voltar",
+                "Назад"
+            ]
+        },
+        {
+            "key": "ui.return_item",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "우클릭: 반납 +1토큰",
+                "Right-click: return for 1 token",
+                "右クリック：返却で1トークン",
+                "右键：退回并获得1枚代币",
+                "右鍵：退回並獲得1枚代幣",
+                "Clic droit : rendre pour 1 jeton",
+                "Rechtsklick: Rückgabe für 1 Marke",
+                "Clic derecho: devuelve por 1 ficha",
+                "Clique direito: devolva por 1 ficha",
+                "ПКМ: вернуть за 1 жетон"
+            ]
+        },
+        {
+            "key": "ui.cola",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "콜라",
+                "Cola",
+                "コーラ",
+                "可乐",
+                "可樂",
+                "Cola",
+                "Cola",
+                "Cola",
+                "Cola",
+                "Кола"
+            ]
+        },
+        {
+            "key": "ui.shake_preview",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "압력 +{0} · 안전 {1}토큰 · 폭발 {2}토큰 / 피해 {3}",
+                "Pressure +{0} · Safe {1} tokens · Burst {2} tokens / Damage {3}",
+                "圧力 +{0} · 生存 {1}トークン · 破裂 {2}トークン / ダメージ {3}",
+                "压力 +{0} · 存活 {1}代币 · 爆炸 {2}代币 / 伤害 {3}",
+                "壓力 +{0} · 存活 {1}代幣 · 爆炸 {2}代幣 / 傷害 {3}",
+                "Pression +{0} · Survie {1} jetons · Éclatement {2} jetons / Dégâts {3}",
+                "Druck +{0} · Sicher {1} Marken · Platzen {2} Marken / Schaden {3}",
+                "Presión +{0} · A salvo {1} fichas · Estallido {2} fichas / Daño {3}",
+                "Pressão +{0} · Sobreviver {1} fichas · Explodir {2} fichas / Dano {3}",
+                "Давление +{0} · Выживание {1} жет. · Взрыв {2} жет. / Урон {3}"
+            ]
+        },
+        {
+            "key": "ui.choose_strength",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "강도를 선택한 뒤 흔드세요.",
+                "Select a strength, then shake.",
+                "強度を選んでから振ってください。",
+                "选择强度后摇晃。",
+                "選擇強度後搖晃。",
+                "Choisissez l'intensité, puis secouez.",
+                "Wähle eine Stärke und schüttle dann.",
+                "Elige la intensidad y luego agita.",
+                "Escolha a intensidade e sacuda.",
+                "Выберите силу и встряхните."
+            ]
+        },
+        {
+            "key": "ui.pressure",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "현재 압력 {0} / 한계 압력 {1}",
+                "Pressure {0} / Limit {1}",
+                "現在の圧力 {0} / 限界圧力 {1}",
+                "当前压力 {0} / 压力上限 {1}",
+                "目前壓力 {0} / 壓力上限 {1}",
+                "Pression {0} / Limite {1}",
+                "Druck {0} / Limit {1}",
+                "Presión {0} / Límite {1}",
+                "Pressão {0} / Limite {1}",
+                "Давление {0} / Предел {1}"
+            ]
+        },
+        {
+            "key": "ui.my_abilities",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "내 능력",
+                "My Abilities",
+                "自分の能力",
+                "我的能力",
+                "我的能力",
+                "Mes capacités",
+                "Meine Fähigkeiten",
+                "Mis habilidades",
+                "Minhas habilidades",
+                "Мои способности"
+            ]
+        },
+        {
+            "key": "ui.boss_abilities",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "상대 능력",
+                "Opponent Abilities",
+                "相手の能力",
+                "对手能力",
+                "對手能力",
+                "Capacités adverses",
+                "Gegnerische Fähigkeiten",
+                "Habilidades rivales",
+                "Habilidades do rival",
+                "Способности соперника"
+            ]
+        },
+        {
+            "key": "ui.achievements",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "업적",
+                "Achievements",
+                "実績",
+                "成就",
+                "成就",
+                "Succès",
+                "Erfolge",
+                "Logros",
+                "Conquistas",
+                "Достижения"
+            ]
+        },
+        {
+            "key": "ui.ability_choice",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "오늘의 서비스",
+                "On the House",
+                "本日のサービス",
+                "今日赠礼",
+                "今日贈禮",
+                "Cadeau de la maison",
+                "Aufs Haus",
+                "Invita la casa",
+                "Por conta da casa",
+                "За счёт заведения"
+            ]
+        },
+        {
+            "key": "ui.ability_debug",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "능력 테스트",
+                "Ability Test",
+                "能力テスト",
+                "能力测试",
+                "能力測試",
+                "Test des capacités",
+                "Fähigkeitentest",
+                "Prueba de habilidades",
+                "Teste de habilidades",
+                "Тест способностей"
+            ]
+        },
+        {
+            "key": "ui.achievement_debug",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "업적 테스트",
+                "Achievement Test",
+                "実績テスト",
+                "成就测试",
+                "成就測試",
+                "Test des succès",
+                "Erfolgstest",
+                "Prueba de logros",
+                "Teste de conquistas",
+                "Тест достижений"
+            ]
+        },
+        {
+            "key": "ui.unlock_all",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "모두 달성",
+                "Unlock All",
+                "すべて達成",
+                "全部解锁",
+                "全部解鎖",
+                "Tout débloquer",
+                "Alle freischalten",
+                "Desbloquear todo",
+                "Desbloquear tudo",
+                "Открыть все"
+            ]
+        },
+        {
+            "key": "ui.grant_all",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "모두 획득",
+                "Get All",
+                "すべて獲得",
+                "全部获得",
+                "全部獲得",
+                "Tout obtenir",
+                "Alle erhalten",
+                "Obtener todo",
+                "Obter tudo",
+                "Получить все"
+            ]
+        },
+        {
+            "key": "ui.no_boss_abilities",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "상대 능력 없음",
+                "No opponent abilities",
+                "相手の能力なし",
+                "对手暂无能力",
+                "對手暫無能力",
+                "Aucune capacité adverse",
+                "Keine gegnerischen Fähigkeiten",
+                "Rival sin habilidades",
+                "Rival sem habilidades",
+                "У соперника нет способностей"
+            ]
+        },
+        {
+            "key": "ui.no_abilities",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "보유 능력 없음",
+                "No abilities yet",
+                "能力なし",
+                "暂无能力",
+                "暫無能力",
+                "Aucune capacité",
+                "Noch keine Fähigkeiten",
+                "Sin habilidades",
+                "Sem habilidades",
+                "Пока нет способностей"
+            ]
+        },
+        {
+            "key": "ui.ability_hint",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "양쪽 폭발을 합쳐 3회마다 능력을 선택합니다.",
+                "Choose an ability every 3 combined bursts.",
+                "双方の破裂が合計3回に達するたびに能力を選べます。",
+                "双方累计每爆炸3次，可选择一项能力。",
+                "雙方累計每爆炸3次，可選擇一項能力。",
+                "Choisissez une capacité tous les 3 éclatements des deux joueurs réunis.",
+                "Wähle nach je 3 geplatzten Colas beider Spieler zusammen eine Fähigkeit.",
+                "Elige una habilidad cada 3 estallidos entre ambos jugadores.",
+                "Escolha uma habilidade a cada 3 explosões somadas dos dois jogadores.",
+                "Выбирайте способность после каждых 3 взрывов обоих игроков суммарно."
+            ]
+        },
+        {
+            "key": "ui.select",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "선택",
+                "Choose",
+                "選ぶ",
+                "选择",
+                "選擇",
+                "Choisir",
+                "Wählen",
+                "Elegir",
+                "Escolher",
+                "Выбрать"
+            ]
+        },
+        {
+            "key": "ui.earned",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "달성",
+                "Earned",
+                "達成",
+                "已达成",
+                "已達成",
+                "Obtenu",
+                "Erreicht",
+                "Conseguido",
+                "Conquistado",
+                "Получено"
+            ]
+        },
+        {
+            "key": "ui.add",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "추가",
+                "Add",
+                "追加",
+                "添加",
+                "新增",
+                "Ajouter",
+                "Hinzufügen",
+                "Añadir",
+                "Adicionar",
+                "Добавить"
+            ]
+        },
+        {
+            "key": "ui.bell_offer",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "웨이터벨 · {0}토큰으로 무작위 아이템 {1}개",
+                "Service bell: {0} tokens for {1} random items",
+                "サービスベル · {0}トークンでランダムなアイテム{1}個",
+                "服务铃 · {0}枚代币换{1}件随机道具",
+                "服務鈴 · {0}枚代幣換{1}件隨機道具",
+                "Sonnette : {0} jetons pour {1} objets aléatoires",
+                "Serviceklingel: {0} Marken für {1} zufällige Gegenstände",
+                "Campana: {0} fichas por {1} objetos aleatorios",
+                "Campainha: {0} fichas por {1} itens aleatórios",
+                "Звонок: {0} жетонов за {1} случайных предметов"
+            ]
+        },
+        {
+            "key": "ui.tray_full",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "빈 칸 부족 ({0}/{1})",
+                "Not enough space ({0}/{1})",
+                "空きが足りません ({0}/{1})",
+                "空位不足 ({0}/{1})",
+                "空位不足 ({0}/{1})",
+                "Pas assez de place ({0}/{1})",
+                "Nicht genug Platz ({0}/{1})",
+                "No hay espacio suficiente ({0}/{1})",
+                "Espaço insuficiente ({0}/{1})",
+                "Недостаточно места ({0}/{1})"
+            ]
+        },
+        {
+            "key": "ui.tokens_required",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "{0}토큰 필요",
+                "{0} tokens required",
+                "{0}トークン必要",
+                "需要{0}枚代币",
+                "需要{0}枚代幣",
+                "{0} jetons nécessaires",
+                "{0} Marken benötigt",
+                "Se requieren {0} fichas",
+                "É preciso ter {0} fichas",
+                "Нужно жетонов: {0}"
+            ]
+        },
+        {
+            "key": "boss.1",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "단골 손님",
+                "Regular Guest",
+                "常連客",
+                "常客",
+                "常客",
+                "Habitué",
+                "Stammgast",
+                "Cliente habitual",
+                "Freguês",
+                "Постоянный гость"
+            ]
+        },
+        {
+            "key": "boss.2",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "배달원",
+                "Delivery Driver",
+                "配達員",
+                "送货员",
+                "送貨員",
+                "Livreur",
+                "Lieferant",
+                "Repartidor",
+                "Entregador",
+                "Курьер"
+            ]
+        },
+        {
+            "key": "boss.3",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "주방장",
+                "Chef",
+                "シェフ",
+                "主厨",
+                "主廚",
+                "Chef",
+                "Koch",
+                "Chef",
+                "Chef",
+                "Шеф-повар"
+            ]
+        },
+        {
+            "key": "boss.4",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "지배인",
+                "Manager",
+                "マネージャー",
+                "经理",
+                "經理",
+                "Responsable",
+                "Manager",
+                "Gerente",
+                "Gerente",
+                "Менеджер"
+            ]
+        },
+        {
+            "key": "boss.5",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "사장",
+                "Owner",
+                "オーナー",
+                "老板",
+                "老闆",
+                "Patron",
+                "Inhaber",
+                "Dueño",
+                "Dono",
+                "Владелец"
+            ]
+        },
+        {
+            "key": "ui.language",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "언어",
+                "Language",
+                "言語",
+                "语言",
+                "語言",
+                "Langue",
+                "Sprache",
+                "Idioma",
+                "Idioma",
+                "Язык"
+            ]
+        },
+        {
+            "key": "ui.debug_tokens",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "Q  토큰 999",
+                "Q  Tokens 999",
+                "Q  トークン999",
+                "Q  代币999",
+                "Q  代幣999",
+                "Q  Jetons 999",
+                "Q  Marken 999",
+                "Q  Fichas 999",
+                "Q  Fichas 999",
+                "Q  Жетоны 999"
+            ]
+        },
+        {
+            "key": "ui.debug_burst",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "W  폭발 확률 100%",
+                "W  Burst chance 100%",
+                "W  破裂確率100%",
+                "W  爆炸概率100%",
+                "W  爆炸機率100%",
+                "W  Éclatement 100 %",
+                "W  Platzrisiko 100 %",
+                "W  Estallido 100 %",
+                "W  Explosão 100%",
+                "W  Шанс взрыва 100%"
+            ]
+        },
+        {
+            "key": "ui.debug_menu",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "E  메뉴판 (모두 무료)",
+                "E  Menu (all free)",
+                "E  メニュー（すべて無料）",
+                "E  菜单（全部免费）",
+                "E  菜單（全部免費）",
+                "E  Menu (tout gratuit)",
+                "E  Menü (alles gratis)",
+                "E  Menú (todo gratis)",
+                "E  Menu (tudo grátis)",
+                "E  Меню (всё бесплатно)"
+            ]
+        },
+        {
+            "key": "ui.debug_clear",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "R  양쪽 아이템 비우기",
+                "R  Clear both trays",
+                "R  双方のアイテムを削除",
+                "R  清空双方道具",
+                "R  清空雙方道具",
+                "R  Vider les deux plateaux",
+                "R  Beide Tabletts leeren",
+                "R  Vaciar ambas bandejas",
+                "R  Esvaziar as duas bandejas",
+                "R  Очистить оба подноса"
+            ]
+        },
+        {
+            "key": "ui.debug_tools",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "T  업적 테스트  /  Y  능력 테스트",
+                "T  Achievement test  /  Y  Ability test",
+                "T  実績テスト  /  Y  能力テスト",
+                "T  成就测试  /  Y  能力测试",
+                "T  成就測試  /  Y  能力測試",
+                "T  Test des succès  /  Y  Test des capacités",
+                "T  Erfolgstest  /  Y  Fähigkeitentest",
+                "T  Prueba de logros  /  Y  Prueba de habilidades",
+                "T  Teste de conquistas  /  Y  Teste de habilidades",
+                "T  Тест достижений  /  Y  Тест способностей"
+            ]
+        },
+        {
+            "key": "ui.debug_win",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "V  현재 단계 승리 테스트",
+                "V  Win current stage",
+                "V  現在のステージをクリア",
+                "V  当前关卡胜利测试",
+                "V  目前關卡勝利測試",
+                "V  Gagner le niveau actuel",
+                "V  Aktuelle Stufe gewinnen",
+                "V  Ganar la fase actual",
+                "V  Vencer a fase atual",
+                "V  Победить на текущем этапе"
+            ]
+        },
+        {
+            "key": "ui.stage",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "단계",
+                "Stage",
+                "段階",
+                "关卡",
+                "關卡",
+                "Niveau",
+                "Stufe",
+                "Fase",
+                "Fase",
+                "Этап"
+            ]
+        },
+        {
+            "key": "ui.win",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "승리",
+                "Win",
+                "勝利",
+                "胜利",
+                "勝利",
+                "Gagner",
+                "Sieg",
+                "Ganar",
+                "Vencer",
+                "Победа"
+            ]
+        },
+        {
+            "key": "ui.test_menu",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "테스트 메뉴",
+                "Test Menu",
+                "テストメニュー",
+                "测试菜单",
+                "測試菜單",
+                "Menu de test",
+                "Testmenü",
+                "Menú de prueba",
+                "Menu de teste",
+                "Тестовое меню"
+            ]
+        },
+        {
+            "key": "ui.tokens_label",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "토큰",
+                "Tokens",
+                "トークン",
+                "代币",
+                "代幣",
+                "Jetons",
+                "Marken",
+                "Fichas",
+                "Fichas",
+                "Жетоны"
+            ]
+        },
+        {
+            "key": "ui.items_label",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "아이템",
+                "Items",
+                "アイテム",
+                "道具",
+                "道具",
+                "Objets",
+                "Gegenstände",
+                "Objetos",
+                "Itens",
+                "Предметы"
+            ]
+        },
+        {
+            "key": "ui.free_claim",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "무료 받기",
+                "Claim Free",
+                "無料で受け取る",
+                "免费领取",
+                "免費領取",
+                "Recevoir gratuitement",
+                "Gratis erhalten",
+                "Recibir gratis",
+                "Receber grátis",
+                "Получить бесплатно"
+            ]
+        },
+        {
+            "key": "ui.free_count",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "무료 받기   {0}개",
+                "Claim Free   {0} items",
+                "無料で受け取る   {0}個",
+                "免费领取   {0}件",
+                "免費領取   {0}件",
+                "Recevoir gratuitement   {0} objets",
+                "Gratis erhalten   {0} Gegenstände",
+                "Recibir gratis   {0} objetos",
+                "Receber grátis   {0} itens",
+                "Получить бесплатно   {0} предм."
+            ]
+        },
+        {
+            "key": "ui.free",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "무료",
+                "Free",
+                "無料",
+                "免费",
+                "免費",
+                "Gratuit",
+                "Gratis",
+                "Gratis",
+                "Grátis",
+                "Бесплатно"
+            ]
+        },
+        {
+            "key": "ui.effect_safe",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "안전 보상 +{0}",
+                "Survival reward +{0}",
+                "生存報酬 +{0}",
+                "存活奖励 +{0}",
+                "存活獎勵 +{0}",
+                "Récompense de survie +{0}",
+                "Überlebensbelohnung +{0}",
+                "Recompensa de supervivencia +{0}",
+                "Recompensa por sobreviver +{0}",
+                "Награда за выживание +{0}"
+            ]
+        },
+        {
+            "key": "ui.effect_burst",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "다음 폭발 확률 {0}%p",
+                "Next burst chance {0}pp",
+                "次の破裂確率 {0}ポイント",
+                "下次爆炸概率 {0}个百分点",
+                "下次爆炸機率 {0}個百分點",
+                "Prochain risque d'éclatement {0} points",
+                "Nächstes Platzrisiko {0} Prozentpunkte",
+                "Próximo riesgo de estallido {0} puntos porcentuales",
+                "Próxima chance de explosão {0} pontos percentuais",
+                "Следующий шанс взрыва {0} п. п."
+            ]
+        },
+        {
+            "key": "ui.effect_pressure",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "다음 압력 {0}",
+                "Next pressure {0}",
+                "次の圧力 {0}",
+                "下次压力 {0}",
+                "下次壓力 {0}",
+                "Prochaine pression {0}",
+                "Nächster Druck {0}",
+                "Próxima presión {0}",
+                "Próxima pressão {0}",
+                "Следующее давление {0}"
+            ]
+        },
+        {
+            "key": "ui.effect_damage",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "이 콜라 피해 +{0}",
+                "This cola: damage +{0}",
+                "このコーラのダメージ +{0}",
+                "本瓶可乐：伤害 +{0}",
+                "本瓶可樂：傷害 +{0}",
+                "Ce cola : dégâts +{0}",
+                "Diese Cola: Schaden +{0}",
+                "Esta cola: daño +{0}",
+                "Esta cola: dano +{0}",
+                "Эта кола: урон +{0}"
+            ]
+        },
+        {
+            "key": "ui.no_effects",
+            "languages": [
+                "ko",
+                "en",
+                "ja",
+                "zh-Hans",
+                "zh-Hant",
+                "fr",
+                "de",
+                "es",
+                "pt-BR",
+                "ru"
+            ],
+            "texts": [
+                "대기 효과 없음",
+                "No pending effects",
+                "待機中の効果なし",
+                "暂无待生效效果",
+                "暫無待生效效果",
+                "Aucun effet en attente",
+                "Keine ausstehenden Effekte",
+                "Sin efectos pendientes",
+                "Sem efeitos pendentes",
+                "Нет ожидающих эффектов"
+            ]
+        }
+    ]
+}

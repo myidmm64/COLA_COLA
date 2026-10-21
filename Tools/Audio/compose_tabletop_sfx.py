@@ -36,9 +36,6 @@ def items():
     candy = rough(t,1800,6500,102)*(.40*np.exp(-t*90)+.22*np.sin(np.pi*t/.48)**2)
     candy += sum(hit(t,a,1700+i*213,95,.14) for i,a in enumerate((.10,.18,.24,.31)))
     finish('Item_FizzCandy', candy)
-    syrup = rough(t,130,1100,103)*(.5+.5*np.sin(t*74))**2*np.sin(np.pi*t/.48)**2
-    syrup += hit(t,.01,580,45,.25)+hit(t,.22,290,24,.25)
-    finish('Item_CarbonationSyrup', syrup)
     ticket = rough(t,1500,7200,104)*np.exp(-((t-.09)/.075)**2)
     ticket *= .4+.6*np.sin(t*310)**2
     ticket += rough(t,350,2200,105)*np.exp(-((t-.23)/.06)**2)*.32
@@ -75,6 +72,23 @@ def new_items():
     finish('Item_CoinCup',coins,.44)
     tongs = hit(t,.05,910,57,.6)+hit(t,.21,690,46,.65)+rough(t,1300,4100,504)*np.exp(-((t-.19)/.035)**2)*.12
     finish('Item_SwapTongs',tongs,.45)
+
+
+def challenge_items():
+    t=timeline(.48)
+    packet=rough(t,1600,5800,601)*np.exp(-((t-.13)/.07)**2)
+    packet+=rough(t,4500,8000,602)*np.exp(-((t-.27)/.04)**2)*.25
+    finish('Item_SaltPacket',packet,.42)
+    cold=rough(t,250,1400,603)*np.exp(-((t-.18)/.10)**2)
+    cold+=hit(t,.04,980,42,.25)+hit(t,.24,1460,60,.15)
+    finish('Item_CoolingPack',cold,.40)
+    punch=hit(t,.04,190,45,.8)+hit(t,.09,1150,90,.45)+hit(t,.23,430,55,.3)
+    finish('Item_TokenPunch',punch,.46)
+    lid=hit(t,.04,640,62,.7)+hit(t,.16,870,70,.45)+rough(t,1300,3100,604)*np.exp(-((t-.27)/.05)**2)*.2
+    finish('Item_FreshLid',lid,.42)
+    coupon=rough(t,900,4300,605)*np.exp(-((t-.13)/.085)**2)
+    coupon+=hit(t,.30,710,58,.2)
+    finish('Item_ExchangeCoupon',coupon,.40)
 
 
 def shaking():
@@ -117,10 +131,16 @@ def interactions():
 if __name__ == '__main__':
     parser=argparse.ArgumentParser()
     parser.add_argument('--new-items-only',action='store_true')
+    parser.add_argument('--challenge-items-only',action='store_true')
     args=parser.parse_args()
     DEST.mkdir(parents=True,exist_ok=True)
-    if not args.new_items_only:
+    if args.challenge_items_only:
+        challenge_items()
+    elif not args.new_items_only:
         items()
         shaking()
         interactions()
-    new_items()
+        new_items()
+        challenge_items()
+    else:
+        new_items()

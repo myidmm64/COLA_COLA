@@ -10,9 +10,10 @@ namespace ColaCola.Presentation
     {
         private static readonly string[] ModelNames =
         {
-            "01_IceCup", "02_FizzCandy", "03_CarbonationSyrup", "04_QueueTicket", "05_Bill",
+            "01_IceCup", "02_FizzCandy", "04_QueueTicket", "05_Bill",
             "06_SpicyOrder", "07_SafetyCap", "08_PizzaSlice", "09_HotSauce", "10_DoubleStamp",
-            "11_BottleOpener", "12_Straw", "13_SodaWater", "14_CoinCup", "15_SwapTongs"
+            "11_BottleOpener", "12_Straw", "13_SodaWater", "14_CoinCup", "15_SwapTongs",
+            "16_SaltPacket", "17_CoolingPack", "18_TokenPunch", "19_FreshLid", "20_ExchangeCoupon"
         };
         private readonly GameObject[] sources = new GameObject[ModelNames.Length];
         private readonly Material surface;

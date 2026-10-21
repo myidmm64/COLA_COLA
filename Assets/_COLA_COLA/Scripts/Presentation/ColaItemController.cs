@@ -6,11 +6,12 @@ using UnityEngine;
 
 namespace ColaCola.Presentation
 {
-    /// <summary>Purchases, eight physical inventory slots and one-use effects for the single-player duel.</summary>
+    /// <summary>Purchases, expandable physical inventories and one-use effects for the single-player duel.</summary>
     [DisallowMultipleComponent]
     public sealed class ColaItemController : MonoBehaviour
     {
         public const int Capacity = 8;
+        public const int MaxCapacity = 10;
         public const int MenuSize = 6;
         public const int WaiterCost = 6;
         public const int WaiterItemCount = 2;
@@ -21,15 +22,21 @@ namespace ColaCola.Presentation
         private System.Random itemRandom;
         public IReadOnlyList<ColaItemId> BottleMenu => menuView ??= bottleMenu.AsReadOnly();
         public bool IsOnMenu(ColaItemId id) => bottleMenu.Contains(id);
-        private readonly ColaItemId?[] inventory = new ColaItemId?[Capacity];
-        private readonly ColaItemId?[] bossInventory = new ColaItemId?[Capacity];
+        private readonly ColaItemId?[] inventory = new ColaItemId?[MaxCapacity];
+        private readonly ColaItemId?[] bossInventory = new ColaItemId?[MaxCapacity];
+        private readonly bool[] playerExchangeOrigin = new bool[MaxCapacity], bossExchangeOrigin = new bool[MaxCapacity];
+        private bool[] ExchangeOriginFor(bool boss) => boss ? bossExchangeOrigin : playerExchangeOrigin;
+        public int CapacityFor(bool boss = false) => match?.Progression?.CapacityFor(boss) ?? Capacity;
+        public int WaiterCostFor(bool boss = false) => match?.Progression?.BellCostFor(boss) ?? WaiterCost;
+        public int WaiterCountFor(bool boss = false) => match?.Progression?.BellCountFor(boss) ?? WaiterItemCount;
         private sealed class Effects
         {
-            public bool Stamp, Syrup, Spicy;
-            public void Clear() { Stamp = Syrup = Spicy = false; }
+            public bool Stamp, Chilled;
+            public int SafetyStacks, SpicyStacks, IncomingPressure, RewardPenalty;
+            public void Clear() { Stamp = Chilled = false; SafetyStacks = SpicyStacks = IncomingPressure = RewardPenalty = 0; }
         }
         private readonly Effects playerEffects = new(), bossEffects = new();
-        private bool bottleHot;
+        private bool bottleHot, hotSauceDrawn;
         private bool playerShopUsed, bossShopUsed;
         public bool ShopUsed(bool boss = false) => boss ? bossShopUsed : playerShopUsed;
         public bool OrderAvailable(bool boss = false)
@@ -43,13 +50,13 @@ namespace ColaCola.Presentation
         public bool IsUsingItem => usePresentation && usePresentation.IsPlaying;
         public bool IsReceivingItems(bool boss = false) => inventoryPresentation && inventoryPresentation.IsReceivingItems(boss);
         internal void CancelItemUsePresentation() { if (usePresentation) usePresentation.Cancel(); }
-        public bool SafetyReady => false; // Retired damage shield; the cap now clears pressure penalties immediately.
+        public bool SafetyReady => playerEffects.SafetyStacks > 0;
         public bool StampReady => playerEffects.Stamp;
-        public bool SpicyReady => bossEffects.Spicy;
+        public bool SpicyReady => bossEffects.SpicyStacks > 0;
         // Old Editor diagnostics still compile; current effects have no tip/force/skip state.
         public bool DoubleReady => StampReady;
         public bool TipReady => false;
-        public bool SyrupReady => bossEffects.Syrup;
+        public bool SyrupReady => false;
         public bool ForceThreeReady => false;
         public bool SkipBossReady => false;
         public bool HotSauceReady => bottleHot;
@@ -65,8 +72,8 @@ namespace ColaCola.Presentation
         public int InventoryCount => InventoryCountFor(false);
         public int BossInventoryCount => InventoryCountFor(true);
         private bool MatchActive => Application.IsPlaying(gameObject) && isActiveAndEnabled && match && match.isActiveAndEnabled &&
-            match.State == ColaDuelController.DuelState.Playing && match.interaction && match.interaction.isActiveAndEnabled &&
-            match.interaction.InputEnabled;
+            match.State == ColaDuelController.DuelState.Playing && !ColaFrontEnd.BlocksGameplay && match.interaction && match.interaction.isActiveAndEnabled &&
+            match.interaction.InputEnabled && !(match.Progression?.BlocksGameplay ?? false);
         public bool CanAct => MatchActive && !match.interaction.IsBusy && !match.interaction.IsBossTurn;
         public bool CanBossAct => MatchActive && match.interaction.IsBossTurn && match.interaction.BossItemPhase &&
             !match.interaction.BossPassedTurn && match.interaction.automaticBossTurns;
@@ -106,11 +113,11 @@ namespace ColaCola.Presentation
             return items;
         }
 
-        public ColaItemId? ItemAt(int slot, bool boss = false) => slot >= 0 && slot < Capacity ? InventoryFor(boss)[slot] : null;
+        public ColaItemId? ItemAt(int slot, bool boss = false) => slot >= 0 && slot < CapacityFor(boss) ? InventoryFor(boss)[slot] : null;
 
         public bool CanPurchase(ColaItemId id, bool boss = false)
         {
-            return ColaItemCatalog.Contains(id) && CanActFor(boss) && OrderAvailable(boss) && InventoryCountFor(boss) < Capacity;
+            return ColaItemCatalog.Contains(id) && CanActFor(boss) && OrderAvailable(boss) && InventoryCountFor(boss) < CapacityFor(boss);
         }
 
         public bool TryPurchase(ColaItemId id, bool boss = false)
@@ -119,7 +126,7 @@ namespace ColaCola.Presentation
         public bool CanPurchaseBatch(IReadOnlyList<ColaItemId> order, bool boss = false)
         {
             if (!CanActFor(boss) || !OrderAvailable(boss) || order == null || order.Count == 0 ||
-                order.Count > Capacity - InventoryCountFor(boss)) return false;
+                order.Count > CapacityFor(boss) - InventoryCountFor(boss)) return false;
             foreach (var id in order)
             {
                 if (!ColaItemCatalog.Contains(id)) return false;
@@ -137,12 +144,14 @@ namespace ColaCola.Presentation
             for (int i = 0; i < purchase.Length; i++)
                 purchase[i] = order[i];
             if (!match.TrySpendTokens(total, boss)) return false;
+            match.Progression?.MarkDebugAssisted();
             if (boss) bossShopUsed = true;
             else playerShopUsed = true;
             var owned = InventoryFor(boss);
             int next = 0;
-            for (int i = 0; i < Capacity; i++)
-                if (!owned[i].HasValue && next < purchase.Length) owned[i] = purchase[next++];
+            for (int i = 0; i < CapacityFor(boss); i++)
+                if (!owned[i].HasValue && next < purchase.Length)
+                { owned[i] = purchase[next++]; ExchangeOriginFor(boss)[i] = false; }
             if (boss)
             {
                 BossPurchaseCount++; LastBossPurchased = purchase[purchase.Length - 1];
@@ -154,35 +163,38 @@ namespace ColaCola.Presentation
             return true;
         }
 
-        public bool CanInspectItems => MatchActive;
+        public bool CanInspectItems => MatchActive && !match.interaction.IsPlayerShaking;
         public bool CanInspectWaiter => MatchActive;
         public bool CanOrderWaiter(bool boss = false)
-            => MatchActive && (!boss || CanBossAct) && Capacity - InventoryCountFor(boss) >= WaiterItemCount &&
-                match.CanAffordTokens(WaiterCost, boss);
+            => MatchActive && (!boss || CanBossAct) && CapacityFor(boss) - InventoryCountFor(boss) >= WaiterCountFor(boss) &&
+                match.CanAffordTokens(WaiterCostFor(boss), boss);
 
         public bool TryOrderWaiter(bool boss = false)
         {
-            if (!CanOrderWaiter(boss)) return Reject($"벨 주문: {WaiterCost}토큰과 빈 칸 {WaiterItemCount}개가 필요합니다.", boss);
+            int count = WaiterCountFor(boss), cost = WaiterCostFor(boss);
+            if (!CanOrderWaiter(boss)) return Reject($"벨 주문: {cost}토큰과 빈 칸 {count}개가 필요합니다.", boss);
             if (!match.TrySpendWaiterTokens(boss)) return false;
-            var purchase = DrawRandomItems(WaiterItemCount);
+            var purchase = DrawRandomItems(count);
             var owned = InventoryFor(boss);
             var deliveredSlots = new int[purchase.Length];
             int next = 0;
-            for (int i = 0; i < owned.Length && next < purchase.Length; i++)
+            for (int i = 0; i < CapacityFor(boss) && next < purchase.Length; i++)
                 if (!owned[i].HasValue)
                 {
                     deliveredSlots[next] = i;
                     owned[i] = purchase[next++];
+                    ExchangeOriginFor(boss)[i] = false;
                 }
             if (boss)
             {
                 BossPurchaseCount++;
                 LastBossPurchased = purchase[purchase.Length - 1];
-                LastBossOrderCost = WaiterCost;
-                LastBossOrderCount = WaiterItemCount;
-                AnnounceBoss($"벨 주문: 랜덤 아이템 {WaiterItemCount}개");
+                LastBossOrderCost = cost;
+                LastBossOrderCount = count;
+                AnnounceBoss($"벨 주문: 랜덤 아이템 {count}개");
             }
-            else match.SetActionMessage($"벨 주문: 랜덤 아이템 {WaiterItemCount}개를 받았습니다.");
+            else match.SetActionMessage($"벨 주문: 랜덤 아이템 {count}개를 받았습니다.");
+            match.Progression?.OnBell(boss, purchase.Length);
             InventoryChanged?.Invoke();
             WaiterOrdered?.Invoke(deliveredSlots, boss);
             return true;
@@ -192,7 +204,18 @@ namespace ColaCola.Presentation
         {
             // Shared item draws are independent of pressure rolls, AI decisions and the old test-menu RNG.
             itemRandom ??= new System.Random();
-            return ColaItemCatalog.DrawRandom(itemRandom, count);
+            return DrawNaturalItems(count);
+        }
+
+        private bool HoldsHotSauce() => Array.IndexOf(inventory, (ColaItemId?)ColaItemId.HotSauce) >= 0 ||
+            Array.IndexOf(bossInventory, (ColaItemId?)ColaItemId.HotSauce) >= 0;
+        public bool CanDrawHotSauce => !hotSauceDrawn && !bottleHot && !HoldsHotSauce();
+        private ColaItemId[] DrawNaturalItems(int count, ColaItemId? excluded = null)
+        {
+            itemRandom ??= new System.Random();
+            var drawn = ColaItemCatalog.DrawRandom(itemRandom, count, excluded, match.Level, CanDrawHotSauce);
+            if (Array.IndexOf(drawn, ColaItemId.HotSauce) >= 0) hotSauceDrawn = true;
+            return drawn;
         }
 
         public bool CanUseSlot(int slot, bool boss = false)
@@ -202,23 +225,26 @@ namespace ColaCola.Presentation
             var sheet = GetComponent<ColaOrderSheet>();
             if (!boss && sheet && sheet.BlocksGameplay) return false;
             var own = EffectsFor(boss);
-            var target = EffectsFor(!boss);
             return ItemAt(slot, boss).Value switch
             {
                 ColaItemId.IceCup => match.interaction.Model.Pressure > 0,
-                ColaItemId.FizzCandy => match.interaction.Model.Pressure < match.interaction.Model.Limit,
-                ColaItemId.CarbonationSyrup => !target.Syrup && !target.Spicy,
-                ColaItemId.QueueTicket => InventoryCountFor(!boss) > 0,
-                ColaItemId.SpicyOrder => !target.Spicy && !target.Syrup,
-                ColaItemId.SafetyCap => own.Syrup || own.Spicy,
+                ColaItemId.FizzCandy => true,
+                ColaItemId.QueueTicket => true,
+                ColaItemId.SpicyOrder => true,
+                ColaItemId.SafetyCap => true,
                 ColaItemId.PizzaSlice => boss ? match.BossHealth < match.BossMaxHealth : match.PlayerHealth < match.playerMaxHealth,
                 ColaItemId.HotSauce => !bottleHot,
                 ColaItemId.DoubleStamp => !own.Stamp,
                 ColaItemId.BottleOpener => match.interaction.Model.Limit > 1,
-                ColaItemId.Straw => match.CanTransferTokens(ColaItemBalance.StrawTokens, boss),
+                ColaItemId.Straw => true,
                 ColaItemId.SodaWater => match.interaction.Model.Pressure != match.interaction.Model.Limit / 2,
                 ColaItemId.CoinCup => (boss ? match.BossTokens : match.PlayerTokens) < 9999,
-                ColaItemId.SwapTongs => HasSwapPair(slot, boss),
+                ColaItemId.SwapTongs => true,
+                ColaItemId.SaltPacket => true,
+                ColaItemId.CoolingPack => !own.Chilled,
+                ColaItemId.TokenPunch => true,
+                ColaItemId.FreshLid => match.interaction.Model.Limit < 999,
+                ColaItemId.ExchangeCoupon => true,
                 _ => true
             };
         }
@@ -229,35 +255,36 @@ namespace ColaCola.Presentation
             if (!CanUseSlot(slot, boss)) return Reject("지금은 사용할 수 없습니다. 아이템은 유지됩니다.", boss);
             var owned = InventoryFor(boss);
             var id = owned[slot].Value;
+            bool fromExchange = ExchangeOriginFor(boss)[slot];
+            int pressureBefore = match.interaction.Model.Pressure, limitBefore = match.interaction.Model.Limit;
             var own = EffectsFor(boss);
             var target = EffectsFor(!boss);
             bool pass = false;
+            ColaItemId? replacement = null;
             switch (id)
             {
                 case ColaItemId.IceCup:
                     match.interaction.Model.AdjustPressure(-ColaItemBalance.IceReduction);
                     break;
                 case ColaItemId.FizzCandy:
-                    match.interaction.Model.AdjustPressure(ColaItemBalance.CandyIncrease);
-                    break;
-                case ColaItemId.CarbonationSyrup:
-                    target.Syrup = true;
+                    target.IncomingPressure = (int)Math.Min(int.MaxValue, (long)target.IncomingPressure + ColaItemBalance.CandyIncrease);
                     break;
                 case ColaItemId.QueueTicket:
-                    if (!TryCancelRandomItem(!boss)) return false;
+                    TryCancelRandomItem(!boss);
+                    match.GrantPassiveTokens(ColaItemBalance.TicketTokens, boss);
                     break;
                 case ColaItemId.Bill: pass = true; break;
                 case ColaItemId.SpicyOrder:
-                    target.Spicy = true;
+                    target.SpicyStacks = (int)Math.Min(int.MaxValue, (long)target.SpicyStacks + 1);
                     break;
                 case ColaItemId.SafetyCap:
-                    own.Syrup = own.Spicy = false;
+                    own.SafetyStacks = (int)Math.Min(int.MaxValue, (long)own.SafetyStacks + 1);
                     break;
                 case ColaItemId.PizzaSlice:
                     if (!match.TryHeal(boss)) return false;
                     break;
                 case ColaItemId.HotSauce:
-                    bottleHot = true;
+                    bottleHot = hotSauceDrawn = true;
                     break;
                 case ColaItemId.DoubleStamp:
                     own.Stamp = true;
@@ -266,7 +293,10 @@ namespace ColaCola.Presentation
                     match.interaction.Model.AdjustLimit(-ColaItemBalance.OpenerReduction);
                     break;
                 case ColaItemId.Straw:
-                    if (!match.TryTransferTokens(ColaItemBalance.StrawTokens, boss)) return false;
+                    int strawShortfall = ColaItemBalance.StrawTokens - Mathf.Min(ColaItemBalance.StrawTokens, boss ? match.PlayerTokens : match.BossTokens);
+                    match.TryTransferTokens(ColaItemBalance.StrawTokens, boss);
+                    // Transfer supplies the available part; fill the remainder to guarantee two.
+                    match.GrantPassiveTokens(strawShortfall, boss);
                     break;
                 case ColaItemId.SodaWater:
                     var model = match.interaction.Model;
@@ -276,11 +306,30 @@ namespace ColaCola.Presentation
                     if (!match.TryGrantItemTokens(ColaItemBalance.CoinCupTokens, boss)) return false;
                     break;
                 case ColaItemId.SwapTongs:
-                    if (!TrySwapRandomItem(slot, boss)) return false;
+                    replacement = TakeOrDrawItem(boss);
+                    break;
+                case ColaItemId.SaltPacket:
+                    target.IncomingPressure = (int)Math.Min(int.MaxValue, (long)target.IncomingPressure + ColaItemBalance.SaltIncrease);
+                    break;
+                case ColaItemId.CoolingPack:
+                    own.Chilled = true;
+                    break;
+                case ColaItemId.TokenPunch:
+                    target.RewardPenalty = (int)Math.Min(int.MaxValue, (long)target.RewardPenalty + ColaItemBalance.PunchTokens);
+                    break;
+                case ColaItemId.FreshLid:
+                    match.interaction.Model.AdjustLimit(ColaItemBalance.LidIncrease);
+                    break;
+                case ColaItemId.ExchangeCoupon:
+                    var rerolled = DrawNaturalItems(1, ColaItemId.ExchangeCoupon);
+                    if (rerolled.Length == 0) return false;
+                    replacement = rerolled[0];
                     break;
                 default: return false;
             }
             owned[slot] = null;
+            ExchangeOriginFor(boss)[slot] = false;
+            match.Progression?.OnItemUsed(id, boss, fromExchange, pressureBefore, limitBefore);
             if (boss) { BossUseCount++; LastBossUsed = id; AnnounceBoss("사용: " + ColaItemCatalog.Get(id).Name + " — " + ColaItemCatalog.Get(id).Effect); }
             else match.SetActionMessage(ColaItemCatalog.Get(id).Name + " 사용. " + ColaItemCatalog.Get(id).Effect);
             match.interaction.RefreshPrediction();
@@ -292,6 +341,7 @@ namespace ColaCola.Presentation
             // Passing starts its normal coroutine before the presentation acquires its input lock.
             // Detach the visible used prop before refreshing the now-empty physical slot.
             ItemUsed?.Invoke(id, slot, boss);
+            if (replacement.HasValue) replacements.Add(new Replacement { Boss = boss, Slot = slot, Item = replacement.Value, FromExchange = id == ColaItemId.ExchangeCoupon });
             InventoryChanged?.Invoke();
             return true;
         }
@@ -308,54 +358,87 @@ namespace ColaCola.Presentation
         private bool TryCancelRandomItem(bool boss)
         {
             var owned = InventoryFor(boss);
-            var occupied = new int[Capacity];
+            var occupied = new int[MaxCapacity];
             int count = 0;
             for (int i = 0; i < owned.Length; i++) if (owned[i].HasValue) occupied[count++] = i;
             if (count == 0) return false;
             itemRandom ??= new System.Random();
-            owned[occupied[itemRandom.Next(count)]] = null;
+            int target = occupied[itemRandom.Next(count)];
+            owned[target] = null;
+            ExchangeOriginFor(boss)[target] = false;
             return true;
         }
 
-        private bool HasSwapPair(int usedSlot, bool boss)
+        private ColaItemId? TakeOrDrawItem(bool boss)
         {
-            var own = InventoryFor(boss);
             var other = InventoryFor(!boss);
-            for (int i = 0; i < Capacity; i++)
-                for (int j = 0; j < Capacity; j++)
-                    if (i != usedSlot && own[i].HasValue && other[j].HasValue && own[i] != other[j]) return true;
-            return false;
-        }
-
-        private bool TrySwapRandomItem(int usedSlot, bool boss)
-        {
-            var own = InventoryFor(boss);
-            var other = InventoryFor(!boss);
-            var pairs = new List<int>();
-            for (int i = 0; i < Capacity; i++)
-                for (int j = 0; j < Capacity; j++)
-                    if (i != usedSlot && own[i].HasValue && other[j].HasValue && own[i] != other[j])
-                        pairs.Add(i * Capacity + j);
-            if (pairs.Count == 0) return false;
+            var slots = new List<int>();
+            for (int i = 0; i < CapacityFor(!boss); i++) if (other[i].HasValue) slots.Add(i);
+            if (slots.Count == 0) { var drawn = DrawNaturalItems(1); return drawn.Length > 0 ? drawn[0] : (ColaItemId?)null; }
             itemRandom ??= new System.Random();
-            int pair = pairs[itemRandom.Next(pairs.Count)];
-            int a = pair / Capacity, b = pair % Capacity;
-            (own[a], other[b]) = (other[b], own[a]);
-            return true;
+            int slot = slots[itemRandom.Next(slots.Count)];
+            var item = other[slot]; other[slot] = null; ExchangeOriginFor(!boss)[slot] = false;
+            return item;
         }
+
+        private sealed class Replacement { public bool Boss, FromExchange; public int Slot; public ColaItemId Item; }
+        private readonly List<Replacement> replacements = new();
+        internal void FlushReplacements()
+        {
+            if (ColaFrontEnd.BlocksGameplay || IsUsingItem) return;
+            for (int i = replacements.Count - 1; i >= 0; i--)
+            {
+                var entry = replacements[i];
+                if (IsReceivingItems(entry.Boss)) continue;
+                var bag = InventoryFor(entry.Boss);
+                int slot = !bag[entry.Slot].HasValue ? entry.Slot : Array.FindIndex(bag, x => !x.HasValue);
+                if (slot < 0 || slot >= CapacityFor(entry.Boss)) continue;
+                bag[slot] = entry.Item; ExchangeOriginFor(entry.Boss)[slot] = entry.FromExchange;
+                replacements.RemoveAt(i); InventoryChanged?.Invoke();
+            }
+        }
+
+        public bool CanReturnSlot(int slot, bool boss = false)
+        {
+            if (!ItemAt(slot, boss).HasValue) return false;
+            if (boss) return CanBossAct && !IsUsingItem && !IsReceivingItems(true);
+            // Returning a stored player item follows inspection availability, including the opponent's turn.
+            return CanInspectItems && (!inventoryPresentation || !inventoryPresentation.IsSlotArriving(slot, false));
+        }
+
+        public bool TryReturnItem(int slot, bool boss = false)
+        {
+            if (!CanReturnSlot(slot, boss)) return false;
+            InventoryFor(boss)[slot] = null; ExchangeOriginFor(boss)[slot] = false;
+            match.GrantPassiveTokens(ColaItemBalance.ReturnTokens, boss);
+            ColaTabletopAudio.Cue(match.interaction, "Tokens", transform.position, .32f);
+            InventoryChanged?.Invoke(); return true;
+        }
+
         private void AnnounceBoss(string action)
         {
             BossNotice = "보스 " + action;
-            BossNoticeUntil = Time.unscaledTime + 4;
+            BossNoticeUntil = ColaGameClock.Time + 4;
             match.SetActionMessage(BossNotice);
         }
 
         public ItemActionModifiers PreviewAction(bool boss)
         {
             var own = EffectsFor(boss);
-            return new ItemActionModifiers(own.Syrup ? ColaItemBalance.SyrupBonus : 0,
+            return new ItemActionModifiers(own.IncomingPressure - (own.Chilled ? ColaItemBalance.CoolingReduction : 0),
                 1 + (bottleHot ? ColaItemBalance.HotDamageBonus : 0),
-                own.Stamp ? ColaItemBalance.StampRewardBonus : 0, own.Spicy ? ColaItemBalance.SpicyMultiplier : 1);
+                (own.Stamp ? ColaItemBalance.StampRewardBonus : 0) + (match.Progression?.SavingsBonusFor(boss) ?? 0), 1,
+                own.SafetyStacks * ColaItemBalance.SafetyProbabilityReduction + (match.Progression?.ProbabilityReductionFor(boss) ?? 0),
+                own.SpicyStacks * ColaItemBalance.SpicyProbabilityIncrease, own.RewardPenalty);
+        }
+
+        public bool HasCooling(bool boss) => EffectsFor(boss).Chilled;
+        public int IncomingPressureFor(bool boss) => EffectsFor(boss).IncomingPressure;
+        public int CoolingReductionFor(bool boss) => EffectsFor(boss).Chilled ? ColaItemBalance.CoolingReduction : 0;
+
+        public string EffectDescription(ColaItemId id, bool boss = false)
+        {
+            return ColaItemCatalog.Get(id).Effect;
         }
 
         public ItemActionModifiers CaptureAction(bool boss)
@@ -368,7 +451,9 @@ namespace ColaCola.Presentation
 
         public void OnBottleReplaced()
         {
+            match.Progression?.OnBottleStarted();
             bottleHot = false;
+            hotSauceDrawn = HoldsHotSauce();
             playerShopUsed = bossShopUsed = false;
             DrawBottleMenu();
             var sheet = GetComponent<ColaOrderSheet>();
@@ -393,6 +478,7 @@ namespace ColaCola.Presentation
 
         public void ResetEffects()
         {
+            replacements.Clear();
             PresentationReset?.Invoke();
             bottleHot = false;
             playerEffects.Clear();
@@ -404,15 +490,17 @@ namespace ColaCola.Presentation
         public void ResetBossInventory()
         {
             Array.Clear(bossInventory, 0, bossInventory.Length);
-            GiveStartingItems(bossInventory);
+            Array.Clear(bossExchangeOrigin, 0, bossExchangeOrigin.Length);
+            hotSauceDrawn = false;
+            GiveStartingItems(bossInventory, ColaBossTactics.StartingItemsForStage(match.Level));
             InventoryChanged?.Invoke();
         }
 
-        private void GiveStartingItems(ColaItemId?[] owned)
+        private void GiveStartingItems(ColaItemId?[] owned, int count = 2)
         {
             itemRandom ??= new System.Random();
             // At full health a pizza cannot help with the opening decision; it remains in bell orders.
-            var starting = ColaItemCatalog.DrawRandom(itemRandom, 2, ColaItemId.PizzaSlice);
+            var starting = DrawNaturalItems(Mathf.Clamp(count, 0, owned.Length), ColaItemId.PizzaSlice);
             for (int i = 0; i < starting.Length; i++) owned[i] = starting[i];
         }
 
@@ -423,8 +511,11 @@ namespace ColaCola.Presentation
             bottleMenu.Clear();
             Array.Clear(inventory, 0, inventory.Length);
             Array.Clear(bossInventory, 0, bossInventory.Length);
+            Array.Clear(playerExchangeOrigin, 0, playerExchangeOrigin.Length);
+            Array.Clear(bossExchangeOrigin, 0, bossExchangeOrigin.Length);
+            hotSauceDrawn = false;
             GiveStartingItems(inventory);
-            GiveStartingItems(bossInventory);
+            GiveStartingItems(bossInventory, ColaBossTactics.StartingItemsForStage(match.Level));
             ResetEffects();
             BossPurchaseCount = BossUseCount = 0;
             LastBossOrderCost = LastBossOrderCount = 0;
@@ -434,16 +525,71 @@ namespace ColaCola.Presentation
             InventoryChanged?.Invoke();
         }
 
+        public void RefreshCapacity() => InventoryChanged?.Invoke();
+
+        internal bool TryGrantPassiveItem(ColaItemId id, bool boss = false)
+        {
+            if (!ColaItemCatalog.Contains(id) || (id == ColaItemId.HotSauce && !CanDrawHotSauce)) return false;
+            var inventory = InventoryFor(boss);
+            for (int i = 0; i < CapacityFor(boss); i++)
+                if (!inventory[i].HasValue)
+                {
+                    inventory[i] = id; ExchangeOriginFor(boss)[i] = false;
+                    if (id == ColaItemId.HotSauce) hotSauceDrawn = true;
+                    InventoryChanged?.Invoke(); return true;
+                }
+            return false;
+        }
+
+        internal bool TryGrantPassiveRandomItem(bool boss)
+        {
+            var inventory = InventoryFor(boss);
+            for (int i = 0; i < CapacityFor(boss); i++)
+                if (!inventory[i].HasValue)
+                {
+                    var drawn = DrawNaturalItems(1);
+                    if (drawn.Length == 0) return false;
+                    inventory[i] = drawn[0]; ExchangeOriginFor(boss)[i] = false;
+                    InventoryChanged?.Invoke(); return true;
+                }
+            return false;
+        }
+
+        internal void AddIncomingPressure(bool boss, int amount)
+        {
+            EffectsFor(boss).IncomingPressure += Mathf.Max(0, amount);
+            match.interaction.RefreshPrediction();
+        }
+
+        public void ClearAllItems()
+        {
+            replacements.Clear();
+            match.Progression?.ClearPendingItemGrants();
+            CancelItemUsePresentation();
+            PresentationReset?.Invoke();
+            Array.Clear(inventory, 0, inventory.Length);
+            Array.Clear(bossInventory, 0, bossInventory.Length);
+            Array.Clear(playerExchangeOrigin, 0, playerExchangeOrigin.Length);
+            Array.Clear(bossExchangeOrigin, 0, bossExchangeOrigin.Length);
+            GetComponent<ColaOrderSheet>()?.ClearCart();
+            InventoryChanged?.Invoke();
+        }
+
         public string ActiveEffectsText => EffectsText(false);
         public string EffectsText(bool boss)
         {
                 var own = EffectsFor(boss);
                 var text = new StringBuilder();
-                if (own.Stamp) text.Append("안전 보상 +").Append(ColaItemBalance.StampRewardBonus).Append(" · ");
-                if (own.Syrup) text.Append("시럽 +").Append(ColaItemBalance.SyrupBonus).Append(" · ");
-                if (own.Spicy) text.Append("압력 ×").Append(ColaItemBalance.SpicyMultiplier).Append(" · ");
-                if (bottleHot) text.Append("이 콜라 피해 +").Append(ColaItemBalance.HotDamageBonus).Append(" · ");
-                string effects = text.Length > 3 ? text.ToString(0, text.Length - 3) : "대기 효과 없음";
+                void AddEffect(string key, string fallback, object amount) => text.Append(string.Format(ColaLocalization.Get(key, fallback), amount)).Append(" · ");
+                if (own.Stamp) AddEffect("ui.effect_safe", "안전 보상 +{0}", ColaItemBalance.StampRewardBonus);
+                if (own.SafetyStacks > 0) AddEffect("ui.effect_burst", "다음 폭발 확률 {0}%p", (-own.SafetyStacks * ColaItemBalance.SafetyProbabilityReduction * 100).ToString("0"));
+                if (own.SpicyStacks > 0) AddEffect("ui.effect_burst", "다음 폭발 확률 {0}%p", "+" + (own.SpicyStacks * ColaItemBalance.SpicyProbabilityIncrease * 100).ToString("0"));
+                if (own.IncomingPressure > 0) AddEffect("ui.effect_pressure", "다음 압력 {0}", "+" + own.IncomingPressure);
+                if (own.Chilled) AddEffect("ui.effect_pressure", "다음 압력 {0}", -ColaItemBalance.CoolingReduction);
+                if (!boss && (match.Progression?.PassiveProbabilityReduction ?? 0) > 0)
+                    AddEffect("ui.effect_burst", "다음 폭발 확률 {0}%p", (-ColaItemBalance.LowHealthProbabilityReduction * 100).ToString("0"));
+                if (bottleHot) AddEffect("ui.effect_damage", "이 콜라 피해 +{0}", ColaItemBalance.HotDamageBonus);
+                string effects = text.Length > 3 ? text.ToString(0, text.Length - 3) : ColaLocalization.Get("ui.no_effects", "대기 효과 없음");
                 return effects;
         }
     }

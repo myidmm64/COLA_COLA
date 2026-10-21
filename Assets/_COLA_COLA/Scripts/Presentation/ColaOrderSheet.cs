@@ -8,7 +8,7 @@ namespace ColaCola.Presentation
 {
     /// <summary>Debug-only free item test clipboard, opened with E; absent from the normal tabletop.</summary>
     [DisallowMultipleComponent]
-    public sealed class ColaOrderSheet : MonoBehaviour
+    public sealed partial class ColaOrderSheet : MonoBehaviour
     {
         private ColaItemController items;
         private GameObject modelRoot;
@@ -27,16 +27,20 @@ namespace ColaCola.Presentation
         private readonly TextMesh[] numberTexts = new TextMesh[ColaItemCatalog.All.Count];
         private readonly Renderer[] rowRenderers = new Renderer[ColaItemCatalog.All.Count];
         private readonly Renderer[] removeRenderers = new Renderer[ColaItemCatalog.All.Count];
+        private readonly TextMesh[] removeMarks = new TextMesh[ColaItemCatalog.All.Count];
         private readonly List<ColaItemId> cart = new(ColaItemController.Capacity);
         private Material available, unavailable, selectedKey, checkoutReady, rowSelected;
         private Collider openTarget, closeTarget, checkoutTarget;
         private Renderer checkoutRenderer, descriptionPanel, descriptionAccent;
         private TextMesh balanceText, inventoryText, descriptionText, descriptionTitle, checkoutText, titleText;
         private bool returning;
-        private int testPage;
-        private int PageCount => Mathf.Max(1, (ColaItemCatalog.All.Count + ColaItemController.MenuSize - 1) / ColaItemController.MenuSize);
+        private float scrollPosition;
+        private int EntryCount => IsProgressionPage ? progressionEntries.Count : ColaItemCatalog.All.Count;
+        private int FirstVisible => Mathf.Clamp(Mathf.RoundToInt(scrollPosition), 0, Mathf.Max(0, EntryCount - ColaItemController.MenuSize));
+        private GUIStyle quantityStyle;
         private readonly Vector3 restPosition = new(.37f, .848f, -.37f);
         private readonly Quaternion restRotation = Quaternion.Euler(90, 0, -8);
+        private Vector3 HeldLocalPosition => IsRecordPage ? new Vector3(0, 0, .58f) : new Vector3(.09f, .015f, .58f);
         public bool IsOpen { get; private set; }
         public bool IsSettled { get; private set; } = true;
         public bool BlocksGameplay => IsOpen || returning;
@@ -55,11 +59,25 @@ namespace ColaCola.Presentation
         public int CartTotal => 0;
         public int CartQuantity(ColaItemId id) { int count = 0; foreach (var entry in cart) if (entry == id) count++; return count; }
         public bool CanAdd(ColaItemId id) => items && items.CanPurchase(id) &&
-            items.InventoryCount + cart.Count < ColaItemController.Capacity;
+            items.InventoryCount + cart.Count < items.CapacityFor();
+        public void ClearCart() { cart.Clear(); Refresh(); }
+        public bool SetCartQuantity(ColaItemId id, int quantity)
+        {
+            if (!IsOpen || !CanOpen || !ColaItemCatalog.Contains(id)) return false;
+            int current = CartQuantity(id);
+            int maximum = Mathf.Max(0, items.CapacityFor() - items.InventoryCount - cart.Count + current);
+            quantity = Mathf.Clamp(quantity, 0, maximum);
+            if (quantity == current) return false;
+            cart.RemoveAll(entry => entry == id);
+            for (int i = 0; i < quantity; i++) cart.Add(id);
+            Refresh(); return true;
+        }
         public bool CanOpen
         {
             get
             {
+                if (ColaFrontEnd.BlocksGameplay) return false;
+                if (IsProgressionPage) return ProgressionPageAvailable;
                 if (!isActiveAndEnabled || !items || !items.CanAct || !items.OrderAvailable()) return false;
                 foreach (var definition in ColaItemCatalog.All) if (items.CanPurchase(definition.Id)) return true;
                 return false;
@@ -72,9 +90,12 @@ namespace ColaCola.Presentation
             items = controller;
             items.InventoryChanged += RefreshAvailability;
             if (!modelRoot) BuildModel();
+            BuildRecordTabs();
+            Page = SheetPage.Items;
             IsOpen = returning = false;
+            recordEntering = false;
             cart.Clear();
-            testPage = Mathf.Clamp(testPage, 0, PageCount - 1);
+            scrollPosition = 0;
             IsSettled = true;
             modelRoot.transform.SetPositionAndRotation(restPosition, restRotation);
             RefreshAvailability();
@@ -82,6 +103,8 @@ namespace ColaCola.Presentation
 
         public bool Toggle()
         {
+            if (IsProgressionPage) Close();
+            Page = SheetPage.Items;
             RefreshAvailability();
             if (IsOpen) { Close(); return true; }
             if (!CanOpen || returning) return false;
@@ -100,6 +123,9 @@ namespace ColaCola.Presentation
             if (IsOpen && items && items.match)
                 ColaTabletopAudio.Cue(items.match.interaction, "MenuClose", modelRoot.transform.position, .50f);
             IsOpen = false;
+            recordEntering = false;
+            if (IsProgressionPage && items && items.match && items.match.Progression != null)
+                items.match.Progression.JournalOpen = false;
             cart.Clear();
             returning = false;
             IsSettled = true;
@@ -109,6 +135,8 @@ namespace ColaCola.Presentation
         public bool HandlePointer(Vector2 screenPoint)
         {
             if (!CanOpen || !IsVisible) return false;
+            if (IsProgressionPage && ControlRect(.136f, .106f, .148f, -.067f).Contains(new Vector2(screenPoint.x, Screen.height - screenPoint.y))) return true;
+            if (!IsProgressionPage && OverSlider(screenPoint)) return true;
             Physics.SyncTransforms();
             if (!Physics.Raycast(items.match.interaction.playerCamera.ScreenPointToRay(screenPoint), out var hit, 8, ~0, QueryTriggerInteraction.Ignore)) return false;
             var target = hit.collider.GetComponent<ColaOrderTarget>();
@@ -117,6 +145,7 @@ namespace ColaCola.Presentation
 
         public bool HandleTarget(ColaOrderTarget target)
         {
+            if (IsProgressionPage) return HandleProgressionTarget(target);
             if (!CanOpen || !IsVisible || !target || !target.gameObject.activeInHierarchy ||
                 !target.transform.IsChildOf(modelRoot.transform)) return false;
             if (target.Kind == ColaOrderTarget.Action.Open) return IsOpen || Toggle();
@@ -149,27 +178,29 @@ namespace ColaCola.Presentation
 
         private void Update()
         {
+            if (ColaFrontEnd.BlocksGameplay || ColaFrontEnd.ConsumedEscapeThisFrame) return;
             if (!Application.IsPlaying(gameObject) || !items || !modelRoot) return;
+            SyncProgressionPage();
             RefreshAvailability();
             if (!IsVisible) return;
-            if (IsOpen && Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame) Close();
-            if (IsOpen && Keyboard.current != null &&
-                (Keyboard.current.leftArrowKey.wasPressedThisFrame || Keyboard.current.rightArrowKey.wasPressedThisFrame))
+            if (IsOpen && Page != SheetPage.AbilityChoice && Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame) Close();
+            if (IsOpen && Mouse.current != null && Mathf.Abs(Mouse.current.scroll.ReadValue().y) > .01f)
             {
-                int pages = PageCount;
-                int direction = Keyboard.current.leftArrowKey.wasPressedThisFrame ? -1 : 1;
-                testPage = (testPage + direction + pages) % pages;
-                ColaTabletopAudio.Cue(items.match.interaction, "MenuOpen", modelRoot.transform.position, .40f);
+                scrollPosition = Mathf.Clamp(FirstVisible - Mathf.Sign(Mouse.current.scroll.ReadValue().y),
+                    0, Mathf.Max(0, EntryCount - ColaItemController.MenuSize));
                 ClearDescription();
             }
             var camera = items.match.interaction.playerCamera.transform;
-            Vector3 targetPosition = IsOpen ? camera.TransformPoint(new Vector3(.09f, .015f, .58f)) : restPosition;
+            Vector3 targetPosition = IsOpen ? camera.TransformPoint(HeldLocalPosition) : restPosition;
             Quaternion targetRotation = IsOpen ? camera.rotation : restRotation;
-            float blend = 1 - Mathf.Exp(-16 * Time.unscaledDeltaTime);
-            modelRoot.transform.SetPositionAndRotation(Vector3.Lerp(modelRoot.transform.position, targetPosition, blend),
-                Quaternion.Slerp(modelRoot.transform.rotation, targetRotation, blend));
-            IsSettled = Vector3.Distance(modelRoot.transform.position, targetPosition) < .002f &&
-                Quaternion.Angle(modelRoot.transform.rotation, targetRotation) < 1;
+            if (!AdvanceRecordEntrance(items.match.interaction.playerCamera))
+            {
+                float blend = 1 - Mathf.Exp(-16 * ColaGameClock.Delta);
+                modelRoot.transform.SetPositionAndRotation(Vector3.Lerp(modelRoot.transform.position, targetPosition, blend),
+                    Quaternion.Slerp(modelRoot.transform.rotation, targetRotation, blend));
+                IsSettled = Vector3.Distance(modelRoot.transform.position, targetPosition) < .002f &&
+                    Quaternion.Angle(modelRoot.transform.rotation, targetRotation) < 1;
+            }
             if (IsOpen && IsSettled)
                 modelRoot.transform.SetPositionAndRotation(targetPosition, targetRotation);
             if (!IsOpen && IsSettled)
@@ -183,6 +214,7 @@ namespace ColaCola.Presentation
 
         public bool HoverPointer(Vector2 screenPoint)
         {
+            if (IsProgressionPage) return HoverProgression(screenPoint);
             if (!IsOpen || !IsSettled || !CanOpen || !IsVisible) return false;
             Physics.SyncTransforms();
             if (Physics.Raycast(items.match.interaction.playerCamera.ScreenPointToRay(screenPoint), out var hit, 8,
@@ -198,9 +230,26 @@ namespace ColaCola.Presentation
         private void ShowDescription(ColaItemId id)
         {
             var definition = ColaItemCatalog.Get(id);
-            descriptionTitle.text = definition.Name;
-            descriptionText.text = Wrap(definition.Effect, 22);
-            descriptionPanel.enabled = descriptionAccent.enabled = IsOpen;
+            SetBoardDescription(definition.Name, items.EffectDescription(id));
+        }
+
+        private void SetBoardDescription(string name, string description)
+        {
+            descriptionTitle.text = name ?? "";
+            descriptionText.text = Wrap(description ?? "", 23);
+            descriptionTitle.transform.localPosition = new Vector3(-.122f, -.091f, -.009f);
+            descriptionText.transform.localPosition = new Vector3(-.122f, -.108f, -.009f);
+            descriptionTitle.characterSize = .0028f;
+            descriptionText.characterSize = .0027f;
+            RefreshDescriptionVisibility();
+        }
+
+        private void RefreshDescriptionVisibility()
+        {
+            bool visible = IsOpen && IsSettled && !string.IsNullOrEmpty(descriptionText.text);
+            descriptionTitle.GetComponent<Renderer>().enabled = visible;
+            descriptionText.GetComponent<Renderer>().enabled = visible;
+            descriptionPanel.enabled = descriptionAccent.enabled = false;
         }
 
         private void ClearDescription()
@@ -208,6 +257,7 @@ namespace ColaCola.Presentation
             descriptionTitle.text = "";
             descriptionText.text = "";
             descriptionPanel.enabled = descriptionAccent.enabled = false;
+            if (IsProgressionPage) { recordName = recordDescription = ""; inspectedEntry = -1; }
         }
 
         public void RefreshAvailability()
@@ -218,6 +268,7 @@ namespace ColaCola.Presentation
             {
                 // Hide the entire prop, including all hit targets; never leave an invisible input lock.
                 IsOpen = returning = false;
+                recordEntering = false;
                 cart.Clear();
                 IsSettled = true;
                 modelRoot.transform.SetPositionAndRotation(restPosition, restRotation);
@@ -229,42 +280,98 @@ namespace ColaCola.Presentation
         private void Refresh()
         {
             if (!items || !modelRoot) return;
+            if (IsProgressionPage) { RefreshProgression(); return; }
+            SetRecordTabsVisible(false);
             // Fine world text aliases at the tabletop's grazing angle. Only draw it while held for reading.
             foreach (var renderer in detailedPrint) if (renderer) renderer.enabled = IsOpen;
-            titleText.text = "TEST " + (testPage + 1) + "/" + PageCount;
+            titleText.text = ColaLocalization.Get("ui.test_menu", "테스트 메뉴") + "  " + ColaItemCatalog.All.Count;
             titleText.characterSize = IsOpen ? .0030f : .006f;
             titleText.anchor = IsOpen ? TextAnchor.MiddleLeft : TextAnchor.MiddleCenter;
             titleText.transform.localPosition = IsOpen ? new Vector3(-.128f, .141f, -.009f) : new Vector3(0, .025f, -.009f);
             titleText.transform.localRotation = IsOpen ? Quaternion.Euler(0, 0, -1.2f) : Quaternion.identity;
-            balanceText.text = "TOKENS  " + items.match.PlayerTokens.ToString("00");
-            inventoryText.text = "ITEMS  " + items.InventoryCount + " / " + ColaItemController.Capacity;
+            balanceText.text = ColaLocalization.Get("ui.tokens_label", "토큰") + "  " + items.match.PlayerTokens.ToString("00");
+            inventoryText.text = ColaLocalization.Get("ui.items_label", "아이템") + "  " + items.InventoryCount + " / " + items.CapacityFor();
             if (!IsOpen) ClearDescription();
-            descriptionPanel.enabled = descriptionAccent.enabled = IsOpen && !string.IsNullOrEmpty(descriptionText.text);
+            RefreshDescriptionVisibility();
             closeTarget.enabled = IsOpen;
             checkoutTarget.enabled = IsVisible && IsOpen && IsSettled && items.CanPurchaseBatch(cart);
-            checkoutText.text = cart.Count == 0 ? "무료 받기" : "무료 받기   " + cart.Count + "개";
+            checkoutText.text = cart.Count == 0 ? ColaLocalization.Get("ui.free_claim", "무료 받기") : string.Format(ColaLocalization.Get("ui.free_count", "무료 받기   {0}개"), cart.Count);
             checkoutRenderer.sharedMaterial = items.CanPurchaseBatch(cart) ? checkoutReady : unavailable;
             for (int i = 0; i < purchaseTargets.Length; i++)
             {
                 var definition = ColaItemCatalog.All[i];
-                int menuRow = i - testPage * ColaItemController.MenuSize;
+                int menuRow = i - FirstVisible;
                 bool offered = menuRow >= 0 && menuRow < ColaItemController.MenuSize;
                 itemRows[i].SetActive(offered);
                 if (offered)
                 {
                     itemRows[i].transform.localPosition = new Vector3(0, .093f - menuRow * .029f, 0);
-                    numberTexts[i].text = (menuRow + 1).ToString();
+                    numberTexts[i].text = (i + 1).ToString();
                 }
-                purchaseTargets[i].enabled = offered && IsVisible && IsOpen && IsSettled;
+                purchaseTargets[i].enabled = false;
                 nameTargets[i].enabled = offered && IsVisible && IsOpen && IsSettled;
-                removeTargets[i].enabled = offered && IsVisible && IsOpen && IsSettled && CartQuantity(definition.Id) > 0;
+                removeTargets[i].enabled = false;
                 int quantity = CartQuantity(definition.Id);
                 purchaseRenderers[i].sharedMaterial = CanAdd(definition.Id) ? quantity > 0 ? selectedKey : available : unavailable;
                 removeRenderers[i].sharedMaterial = quantity > 0 ? available : unavailable;
                 rowRenderers[i].enabled = IsOpen && quantity > 0;
                 itemNameTexts[i].text = definition.Name;
-                priceTexts[i].text = "무료" + (quantity > 0 ? " x" + quantity : "");
+                itemNameTexts[i].characterSize = .0023f;
+                priceTexts[i].text = ColaLocalization.Get("ui.free", "무료") + (quantity > 0 ? " x" + quantity : "");
+                purchaseRenderers[i].enabled = removeRenderers[i].enabled = false;
+                priceTexts[i].GetComponent<Renderer>().enabled = false;
+                if (removeMarks[i]) removeMarks[i].GetComponent<Renderer>().enabled = false;
             }
+        }
+
+        // Project controls onto the held clipboard. Sliders select quantities; scrolling exposes all 20 kinds.
+        private Rect ControlRect(float left, float top, float right, float bottom)
+        {
+            var camera = items.match.interaction.playerCamera;
+            Vector3 a = camera.WorldToScreenPoint(modelRoot.transform.TransformPoint(new Vector3(left, top, -.016f)));
+            Vector3 b = camera.WorldToScreenPoint(modelRoot.transform.TransformPoint(new Vector3(right, bottom, -.016f)));
+            return Rect.MinMaxRect(Mathf.Min(a.x, b.x), Screen.height - Mathf.Max(a.y, b.y),
+                Mathf.Max(a.x, b.x), Screen.height - Mathf.Min(a.y, b.y));
+        }
+
+        private bool OverSlider(Vector2 screenPoint)
+        {
+            if (!IsOpen) return false;
+            Vector2 point = new(screenPoint.x, Screen.height - screenPoint.y);
+            if (ControlRect(.136f, .106f, .148f, -.067f).Contains(point)) return true;
+            for (int row = 0; row < ColaItemController.MenuSize; row++)
+            {
+                float y = .093f - row * .029f;
+                if (ControlRect(.035f, y + .012f, .133f, y - .012f).Contains(point)) return true;
+            }
+            return false;
+        }
+
+        private void OnGUI()
+        {
+            if (IsProgressionPage) { DrawProgressionOverlay(); return; }
+            if (!Application.IsPlaying(gameObject) || !IsOpen || !IsSettled || !items || !CanOpen || !IsVisible) return;
+            quantityStyle ??= new GUIStyle(GUI.skin.label) { font = font, alignment = TextAnchor.MiddleRight };
+            quantityStyle.normal.textColor = new Color(.15f, .20f, .15f);
+            int oldDepth = GUI.depth; GUI.depth = -20;
+            Color oldBackground = GUI.backgroundColor;
+            GUI.backgroundColor = new Color(.45f, .43f, .30f);
+            var scroll = ControlRect(.136f, .106f, .148f, -.067f);
+            scrollPosition = GUI.VerticalScrollbar(scroll, scrollPosition, ColaItemController.MenuSize, 0, ColaItemCatalog.All.Count);
+            int start = FirstVisible;
+            for (int row = 0; row < ColaItemController.MenuSize && start + row < ColaItemCatalog.All.Count; row++)
+            {
+                var id = ColaItemCatalog.All[start + row].Id;
+                int quantity = CartQuantity(id);
+                int maximum = Mathf.Max(0, items.CapacityFor() - items.InventoryCount - cart.Count + quantity);
+                float y = .093f - row * .029f;
+                var rect = ControlRect(.035f, y + .011f, .116f, y - .011f);
+                int selected = Mathf.RoundToInt(GUI.HorizontalSlider(rect, quantity, 0, Mathf.Max(1, maximum)));
+                if (SetCartQuantity(id, selected)) ShowDescription(id);
+                quantityStyle.fontSize = Mathf.Clamp(Mathf.RoundToInt(rect.height * .55f), 10, 22);
+                GUI.Label(ControlRect(.115f, y + .012f, .132f, y - .012f), CartQuantity(id).ToString(), quantityStyle);
+            }
+            GUI.backgroundColor = oldBackground; GUI.depth = oldDepth;
         }
 
         private Material Surface(string name, Color color)
@@ -404,7 +511,7 @@ namespace ColaCola.Presentation
                 numberTexts[i] = Text("MenuNumber_" + i, "", new Vector3(-.118f, y, -.010f), 48, .0030f, keyInk, TextAnchor.MiddleCenter);
                 numberTexts[i].transform.SetParent(row.transform, false);
                 var itemName = Text("OrderItem_" + (i + 1), definition.Name,
-                    new Vector3(-.098f, y, -.009f), 64, .0026f, ink);
+                    new Vector3(-.098f, y, -.009f), 64, .0023f, ink);
                 itemNameTexts[i] = itemName;
                 itemName.transform.SetParent(row.transform, false);
                 var nameHit = itemName.gameObject.AddComponent<BoxCollider>();
@@ -425,8 +532,8 @@ namespace ColaCola.Presentation
                 minus.AddComponent<ColaOrderTarget>().Bind(ColaOrderTarget.Action.Remove, definition.Id);
                 removeTargets[i] = minus.GetComponent<Collider>();
                 removeRenderers[i] = minus.GetComponent<Renderer>();
-                Text("RemoveMark_" + (i + 1), "-", new Vector3(.127f, y, -.015f), 48, .0028f, keyInk,
-                    TextAnchor.MiddleCenter).transform.SetParent(row.transform, false);
+                removeMarks[i] = Text("RemoveMark_" + (i + 1), "-", new Vector3(.127f, y, -.015f), 48, .0028f, keyInk, TextAnchor.MiddleCenter);
+                removeMarks[i].transform.SetParent(row.transform, false);
                 Block("PrintRule_" + (i + 1), new Vector3(0, y - .014f, -.0075f), new Vector3(.26f, .0004f, .0002f), rule,
                     false).transform.SetParent(row.transform, false);
             }

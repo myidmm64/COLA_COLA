@@ -30,12 +30,17 @@ namespace ColaCola.Presentation
         private readonly Vector3[] buttonRest = new Vector3[3];
         private Vector3 bottleRestPosition, bottleRestScale, capRestPosition;
         private Quaternion bottleRestRotation;
-        private bool captured, busy, fallbackAwaitingResult;
+        private bool captured, busy, fallbackAwaitingResult, fallbackShaking;
+        private ColaWaiterBellPress bellPress;
         private bool ForceBurst => items && items.match && items.match.GuaranteedBurst;
+        private bool ProgressionBlocksInput => ColaFrontEnd.BlocksGameplay || items && items.match && (items.match.Progression?.BlocksGameplay ?? false);
         public int CommittedActionCount { get; private set; }
         public int BottleNumber { get; private set; }
-        public bool IsBusy => busy || (shakeAnimator && shakeAnimator.IsPlaying) || (items && items.IsUsingItem);
+        public bool IsBusy => busy || (shakeAnimator && shakeAnimator.IsPlaying) || (items && items.IsUsingItem) ||
+            (bellPress && bellPress.IsAnimating);
         public bool AwaitingShakeResult => fallbackAwaitingResult || (shakeAnimator && shakeAnimator.IsAwaitingResult);
+        public bool IsShaking => fallbackShaking || fallbackAwaitingResult || (shakeAnimator && shakeAnimator.IsPlaying);
+        public bool IsPlayerShaking => IsShaking && !LastActionWasBoss;
         public BottlePressureModel Model => model;
         public ShakeResult LastResult { get; private set; }
         public bool LastActionWasBoss { get; private set; }
@@ -101,6 +106,8 @@ namespace ColaCola.Presentation
             {
                 ColaInteractionCamera.EnsureFor(this);
                 ColaPressureButtonPress.EnsureFor(this)?.PrepareForPlay();
+                bellPress = ColaWaiterBellPress.EnsureFor(this);
+                ColaBossIdleVariation.EnsureFor(this);
                 ColaBurstPresentation.EnsureFor(this).PrepareForPlay();
             }
             BeginNextBottle();
@@ -109,13 +116,17 @@ namespace ColaCola.Presentation
         public void CancelPendingActions()
         {
             sessionVersion++;
+            if (items && items.match) items.match.Progression?.CancelSelection();
             GetComponent<ColaPressureButtonPress>()?.Cancel();
+            GetComponent<ColaWaiterBellPress>()?.Cancel();
+            GetComponent<ColaBossIdleVariation>()?.RestorePose();
             GetComponent<ColaTabletopAudio>()?.CancelAll();
             if (items) items.CancelItemUsePresentation();
             if (shakeAnimator) shakeAnimator.CancelAndRestore();
             if (burstPresentation) burstPresentation.CancelAndRestore();
             StopAllCoroutines();
             fallbackAwaitingResult = false;
+            fallbackShaking = false;
             busy = false;
             IsBossTurn = false;
             BossItemPhase = BossPassedTurn = false;
@@ -156,6 +167,7 @@ namespace ColaCola.Presentation
 
         public bool SelectStrength(int strength)
         {
+            if (ProgressionBlocksInput) return false;
             var sheet = items ? items.GetComponent<ColaOrderSheet>() : null;
             if (sheet && sheet.BlocksGameplay) return false;
             if (!InputEnabled || !HasBindings || !Application.IsPlaying(gameObject) || !isActiveAndEnabled || IsBusy || model == null || strength < 1 || strength > 3) return false;
@@ -170,6 +182,7 @@ namespace ColaCola.Presentation
 
         public bool ConfirmShake()
         {
+            if (ProgressionBlocksInput) return false;
             var sheet = items ? items.GetComponent<ColaOrderSheet>() : null;
             if (sheet && sheet.BlocksGameplay) return false;
             if (!InputEnabled || !HasBindings || !Application.IsPlaying(gameObject) || !isActiveAndEnabled || IsBusy || model == null) return false;
@@ -184,7 +197,7 @@ namespace ColaCola.Presentation
         {
             model.ForceBurst = ForceBurst;
             var modifiers = items ? items.PreviewAction(boss) : ItemActionModifiers.None;
-            if (!model.TryCommit(() => random.NextDouble(), out result, modifiers.PressureBonus, pressureMultiplier: modifiers.PressureMultiplier)) return false;
+            if (!model.TryCommit(() => random.NextDouble(), out result, modifiers.PressureBonus, probabilityReduction: modifiers.ProbabilityReduction, pressureMultiplier: modifiers.PressureMultiplier, probabilityIncrease: modifiers.ProbabilityIncrease)) return false;
             LastItemModifiers = items ? items.CaptureAction(boss) : modifiers;
             CommittedActionCount++;
             LastResult = result;
@@ -199,6 +212,9 @@ namespace ColaCola.Presentation
             if (!HasBindings || !Application.IsPlaying(gameObject)) return false;
             var sheet = items ? items.GetComponent<ColaOrderSheet>() : null;
             if (sheet && sheet.BlocksGameplay) return sheet.HandlePointer(screenPoint);
+            if (ProgressionBlocksInput) return true;
+            var hud = items && items.match ? items.match.GetComponent<ColaDuelHUD>() : GetComponent<ColaDuelHUD>();
+            if (hud && hud.BlocksPointer(screenPoint)) return true;
             Physics.SyncTransforms();
             if (!Physics.Raycast(playerCamera.ScreenPointToRay(screenPoint), out var hit, 8, ~0, QueryTriggerInteraction.Ignore)) return false;
             var bellTarget = hit.collider.GetComponent<ColaWaiterBellTarget>();
@@ -216,7 +232,7 @@ namespace ColaCola.Presentation
 
         private void Update()
         {
-            if (!Application.IsPlaying(gameObject) || !HasBindings || !isActiveAndEnabled) return;
+            if (!Application.IsPlaying(gameObject) || !HasBindings || !isActiveAndEnabled || ColaFrontEnd.BlocksGameplay) return;
             if (model == null) ResetSession();
             if (model.ForceBurst != ForceBurst)
             {
@@ -225,7 +241,7 @@ namespace ColaCola.Presentation
             }
             var keyboard = Keyboard.current;
             var itemDisplay = items ? items.GetComponent<ColaItemPresentation>() : null;
-            if (keyboard != null && InputEnabled && !IsBusy && (!itemDisplay || !itemDisplay.OrderOpen))
+            if (keyboard != null && InputEnabled && !IsBusy && !ProgressionBlocksInput && (!itemDisplay || !itemDisplay.OrderOpen))
             {
                 if (keyboard.digit1Key.wasPressedThisFrame || keyboard.numpad1Key.wasPressedThisFrame) SelectStrength(1);
                 if (keyboard.digit2Key.wasPressedThisFrame || keyboard.numpad2Key.wasPressedThisFrame) SelectStrength(2);
@@ -247,8 +263,14 @@ namespace ColaCola.Presentation
             if (model.SelectedStrength > 0)
             {
                 var modifiers = items ? items.PreviewAction(false) : ItemActionModifiers.None;
-                var prediction = model.Predict(model.SelectedStrength, modifiers.PressureBonus, pressureMultiplier: modifiers.PressureMultiplier);
-                gauge.Show(model.Pressure, model.Limit, prediction.PressureAfter, prediction.BurstProbability, immediate);
+                var prediction = model.Predict(model.SelectedStrength, modifiers.PressureBonus, probabilityReduction: modifiers.ProbabilityReduction, pressureMultiplier: modifiers.PressureMultiplier, probabilityIncrease: modifiers.ProbabilityIncrease);
+                int basePressure = model.Predict(model.SelectedStrength, pressureMultiplier: modifiers.PressureMultiplier).PressureAfter;
+                int incoming = items ? items.IncomingPressureFor(false) : 0;
+                int cooling = items ? items.CoolingReductionFor(false) : 0;
+                int? increasedPressure = incoming > 0 ?
+                    model.Predict(model.SelectedStrength, incoming, pressureMultiplier: modifiers.PressureMultiplier).PressureAfter : (int?)null;
+                gauge.Show(model.Pressure, model.Limit, prediction.PressureAfter, prediction.BurstProbability, immediate,
+                    basePressure, increasedPressure, cooling > 0 ? prediction.PressureAfter : (int?)null);
             }
             else gauge.Show(model.Pressure, model.Limit, null, null, immediate);
             var handPress = GetComponent<ColaPressureButtonPress>();
@@ -293,6 +315,7 @@ namespace ColaCola.Presentation
 
         public bool PassPlayerTurn()
         {
+            if (ProgressionBlocksInput) return false;
             var sheet = items ? items.GetComponent<ColaOrderSheet>() : null;
             if (sheet && sheet.BlocksGameplay) return false;
             if (!InputEnabled || !HasBindings || !Application.IsPlaying(gameObject) || !isActiveAndEnabled || IsBusy || IsBossTurn) return false;
@@ -317,7 +340,7 @@ namespace ColaCola.Presentation
                 var ai = items ? items.GetComponent<ColaBossItemAI>() : null;
                 int strength = ai && ai.isActiveAndEnabled ? ai.ChooseStrength() : bossChoiceRandom.Next(1, 4);
                 PlannedBossStrength = strength;
-                yield return new WaitForSecondsRealtime(Mathf.Max(0, bossThinkSeconds));
+                yield return new ColaPauseDelay(Mathf.Max(0, bossThinkSeconds));
                 if (!IsCurrent(version)) yield break;
                 if (ai && ai.isActiveAndEnabled && ai.automaticItemUse && !BossPassedTurn)
                     yield return ai.PrepareTurn(strength);
@@ -380,11 +403,12 @@ namespace ColaCola.Presentation
             }
             else
             {
+                fallbackShaking = true;
                 duration = Mathf.Max(.1f, settings.shakeSeconds);
-                started = Time.unscaledTime;
-                while (Time.unscaledTime - started < duration)
+                started = ColaGameClock.Time;
+                while (ColaGameClock.Time - started < duration)
                 {
-                    float t = (Time.unscaledTime - started) / duration;
+                    float t = (ColaGameClock.Time - started) / duration;
                     float wave = Mathf.Sin(t * Mathf.PI * 12) * Mathf.Sin(t * Mathf.PI);
                     float amplitude = 1 + result.Prediction.Strength * .3f;
                     bottle.localPosition = bottleRestPosition + Vector3.right * (wave * .006f * amplitude);
@@ -393,15 +417,16 @@ namespace ColaCola.Presentation
                 }
                 // Missing clip bindings still receive the same result-neutral anticipation pause.
                 audio.EndShake();
+                fallbackShaking = false;
                 fallbackAwaitingResult = true;
-                float pauseStarted = Time.unscaledTime;
+                float pauseStarted = ColaGameClock.Time;
                 float pause = ColaShakeAnimator.ResultPauseSeconds(pressureFraction);
                 Vector3 heldPosition = bottle.localPosition;
                 Quaternion heldRotation = bottle.localRotation;
-                while (Time.unscaledTime - pauseStarted < pause)
+                while (ColaGameClock.Time - pauseStarted < pause)
                 {
                     if (!IsCurrent(version)) yield break;
-                    float elapsed = Time.unscaledTime - pauseStarted;
+                    float elapsed = ColaGameClock.Time - pauseStarted;
                     float blend = Mathf.SmoothStep(0, 1, elapsed / .12f);
                     bottle.localPosition = heldPosition + new Vector3(Mathf.Sin(elapsed * 4.4f) * .0045f,
                         Mathf.Sin(elapsed * 6.1f) * .003f, 0) * blend;
@@ -421,6 +446,13 @@ namespace ColaCola.Presentation
             else RefreshView();
             ShakeResolved?.Invoke(result);
             if (result.Burst && IsCurrent(version)) yield return burstPresentation.RevealAfterBurst();
+            if (!IsCurrent(version)) yield break;
+            var progression = items && items.match ? items.match.Progression : null;
+            if (progression != null && progression.HasPendingChoice)
+            {
+                progression.ReadySelection();
+                while (IsCurrent(version) && progression.HasPendingChoice) yield return null;
+            }
         }
 
         internal const float ButtonPressDistance = .012f;

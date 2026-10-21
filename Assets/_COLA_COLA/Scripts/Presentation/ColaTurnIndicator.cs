@@ -110,15 +110,15 @@ namespace ColaCola.Presentation
             if (!playerTurn) arrivalPending = false;
             if (arrivalPending && !owner.IsBusy)
             {
-                arrivalAt = Time.unscaledTime;
+                arrivalAt = ColaGameClock.Time;
                 arrivalPending = false;
             }
             previousPlayerTurn = playerTurn;
             previousBottle = bottleNumber;
             float target = playerTurn ? 1 : 0;
-            brightness = Mathf.MoveTowards(brightness, target, Time.unscaledDeltaTime / .28f);
+            brightness = Mathf.MoveTowards(brightness, target, ColaGameClock.Delta / .28f);
             float eased = brightness * brightness * (3 - 2 * brightness);
-            float phase = (Time.unscaledTime - arrivalAt) / .65f;
+            float phase = (ColaGameClock.Time - arrivalAt) / .65f;
             float wave = phase >= 0 && phase <= 1 && playerTurn ? Mathf.Sin(phase * Mathf.PI) : 0;
             ArrivalPulseWeight = wave * wave;
             lensMaterial.SetColor("_BaseColor", Color.Lerp(Off, Color.Lerp(On, Arrival, ArrivalPulseWeight), eased));

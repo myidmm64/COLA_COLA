@@ -1,0 +1,24 @@
+FIZZERIA
+
+Music
+Bleak Terminal — Ruskerdax
+CC0 1.0 · OpenGameArt
+
+Assets
+Pizzeria_PSX — elbolilloduro
+https://elbolilloduro.itch.io/pizzeria-psx
+
+Simple Character PSX Asset — JashiPSX
+https://jashi-psx.itch.io/simple-character-psx-asset
+
+Arms.rar / FPS Arms PSX Style — cemcakirca
+https://cemcakirca.itch.io/fps-arms-psx-style
+
+Made with Unity
+
+Fonts
+Noto Sans CJK / Noto Serif CJK — Noto Project
+https://github.com/notofonts/noto-cjk
+Gowun Batang — Yanghee Ryu
+https://github.com/google/fonts/tree/main/ofl/gowunbatang
+SIL Open Font License 1.1

@@ -76,9 +76,16 @@ namespace ColaCola.Editor
             if (run != null && run.id.StartsWith("turnui-", StringComparison.Ordinal)) run.suite = "turn-ui";
             if (run != null && run.id.StartsWith("fonts-", StringComparison.Ordinal)) run.suite = "fonts";
             if (run != null && run.id.StartsWith("compile-", StringComparison.Ordinal)) run.suite = "compile";
+            if (run != null && run.id.StartsWith("progression-", StringComparison.Ordinal)) run.suite = "progression";
             if (run != null && run.editorProcessId != Process.GetCurrentProcess().Id) run = null;
             EditorApplication.update += Tick;
             Application.logMessageReceived += OnLog;
+            UnityEditor.Compilation.CompilationPipeline.compilationStarted += _ => SessionState.SetBool(SessionKey + ".compileErrors", false);
+            UnityEditor.Compilation.CompilationPipeline.assemblyCompilationFinished += (_, messages) =>
+            {
+                if (messages.Any(m => m.type == UnityEditor.Compilation.CompilerMessageType.Error))
+                    SessionState.SetBool(SessionKey + ".compileErrors", true);
+            };
             subscribed = true;
         }
 
@@ -124,7 +131,7 @@ namespace ColaCola.Editor
                     var request = JsonUtility.FromJson<Request>(File.ReadAllText(RequestPath));
                     File.Delete(RequestPath);
                     if (request == null || string.IsNullOrWhiteSpace(request.id) ||
-                        !new[] { "compile", "music", "full", "burst", "orders", "items", "duel" }.Contains(request.suite))
+                        !new[] { "compile", "music", "full", "burst", "orders", "items", "duel", "progression", "menu" }.Contains(request.suite))
                         return;
                     run = new Run { id = request.id, suite = request.suite, phase = "preparing",
                         message = "Importing project changes in the open Editor.", startedUtc = DateTime.UtcNow.ToString("O"),
@@ -133,6 +140,7 @@ namespace ColaCola.Editor
                     if (request.id.StartsWith("turnui-", StringComparison.Ordinal)) run.suite = "turn-ui";
                     if (request.id.StartsWith("fonts-", StringComparison.Ordinal)) run.suite = "fonts";
                     if (request.id.StartsWith("compile-", StringComparison.Ordinal)) run.suite = "compile";
+                    if (request.id.StartsWith("progression-", StringComparison.Ordinal)) run.suite = "progression";
                     Directory.CreateDirectory(Root);
                     File.WriteAllText(Root + "/verification.log", "Open-editor Play verification " + run.id + "\n");
                     Persist();
@@ -208,13 +216,16 @@ namespace ColaCola.Editor
                 case "shake": ColaShakePlayReview.Begin(); break;
                 case "turn-ui": ColaTurnLabelVerification.Begin(); break;
                 case "fonts": ColaTurnLabelVerification.Begin(true); break;
+                case "progression": ColaProgressionPlayReview.Begin(); break;
+                case "menu": ColaMenuPlayReview.Begin(); break;
             }
         }
 
         private static void CheckCompilationOnly()
         {
             var report = new System.Text.StringBuilder();
-            bool success = true;
+            bool success = !SessionState.GetBool(SessionKey + ".compileErrors", false);
+            if (!success) report.AppendLine("ERROR: Current script compilation reported C# errors. See verification.log.");
             report.AppendLine("Compilation/import inspection only. No Play transition, scene save, camera render or input.");
             report.AppendLine("Loaded helper assembly: " + typeof(ColaCola.Presentation.ColaPropPatina).Assembly.Location);
             foreach (string name in new[] { "COLA_COLA_PropPatina", "COLA_COLA_Staff" })
@@ -268,6 +279,10 @@ namespace ColaCola.Editor
             if (!first.StartsWith("COLA_") || !first.EndsWith("_PASS")) return;
             if (!run.passed.Contains(first)) run.passed.Add(first);
             run.message = first; Persist();
+            if (first == "COLA_MENU_DESIGN_PASS" && run.suite == "menu")
+            { Stop(true, "Requested menu font examples captured from actual Play/Game view. Translation completeness and sample font glyphs checked; images require separate visual review."); return; }
+            if (first == "COLA_PROGRESSION_REVIEW_PASS" && run.suite == "progression")
+            { Stop(true, "Progression clipboard and five boss stages checked in actual Play. Live Game-view visual review recorded separately; no image files generated."); return; }
             if (first == "COLA_FONT_READABILITY_PASS" && run.suite == "fonts")
             {
                 Stop(true, "Bundled-font/UI checks completed in actual Play. Actual Game-view captures require visual review.");

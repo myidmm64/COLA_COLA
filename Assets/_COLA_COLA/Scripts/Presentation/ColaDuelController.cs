@@ -8,13 +8,16 @@ namespace ColaCola.Presentation
     [DisallowMultipleComponent, DefaultExecutionOrder(100)]
     public sealed class ColaDuelController : MonoBehaviour
     {
-        public enum DuelState { Playing, Won, Lost }
-        public enum DebugCommand { SetTokens999, ToggleGuaranteedBurst, ToggleFreeItemMenu }
+        public enum DuelState { Playing, Won, Lost, Completed }
+        public const int FinalLevel = 5;
+        public string BossName => ColaBossAppearance.NameFor(Level);
+        public enum DebugCommand { SetTokens999, ToggleGuaranteedBurst, ToggleFreeItemMenu, ClearItems, Stage1, Stage2, Stage3, Stage4, Stage5, ToggleAchievementWindow, ToggleAbilityWindow, WinCurrentStage }
         public ShakeSelectionInteraction interaction;
         public StatusTerminalDisplay terminal;
         public GameObject itemRoot;
         public Light itemLight;
         public ColaItemController Items { get; private set; }
+        public ColaRunProgression Progression { get; private set; }
         [Range(1, ColaItemBalance.StartingHealth)] public int playerMaxHealth = ColaItemBalance.StartingHealth;
         [Range(1, ColaItemBalance.StartingHealth)] public int bossBaseHealth = ColaItemBalance.StartingHealth;
 
@@ -37,6 +40,7 @@ namespace ColaCola.Presentation
         public int PlayerHealth { get; private set; }
         public int BossHealth { get; private set; }
         public int BossMaxHealth { get; private set; }
+        public static int BossHealthForStage(int level) => level <= 1 ? 3 : level == 2 ? 4 : 5;
         public int PlayerTokens { get; private set; }
         public int BossTokens { get; private set; }
         public string LastActionMessage { get; private set; } = "";
@@ -47,7 +51,7 @@ namespace ColaCola.Presentation
         {
             // Also runs when domain and scene reload are disabled in the Editor.
             foreach (var match in FindObjectsByType<ColaDuelController>(FindObjectsSortMode.None))
-                if (match.isActiveAndEnabled) match.RestartRun();
+                if (match.isActiveAndEnabled) { match.RestartRun(); ColaFrontEnd.EnsureFor(match).ShowMainMenu(); }
         }
 
         private void OnEnable()
@@ -65,6 +69,9 @@ namespace ColaCola.Presentation
         {
             if (!Application.IsPlaying(gameObject) || !isActiveAndEnabled || !interaction || !terminal) return;
             Subscribe();
+            Progression ??= new ColaRunProgression(this);
+            Progression.ResetRun(seed);
+            debugGuaranteedBurst = debugItemTestMenu = false;
             Level = 1;
             PlayerTokens = BossTokens = 0;
             Items = ColaItemController.EnsureFor(this);
@@ -76,10 +83,9 @@ namespace ColaCola.Presentation
 
         public bool ContinueToNextBoss()
         {
-            if (!Application.IsPlaying(gameObject) || !isActiveAndEnabled || State != DuelState.Won || !interaction || interaction.IsBusy)
+            if (!Application.IsPlaying(gameObject) || !isActiveAndEnabled || State != DuelState.Won || Level >= FinalLevel || !interaction || interaction.IsBusy || (Progression?.BlocksGameplay ?? false))
                 return false;
-            Level = Mathf.Min(9999, Level + 1);
-            BossTokens = 0;
+            Level++;
             Items.ResetEffects();
             Items.ResetBossInventory();
             GetComponent<ColaBossItemAI>().ResetDecisions();
@@ -97,11 +103,13 @@ namespace ColaCola.Presentation
             ColaDuelMusic.EnsureFor(this);
             ColaPizzeriaAmbience.EnsureFor(this);
             ColaPizzeriaStaff.EnsureFor(this);
+            ColaBossAppearance.EnsureFor(this);
             playerMaxHealth = Mathf.Clamp(playerMaxHealth, 1, ColaItemBalance.StartingHealth);
             bossBaseHealth = Mathf.Clamp(bossBaseHealth, 1, ColaItemBalance.StartingHealth);
             PlayerHealth = playerMaxHealth;
-            BossMaxHealth = bossBaseHealth;
+            BossMaxHealth = BossHealthForStage(Level);
             BossHealth = BossMaxHealth;
+            BossTokens = ColaBossTactics.StartingTokensForStage(Level);
             State = DuelState.Playing;
             LastActionMessage = "Choose a strength, then shake the cola.";
             if (itemRoot) itemRoot.SetActive(false);
@@ -113,7 +121,9 @@ namespace ColaCola.Presentation
             }
             interaction.InputEnabled = true;
             interaction.automaticBossTurns = true;
+            Progression.BeginBoss();
             interaction.ResetSession(seed);
+            Items.RefreshCapacity();
             RefreshTerminal(false);
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
@@ -124,7 +134,7 @@ namespace ColaCola.Presentation
             if (!isActiveAndEnabled || State != DuelState.Playing) return;
             bool boss = interaction.LastActionWasBoss;
             var modifiers = interaction.LastItemModifiers;
-            int reward = ColaItemBalance.ShakeReward(result.Prediction.Strength, result.Burst, modifiers.RewardBonus);
+            int reward = Progression.Reward(result.Prediction, result.Burst, modifiers, boss);
             int damage = result.Burst ? modifiers.Damage : 0;
             if (boss)
             {
@@ -139,13 +149,15 @@ namespace ColaCola.Presentation
             LastActionMessage = (boss ? "BOSS" : "YOU") + (result.Burst ? "  BURST: -" + damage + " HP" : "  SAFE") + "  /  +" + reward + " TOKENS";
             if (PlayerHealth == 0 || BossHealth == 0)
             {
-                State = PlayerHealth == 0 ? DuelState.Lost : DuelState.Won;
+                State = PlayerHealth == 0 ? DuelState.Lost : Level >= FinalLevel ? DuelState.Completed : DuelState.Won;
+                if (State == DuelState.Completed) LastActionMessage = "도전 완료 — 보스 5명 격파!";
                 interaction.InputEnabled = false;
                 // This event runs before the interaction schedules the next participant.
                 interaction.automaticBossTurns = false;
-                ColaTabletopAudio.Cue(interaction, State == DuelState.Won ? "Win" : "Lose", interaction.bottle.position, .65f);
+                ColaTabletopAudio.Cue(interaction, State == DuelState.Lost ? "Lose" : "Win", interaction.bottle.position, .65f);
             }
             else ColaTabletopAudio.Cue(interaction, "Tokens", terminal.transform.position, .42f);
+            Progression.OnShake(result, boss, modifiers);
             RefreshTerminal(true);
         }
 
@@ -174,13 +186,29 @@ namespace ColaCola.Presentation
         internal bool TrySpendWaiterTokens(bool boss)
         {
             if (!Items || !Items.CanOrderWaiter(boss)) return false;
-            if (boss) BossTokens -= ColaItemController.WaiterCost;
-            else PlayerTokens -= ColaItemController.WaiterCost;
+            if (boss) BossTokens -= Items.WaiterCostFor(true);
+            else PlayerTokens -= Items.WaiterCostFor(false);
             RefreshTerminal(true);
             return true;
         }
 
         public bool TryHealPlayer() => TryHeal(false);
+
+        internal void GrantPassiveTokens(int amount, bool boss = false)
+        {
+            if (boss) BossTokens = Mathf.Min(9999, BossTokens + Mathf.Max(0, amount));
+            else PlayerTokens = Mathf.Min(9999, PlayerTokens + Mathf.Max(0, amount));
+            RefreshTerminal(true);
+        }
+
+        public bool TryRemoveOpponentTokens(int maximum, bool boss)
+        {
+            if (maximum <= 0 || !Items || !Items.CanActFor(boss) || (boss ? PlayerTokens : BossTokens) == 0) return false;
+            if (boss) PlayerTokens = Mathf.Max(0, PlayerTokens - maximum);
+            else BossTokens = Mathf.Max(0, BossTokens - maximum);
+            RefreshTerminal(true);
+            return true;
+        }
 
         public bool CanTransferTokens(int maximum, bool boss)
             => maximum > 0 && (boss ? PlayerTokens : BossTokens) > 0 && (boss ? BossTokens : PlayerTokens) < 9999;
@@ -217,15 +245,36 @@ namespace ColaCola.Presentation
         public bool ApplyDebugCommand(DebugCommand command)
         {
             if (!DebugFeaturesEnabled || !Application.IsPlaying(gameObject) || !isActiveAndEnabled ||
-                !interaction || !terminal || State != DuelState.Playing) return false;
+                !interaction || !terminal) return false;
+            if ((int)command >= (int)DebugCommand.Stage1 && (int)command <= (int)DebugCommand.Stage5)
+                return SetDebugStage((int)command - (int)DebugCommand.Stage1 + 1);
+            if (command == DebugCommand.WinCurrentStage) return SetDebugVictory();
+            if (command == DebugCommand.ToggleAchievementWindow || command == DebugCommand.ToggleAbilityWindow)
+            {
+                if (!Items) return false;
+                var recordSheet = Items.GetComponent<ColaOrderSheet>();
+                if (!recordSheet || !recordSheet.ToggleDebugProgression(command == DebugCommand.ToggleAchievementWindow)) return false;
+                Progression.MarkDebugAssisted(); return true;
+            }
+            if (command == DebugCommand.ClearItems)
+            {
+                if (!Items) return false;
+                Progression.MarkDebugAssisted();
+                Items.ClearAllItems();
+                return true;
+            }
+            if (State != DuelState.Playing) return false;
+            if (Progression != null && Progression.BlocksGameplay) return false;
             switch (command)
             {
                 case DebugCommand.SetTokens999:
+                    Progression.MarkDebugAssisted();
                     PlayerTokens = 999;
                     RefreshTerminal(false);
                     if (Items) Items.GetComponent<ColaOrderSheet>()?.RefreshAvailability();
                     return true;
                 case DebugCommand.ToggleGuaranteedBurst:
+                    Progression.MarkDebugAssisted();
                     debugGuaranteedBurst = !debugGuaranteedBurst;
                     if (interaction.Model != null) interaction.Model.ForceBurst = GuaranteedBurst;
                     if (!interaction.IsBusy) interaction.RefreshPrediction();
@@ -234,6 +283,7 @@ namespace ColaCola.Presentation
                     if (!Items) return false;
                     var sheet = Items.GetComponent<ColaOrderSheet>();
                     if (!sheet) return false;
+                    Progression.MarkDebugAssisted();
                     if (sheet.IsOpen || sheet.BlocksGameplay)
                     {
                         debugItemTestMenu = false;
@@ -249,9 +299,45 @@ namespace ColaCola.Presentation
             }
         }
 
+        private bool SetDebugVictory()
+        {
+            if (State != DuelState.Playing || !Items || Progression == null) return false;
+            Progression.MarkDebugAssisted();
+            Progression.CancelSelection();
+            Progression.JournalOpen = false;
+            interaction.CancelPendingActions();
+            ColaInteractionCamera.ResetFor(interaction);
+            Items.GetComponent<ColaOrderSheet>()?.Close();
+            BossHealth = 0;
+            State = Level >= FinalLevel ? DuelState.Completed : DuelState.Won;
+            LastActionMessage = "테스트 승리";
+            interaction.InputEnabled = interaction.automaticBossTurns = false;
+            RefreshTerminal(true);
+            ColaTabletopAudio.Cue(interaction, "Win", interaction.bottle.position, .65f);
+            return true;
+        }
+
+        private bool SetDebugStage(int level)
+        {
+            if (!Items || Progression == null) return false;
+            Progression.MarkDebugAssisted();
+            Progression.CancelSelection();
+            Progression.JournalOpen = false;
+            interaction.CancelPendingActions();
+            ColaInteractionCamera.ResetFor(interaction);
+            Items.GetComponent<ColaOrderSheet>()?.Close();
+            Level = Mathf.Clamp(level, 1, FinalLevel);
+            Items.ResetRun();
+            GetComponent<ColaBossItemAI>().ResetDecisions();
+            BeginDuel();
+            return true;
+        }
+
         private void Update()
         {
-            if (!interaction || !terminal) return;
+            if (!interaction || !terminal || ColaFrontEnd.BlocksGameplay) return;
+            Progression?.FlushPendingGrants();
+            if (GuaranteedBurst || ItemTestMenuEnabled) Progression?.MarkDebugAssisted();
             if (State == DuelState.Playing && terminal.IsPlayerTurn != IsPlayerTurn)
                 terminal.SetActiveParticipant(IsPlayerTurn);
             var keyboard = Keyboard.current;
@@ -259,8 +345,12 @@ namespace ColaCola.Presentation
             if (keyboard.qKey.wasPressedThisFrame) ApplyDebugCommand(DebugCommand.SetTokens999);
             if (keyboard.wKey.wasPressedThisFrame) ApplyDebugCommand(DebugCommand.ToggleGuaranteedBurst);
             if (keyboard.eKey.wasPressedThisFrame) ApplyDebugCommand(DebugCommand.ToggleFreeItemMenu);
-            if (keyboard.rKey.wasPressedThisFrame) RestartRun(fadeIn: State != DuelState.Playing);
-            else if (State != DuelState.Playing && !interaction.IsBusy && keyboard.enterKey.wasPressedThisFrame)
+            if (keyboard.rKey.wasPressedThisFrame) ApplyDebugCommand(DebugCommand.ClearItems);
+            if (keyboard.tKey.wasPressedThisFrame) ApplyDebugCommand(DebugCommand.ToggleAchievementWindow);
+            if (keyboard.yKey.wasPressedThisFrame) ApplyDebugCommand(DebugCommand.ToggleAbilityWindow);
+            if (keyboard.vKey.wasPressedThisFrame) ApplyDebugCommand(DebugCommand.WinCurrentStage);
+            if (keyboard.tabKey.wasPressedThisFrame && Items) Items.GetComponent<ColaOrderSheet>()?.ToggleRecords();
+            if (State != DuelState.Playing && !interaction.IsBusy && !Progression.BlocksGameplay && keyboard.enterKey.wasPressedThisFrame)
             {
                 if (State == DuelState.Won) ContinueToNextBoss();
                 else RestartRun(fadeIn: true);

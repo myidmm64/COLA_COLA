@@ -1,0 +1,20 @@
+PASS: Actual live duel and progression available
+PASS: Q shared debug path sets the real wallet
+PASS: E shared debug path opens free test menu
+PASS: Free test menu quantity path
+PASS: Y shared path opens physical ability debug page
+PASS: Y page uses actual clipboard model
+PASS: Ability debug entry selected
+PASS: Ability granted and tray expanded
+PASS: T shared path opens physical achievement debug page
+PASS: Achievement entry toggled
+PASS: Achievement debug changes actual state
+PASS: TAB shared record toggle opens owned abilities
+PASS: TAB closes record and releases input
+Saved achievement PlayerPrefs and W/E flags before checks; restore on review exit. No screenshot files or preview cameras.
+PASS: Stage debug path 5
+PASS: Stage health 5
+PASS: Debug clipboard window command
+PASS: Debug clipboard window command
+PASS: Three actual guaranteed W burst shakes naturally opened physical ability selection after fade-in.
+PASS: Actual clipboard collider raycast selects and releases pending reward

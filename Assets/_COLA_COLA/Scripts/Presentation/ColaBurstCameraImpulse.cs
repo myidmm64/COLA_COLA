@@ -10,11 +10,11 @@ namespace ColaCola.Presentation
         private float started = -100, strength;
         public Vector3 CurrentOffset { get; private set; }
         public Vector3 CurrentEuler { get; private set; }
-        public bool IsActive => Time.unscaledTime - started < .78f;
+        public bool IsActive => ColaGameClock.Time - started < .78f;
 
         public void Fire(bool boss)
         {
-            started = Time.unscaledTime;
+            started = ColaGameClock.Time;
             strength = boss ? .62f : 1;
         }
 
@@ -28,7 +28,7 @@ namespace ColaCola.Presentation
             CinemachineCore.Stage stage, ref CameraState state, float deltaTime)
         {
             if (stage != CinemachineCore.Stage.Noise || !Application.IsPlaying(gameObject)) return;
-            float t = Time.unscaledTime - started;
+            float t = ColaGameClock.Time - started;
             CurrentOffset = CurrentEuler = Vector3.zero;
             if (t < 0 || t >= .78f) return;
             float decay = Mathf.Exp(-t * 8.4f) * (1 - Mathf.SmoothStep(0, 1, Mathf.InverseLerp(.44f, .78f, t)));

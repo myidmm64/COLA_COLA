@@ -100,7 +100,7 @@ namespace ColaCola.Presentation
             if (owner && owner.bottle) ColaInteractionCamera.Cue(owner, "ShakeStart", owner.bottle.position, owner.LastActionWasBoss);
             pressure = Mathf.Clamp01(pressureFraction);
             animated = usesAnimator; shaking = true; gripped = setDown = false;
-            shakeStarted = Time.unscaledTime; shakeDuration = Mathf.Max(.1f, fallbackDuration);
+            shakeStarted = ColaGameClock.Time; shakeDuration = Mathf.Max(.1f, fallbackDuration);
             double start = AudioSettings.dspTime + .025;
             foreach (var source in shake)
             {
@@ -113,7 +113,7 @@ namespace ColaCola.Presentation
         private void Update()
         {
             if (!shaking || !owner || !owner.bottle) return;
-            float clock = animated ? (owner.shakeAnimator ? owner.shakeAnimator.PlaybackTime : 0) : Time.unscaledTime - shakeStarted;
+            float clock = animated ? (owner.shakeAnimator ? owner.shakeAnimator.PlaybackTime : 0) : ColaGameClock.Time - shakeStarted;
             var burst = owner.burstPresentation;
             bool clear = !burst || burst.Stage == ColaBurstPresentation.BurstStage.Idle;
             float grip = animated ? ColaShakeAnimator.GripStartTime : 0;
@@ -134,7 +134,7 @@ namespace ColaCola.Presentation
                 shake[i].transform.position = owner.bottle.position;
                 float weight = Mathf.Sqrt(Mathf.Clamp01(1 - Mathf.Abs(blend - i)));
                 float target = effectsVolume * .65f * envelope * weight;
-                shake[i].volume = Mathf.MoveTowards(shake[i].volume, target, Time.unscaledDeltaTime * 10);
+                shake[i].volume = Mathf.MoveTowards(shake[i].volume, target, ColaGameClock.Delta * 10);
             }
         }
 

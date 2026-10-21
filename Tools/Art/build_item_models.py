@@ -1,4 +1,4 @@
-"""Author COLA_COLA's fifteen original tabletop props, in metres with a shared flat-colour atlas.
+"""Author COLA_COLA's twenty tabletop props, in metres with a shared material-color atlas.
 
 Run to regenerate the source assets. This script does not launch Unity or create previews/tests.
 """
@@ -206,18 +206,6 @@ def candy(m):
     m.face([p(-.004,.013),p(.007,.002),p(.001,.002),p(.004,-.011),p(-.007,.001),p(-.001,.001)],"red_dark",n)
 
 
-def syrup(m):
-    m.lathe((0,0,0),[(.001,.028),(.006,.033),(.071,.033),(.084,.018),(.094,.018)],"teal_dark",10)
-    m.lathe((0,0,0),[(.014,.0336),(.067,.0336)],"teal",10)
-    m.lathe((0,0,0),[(.089,.021),(.100,.021)],"cream",10)
-    m.lathe((0,0,0),[(.099,.007),(.112,.007)],"steel",8)
-    m.box((.011,.116,0),(.047,.010,.020),"ink",.002)
-    m.box((.031,.111,0),(.010,.013,.012),"ink",.001)
-    p,n=panel(m,(-.001,.025,-.0342),.043,.033,"paper",v=(0,1,0),thickness=.0008)
-    for x,y,r in [(-.010,.011,.0045),(.006,.021,.006),(.012,.008,.003)]:
-        m.disk(p(x,y,.0012),r,"teal",n,10)
-
-
 def ticket(m):
     p,n=panel(m,(0,.006,-.055),.111,.080,"red",v=(0,.62,.7846))
     panel(m,(0,.006,.07054),.111,.080,"red_dark",v=(0,.62,-.7846))
@@ -365,6 +353,46 @@ def waiter_plunger(m):
     m.lathe((0,0,0),[(.093,.018),(.096,.024),(.103,.024),(.107,.018)],"silver_light",12)
 
 
+def salt_packet(m):
+    m.box((0,.006,0),(.070,.011,.083),"paper",.004)
+    for z in (-.037,.037): m.box((0,.012,z),(.062,.002,.009),"teal",.001)
+    for x,z in [(-.012,-.010),(.012,-.010),(0,.012)]:
+        m.disk((x,.012,z),.004,"cream",sides=6)
+
+
+def cooling_pack(m):
+    m.box((0,.010,0),(.065,.020,.087),"ice",.007)
+    m.box((0,.021,0),(.049,.002,.061),"teal",.004)
+    for a in (0,60,120):
+        m.box((0,.023,0),(.035,.0015,.004),"ice_light",.0004,(0,a,0))
+    for x in (-.030,.030): m.box((x,.016,0),(.003,.003,.073),"silver_light",.001)
+
+
+def token_punch(m):
+    m.box((0,.008,0),(.048,.016,.074),"steel",.003)
+    m.box((0,.023,.017),(.031,.016,.036),"red_dark",.003)
+    m.box((0,.037,-.007),(.037,.009,.072),"red",.003,(-12,0,0))
+    for x in (-.013,.013): m.lathe((x,.016,.025),[(0,.006),(.018,.006)],"silver_light",8)
+
+
+def fresh_lid(m):
+    m.lathe((0,0,0),[(.002,.026),(.010,.030),(.025,.030),(.029,.026)],"green",12)
+    m.disk((0,.0295,0),.021,"cream",sides=12)
+    m.box((0,.0305,0),(.025,.002,.005),"green",.0004)
+    m.box((0,.0305,0),(.005,.002,.025),"green",.0004)
+    for i in range(12):
+        a=i*math.tau/12
+        m.box((math.sin(a)*.030,.017,math.cos(a)*.030),(.003,.015,.003),"teal_dark",.0004)
+
+
+def exchange_coupon(m):
+    m.box((0,.005,0),(.079,.009,.057),"kraft",.003)
+    m.box((0,.010,0),(.070,.001,.047),"paper",.001)
+    for z,direction in ((-.010,1),(.010,-1)):
+        m.box((0,.011,z),(.039,.0015,.004),"red",.0003)
+        m.prism([(direction*.024,z),(direction*.010,z-.009),(direction*.010,z+.009)],.010,.012,"red")
+
+
 def save_palette():
     width,height=64,32
     rows=[]
@@ -405,29 +433,34 @@ def save_palette():
 """)
 
 
-def main(new_items_only=False):
+def main(new_items_only=False, challenge_items_only=False):
     OUTPUT.mkdir(parents=True,exist_ok=True)
-    if not new_items_only:
+    if not new_items_only and not challenge_items_only:
         write_meta(OUTPUT,"folderAsset: yes\nDefaultImporter:\n  externalObjects: {}\n")
         save_palette()
-    builders=[("01_IceCup",ice_cup),("02_FizzCandy",candy),("03_CarbonationSyrup",syrup),
+    builders=[("01_IceCup",ice_cup),("02_FizzCandy",candy),
               ("04_QueueTicket",ticket),("05_Bill",bill),("06_SpicyOrder",spicy_order),
               ("07_SafetyCap",safety_cap),("08_PizzaSlice",pizza),("09_HotSauce",hot_sauce),
               ("10_DoubleStamp",stamp), ("11_BottleOpener",bottle_opener), ("12_Straw",straw),
-              ("13_SodaWater",soda_water), ("14_CoinCup",coin_cup), ("15_SwapTongs",swap_tongs)]
-    if new_items_only: builders = builders[-5:]
+              ("13_SodaWater",soda_water), ("14_CoinCup",coin_cup), ("15_SwapTongs",swap_tongs),
+              ("16_SaltPacket",salt_packet), ("17_CoolingPack",cooling_pack), ("18_TokenPunch",token_punch),
+              ("19_FreshLid",fresh_lid), ("20_ExchangeCoupon",exchange_coupon)]
+    if challenge_items_only: builders = builders[-5:]
+    elif new_items_only: builders = builders[9:14]
     for name,build in builders:
         model=Mesh(name)
         build(model)
         model.save()
-    for name,build in ([] if new_items_only else [("WaiterBell",waiter_bell),("WaiterBellPlunger",waiter_plunger)]):
+    for name,build in ([] if new_items_only or challenge_items_only else [("WaiterBell",waiter_bell),("WaiterBellPlunger",waiter_plunger)]):
         model=Mesh(name)
         build(model)
         model.save()
-    print("Authored five new item meshes." if new_items_only else "Authored fifteen items, bell parts and palette.")
+    print("Authored five item meshes." if new_items_only or challenge_items_only else "Authored nineteen items, bell parts and palette.")
 
 
 if __name__=="__main__":
     parser=argparse.ArgumentParser()
     parser.add_argument('--new-items-only',action='store_true')
-    main(parser.parse_args().new_items_only)
+    parser.add_argument('--challenge-items-only',action='store_true')
+    args=parser.parse_args()
+    main(args.new_items_only,args.challenge_items_only)

@@ -1,0 +1,12 @@
+{
+    "phase": "ready",
+    "page": "AbilityChoice",
+    "boss": "단골 손님",
+    "note": "Final automatic physical menu viewed after three real W bursts; select using actual clipboard collider raycast.",
+    "fit": "arms centre=(0.100, 1.022, 0.801) size=(1.005, 0.454, 0.809)\r\nbody centre=(0.103, 0.581, 0.769) size=(1.159, 1.412, 1.221)\r\nhead centre=(0.100, 1.376, 0.981) size=(0.226, 0.403, 0.339)\r\nRegular pizza pin centre=(0.215, 1.153, 0.745) size=(0.038, 0.039, 0.021)\r\nRegular pin centre centre=(0.215, 1.153, 0.745) size=(0.018, 0.019, 0.010)\r\n",
+    "stage": 1,
+    "bossHealth": 3,
+    "playerHealth": 2,
+    "outfitParts": 2,
+    "play": true
+}

@@ -88,12 +88,12 @@ namespace ColaCola.Presentation
             fluidAudio.clip = strainSound;
             fluidAudio.volume = soundVolume * .55f;
             fluidAudio.Play();
-            float started = Time.unscaledTime;
+            float started = ColaGameClock.Time;
             // The last fraction falls quiet before the pressure breaks; the hand and game clock keep running.
-            while (Time.unscaledTime - started < .30f)
+            while (ColaGameClock.Time - started < .30f)
             {
                 if (version != generation) yield break;
-                anticipation = (Time.unscaledTime - started) / .30f;
+                anticipation = (ColaGameClock.Time - started) / .30f;
                 fluidAudio.volume = soundVolume * Mathf.Lerp(.55f, .015f, Mathf.SmoothStep(0, 1,
                     Mathf.InverseLerp(.48f, .88f, anticipation)));
                 yield return null;
@@ -102,7 +102,7 @@ namespace ColaCola.Presentation
             anticipation = 0;
             fluidAudio.Stop();
             Stage = BurstStage.Rupture;
-            impactAt = Time.unscaledTime;
+            impactAt = ColaGameClock.Time;
             BurstCount++;
             impactAudio.transform.position = MouthPosition();
             impactAudio.volume = soundVolume * (boss ? .82f : 1);
@@ -121,10 +121,10 @@ namespace ColaCola.Presentation
                     lensSpots.Add(new Rect(x, Range(.08f, .86f), Range(.025f, .075f), Range(.045f, .12f)));
                 }
             float nextSpurt = .09f;
-            while (Time.unscaledTime - impactAt < 1.05f)
+            while (ColaGameClock.Time - impactAt < 1.05f)
             {
                 if (version != generation) yield break;
-                float t = Time.unscaledTime - impactAt;
+                float t = ColaGameClock.Time - impactAt;
                 // Cover the authored set-down jump and all bottle/health resets before revealing the table.
                 BlackoutOpacity = Mathf.SmoothStep(0, 1, Mathf.InverseLerp(.44f, .66f, t));
                 if (t >= nextSpurt && t < .48f)
@@ -150,16 +150,16 @@ namespace ColaCola.Presentation
             Stage = BurstStage.Blackout;
             ClearImpactVisuals();
             // Let the live Animator, Cinemachine and terminal settle without showing their reset.
-            float started = Time.unscaledTime;
-            while (Time.unscaledTime - started < .22f)
+            float started = ColaGameClock.Time;
+            while (ColaGameClock.Time - started < .22f)
             { if (version != generation) yield break; yield return null; }
             Stage = BurstStage.FadeIn;
             ColaTabletopAudio.Cue(owner, "NewBottle", owner.bottle.position, .55f, owner.LastActionWasBoss);
-            started = Time.unscaledTime;
-            while (Time.unscaledTime - started < RevealDuration)
+            started = ColaGameClock.Time;
+            while (ColaGameClock.Time - started < RevealDuration)
             {
                 if (version != generation) yield break;
-                BlackoutOpacity = 1 - Mathf.SmoothStep(0, 1, (Time.unscaledTime - started) / RevealDuration);
+                BlackoutOpacity = 1 - Mathf.SmoothStep(0, 1, (ColaGameClock.Time - started) / RevealDuration);
                 yield return null;
             }
             if (version != generation) yield break;
@@ -212,7 +212,7 @@ namespace ColaCola.Presentation
         private void LateUpdate()
         {
             if (!owner || !owner.bottle || !runtimeRoot) return;
-            float t = Time.unscaledTime - impactAt;
+            float t = ColaGameClock.Time - impactAt;
             // Suspend only the spray briefly, not Time.timeScale or the camera/arm animation.
             SetParticleSpeed(t >= 0 && t < .09f ? .30f : 1);
             FlashOpacity = t < 0 || t > .12f ? 0 : .90f * Mathf.Exp(-t * 38);
@@ -528,7 +528,7 @@ namespace ColaCola.Presentation
             particles.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
             var main = particles.main;
             main.playOnAwake = false; main.loop = false; main.duration = 2.5f; main.maxParticles = 500;
-            main.simulationSpace = ParticleSystemSimulationSpace.World; main.useUnscaledTime = true;
+            main.simulationSpace = ParticleSystemSimulationSpace.World; main.useUnscaledTime = false;
             main.gravityModifier = gravity; main.startSpeed = 0;
             var emission = particles.emission; emission.enabled = false;
             var shape = particles.shape; shape.enabled = false;
@@ -589,7 +589,7 @@ namespace ColaCola.Presentation
 
         private void OnGUI()
         {
-            float t = Time.unscaledTime - impactAt;
+            float t = ColaGameClock.Time - impactAt;
             if (!runtimeRoot || Event.current.type != EventType.Repaint) return;
             Color previous = GUI.color; int depth = GUI.depth; GUI.depth = -10000;
             var screen = new Rect(0, 0, Screen.width, Screen.height);

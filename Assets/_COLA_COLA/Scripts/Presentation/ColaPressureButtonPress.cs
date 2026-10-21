@@ -70,7 +70,7 @@ namespace ColaCola.Presentation
                     if (skins[i]) { skinUpdates[i] = skins[i].updateWhenOffscreen; skins[i].updateWhenOffscreen = true; }
                 skinsOwned = true;
             }
-            button = target; started = Time.unscaledTime; returning = false; IsPlaying = true;
+            button = target; started = ColaGameClock.Time; returning = false; IsPlaying = true;
             // Selection remains immediate; only the key's visible travel waits for the fingertip.
             owner.SetButtonPressPose(button, 0);
         }
@@ -80,7 +80,7 @@ namespace ColaCola.Presentation
             if (!IsPlaying || !wrist || returning) return;
             CaptureFromPose();
             RestoreOverrides(); ReleaseSkins();
-            returning = true; started = Time.unscaledTime;
+            returning = true; started = ColaGameClock.Time;
         }
 
         private void CaptureFromPose()
@@ -100,7 +100,7 @@ namespace ColaCola.Presentation
             if (!IsPlaying) return;
             if (!Application.IsPlaying(gameObject) || !owner || !owner.isActiveAndEnabled || !actor || !wrist || !tip || !button)
             { Cancel(); return; }
-            float time = Time.unscaledTime - started;
+            float time = ColaGameClock.Time - started;
             if (time >= (returning ? .26f : .82f)) { Cancel(); return; }
             // Animator stays enabled. Only the left subtree is overridden, then restored before the next evaluation.
             for (int i = 0; i < bones.Length; i++)

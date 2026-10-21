@@ -26,6 +26,7 @@ namespace ColaCola.Presentation
         private AudioClip leftStep, rightStep;
         private Activity activity;
         private Vector3 entrance, counter, from, to, visualOffset;
+        private float ambientTime;
         private float nextVisit, progress, workUntil, phase, visibility, workClock;
         private int lastStep;
 
@@ -95,19 +96,26 @@ namespace ColaCola.Presentation
             footsteps.playOnAwake = false; footsteps.spatialBlend = 1; footsteps.dopplerLevel = 0;
             footsteps.minDistance = 1.5f; footsteps.maxDistance = 10; footsteps.priority = 220;
             leftStep = BuildStep(9131); rightStep = BuildStep(9132);
-            activity = Activity.Hidden; nextVisit = Time.unscaledTime + Range(16, 28);
+            activity = Activity.Hidden; nextVisit = ambientTime + Range(16, 28);
             SetVisibility(0); root.SetActive(false);
+        }
+
+        public void BeginMenuAmbience()
+        {
+            if (activity == Activity.Hidden) nextVisit = ambientTime + 2.5f;
         }
 
         private void Update()
         {
             if (!Application.IsPlaying(gameObject) || !root || nodes == null || !match) return;
             if (!match.isActiveAndEnabled) { if (activity != Activity.Hidden) Hide(); return; }
-            float now = Time.unscaledTime, dt = Time.deltaTime;
+            float dt = ColaFrontEnd.AnimatesMenuBackground ? Time.unscaledDeltaTime : ColaGameClock.Delta;
+            ambientTime += dt;
+            float now = ambientTime;
             var interaction = match.interaction;
             var burst = interaction ? interaction.burstPresentation : null;
-            bool quietMoment = match.isActiveAndEnabled && match.State == ColaDuelController.DuelState.Playing &&
-                (!burst || burst.Stage == ColaBurstPresentation.BurstStage.Idle) && (!interaction || !interaction.IsBusy);
+            bool quietMoment = ColaFrontEnd.AnimatesMenuBackground || (match.isActiveAndEnabled && match.State == ColaDuelController.DuelState.Playing &&
+                (!burst || burst.Stage == ColaBurstPresentation.BurstStage.Idle) && (!interaction || !interaction.IsBusy));
             if (activity == Activity.Hidden)
             {
                 if (now < nextVisit) return;
@@ -136,7 +144,7 @@ namespace ColaCola.Presentation
                 {
                     lastStep = step;
                     float duck = music ? music.Duck : 1;
-                    if (duck > .25f && quietMoment) footsteps.PlayOneShot(step % 2 == 0 ? leftStep : rightStep, .14f * visibility * duck);
+                    if (!ColaFrontEnd.AnimatesMenuBackground && duck > .25f && quietMoment) footsteps.PlayOneShot(step % 2 == 0 ? leftStep : rightStep, .14f * visibility * duck);
                 }
                 if (progress >= 1)
                 {
@@ -148,7 +156,7 @@ namespace ColaCola.Presentation
             {
                 workClock += dt;
                 root.transform.rotation = Quaternion.Slerp(root.transform.rotation, transform.root.rotation * Quaternion.Euler(0, 180, 0), 1 - Mathf.Exp(-dt * 4));
-                if (now >= workUntil || match.State != ColaDuelController.DuelState.Playing)
+                if (now >= workUntil || !ColaFrontEnd.AnimatesMenuBackground && match.State != ColaDuelController.DuelState.Playing)
                     BeginPath(counter, entrance, Activity.Leaving);
             }
             Animate(walking);
@@ -184,7 +192,7 @@ namespace ColaCola.Presentation
             activity = Activity.Hidden; SetVisibility(0);
             if (root) root.SetActive(false);
             if (footsteps) footsteps.Stop();
-            nextVisit = Time.unscaledTime + Range(30, 55);
+            nextVisit = ambientTime + (ColaFrontEnd.AnimatesMenuBackground ? Range(12, 20) : Range(30, 55));
         }
         private void SetVisibility(float value)
         {

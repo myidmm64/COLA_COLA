@@ -1,23 +1,27 @@
 {
-    "id": "shake-look-patina-086412feeaed4c5584e0cd32a3ab30f7",
-    "suite": "shake",
-    "phase": "passed",
-    "message": "Live prop textures, item use and shake inspected in actual Play. Idle/mid-use Game-view captures saved for visual review; E debug state restored. Original scene setup restored; Editor left open.",
-    "startedUtc": "2026-10-20T07:55:31.8283633Z",
-    "heartbeatUtc": "2026-10-20T07:55:59.1956654Z",
-    "editorProcessId": 33256,
-    "batchMode": false,
-    "success": true,
-    "playMode": false,
-    "frameCount": 0,
-    "passed": [
-        "COLA_SHAKE_REVIEW_PASS"
-    ],
-    "scenes": [
-        {
-            "path": "Assets/Scenes/MainScene.unity",
-            "isLoaded": true,
-            "isActive": true
-        }
-    ]
+  "id": "menu-fizzeria-final-20261021",
+  "suite": "menu",
+  "phase": "passed",
+  "message": "Requested menu font examples captured from actual Play/Game view. Translation completeness and sample font glyphs checked; images require separate visual review. Original scene setup restored; Editor left open.",
+  "startedUtc": "2026-10-21T04:18:10.3115836Z",
+  "heartbeatUtc": "2026-10-21T04:18:18.6558344Z",
+  "editorProcessId": 33256,
+  "batchMode": false,
+  "success": true,
+  "playMode": false,
+  "frameCount": 0,
+  "passed": [
+    "COLA_MENU_DESIGN_PASS"
+  ],
+  "scenes": [
+    {
+      "path": "Assets/Scenes/MainScene.unity",
+      "isLoaded": true,
+      "isActive": true
+    }
+  ],
+  "gameViewInspected": true,
+  "translationKeys": 189,
+  "languageCount": 10,
+  "inspectionScope": "Main menu font examples and sample language glyphs only; no full gameplay validation."
 }

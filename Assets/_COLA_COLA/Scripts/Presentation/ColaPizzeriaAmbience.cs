@@ -66,6 +66,7 @@ namespace ColaCola.Presentation
 
         private void Update()
         {
+            if (ColaFrontEnd.BlocksGameplay) return;
             if (!Application.IsPlaying(gameObject) || !match || !fridge || !vent || !incidental) return;
             // The music's duck follows the actual explosion/blackout, keeping critical effects audible.
             float duck = music ? Mathf.Lerp(.16f, 1, music.Duck) : 1;

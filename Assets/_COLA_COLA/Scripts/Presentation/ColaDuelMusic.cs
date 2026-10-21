@@ -29,7 +29,7 @@ namespace ColaCola.Presentation
             var source = child.AddComponent<AudioSource>();
             source.clip = Resources.Load<AudioClip>(resource);
             source.playOnAwake = false; source.loop = true; source.spatialBlend = 0;
-            source.volume = 0; source.priority = 160; source.dopplerLevel = 0;
+            source.ignoreListenerPause = true; source.volume = 0; source.priority = 160; source.dopplerLevel = 0;
             return source;
         }
 
@@ -56,6 +56,7 @@ namespace ColaCola.Presentation
                 Ambience.clip = clip;
             }
             Ambience.name = "BGM / Bleak Terminal";
+            Ambience.ignoreListenerPause = true;
             if (!Ambience.clip)
             { Debug.LogError("COLA_COLA Bleak Terminal BGM is missing.", this); return; }
             if (!Ambience.isPlaying)

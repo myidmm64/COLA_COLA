@@ -9,6 +9,8 @@ Shader "COLA_COLA/PS1 Prop Patina"
         _PhotoStrength("Photographic surface", Range(0,1)) = 0
         [Toggle] _ItemPalette("Classify item palette materials", Float) = 0
         _SurfaceMinAlbedo("Dark bottle detail visibility", Range(0,.05)) = 0
+        _ClothingTint("Boss shirt tint", Color) = (1,1,1,1)
+        _ClothingTintStrength("Boss shirt tint strength", Range(0,1)) = 0
         _PatinaStrength("Surface wear", Range(0,1)) = .72
         _PatinaKind("0 Enamel 1 Metal 2 Paper 3 Wood 4 Plastic 5 Rubber 6 Cloth", Float) = 0
         _PatinaDensity("Surface texels per meter", Float) = 256
@@ -99,12 +101,18 @@ Shader "COLA_COLA/PS1 Prop Patina"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitForwardPass.hlsl"
             #include "COLA_COLA_PropPatina.hlsl"
             float _PatinaKind, _PatinaStrength, _PatinaDensity, _PhotoStrength, _ItemPalette, _SurfaceMinAlbedo;
+            half4 _ClothingTint;
+            float _ClothingTintStrength;
             half4 PatinaFragment(Varyings input) : SV_Target
             {
                 UNITY_SETUP_INSTANCE_ID(input);
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
                 SurfaceData surface;
                 InitializeStandardLitSurfaceData(input.uv, surface);
+                // The original character atlas stores its shirt across the upper-left
+                // three quarters. Face, arms and trouser islands remain untouched.
+                float shirt = smoothstep(.73, .75, input.uv.y) * (1 - smoothstep(.73, .75, input.uv.x));
+                surface.albedo *= lerp(half3(1,1,1), _ClothingTint.rgb, shirt * _ClothingTintStrength);
                 InputData lighting;
                 InitializeInputData(input, surface.normalTS, lighting);
                 float2 meters = ColaPatinaSurfaceMeters(input.positionWS, lighting.normalWS);
@@ -117,7 +125,7 @@ Shader "COLA_COLA/PS1 Prop Patina"
                     surface.albedo = max(surface.albedo, _SurfaceMinAlbedo * half3(.80,.72,.58));
                     surface.albedo = ColaPhotographicSurface(surface.albedo, meters, kind, strength, _PatinaDensity);
                 }
-                else surface.albedo = ColaPatinaColor(surface.albedo, meters, _PatinaKind, _PatinaStrength, _PatinaDensity);
+                else if (_PatinaStrength > 0) surface.albedo = ColaPatinaColor(surface.albedo, meters, _PatinaKind, _PatinaStrength, _PatinaDensity);
                 surface.smoothness = min(surface.smoothness, .18h);
                 surface.metallic = min(surface.metallic, .12h);
                 InitializeBakedGIData(input, lighting);

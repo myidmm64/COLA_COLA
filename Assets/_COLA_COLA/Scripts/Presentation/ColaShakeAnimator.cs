@@ -28,6 +28,7 @@ namespace ColaCola.Presentation
         public bool IsPlaying => current != null;
         public bool LastPlaybackCompleted { get; private set; }
         public bool PlayingBoss => current != null && current.boss;
+        internal ColaBossIdleVariation IdleVariation { get; set; }
         public float PlaybackTime => current != null ? current.time : 0;
         public Transform ActiveHand => current != null ? current.right.hand : null;
         public bool BottleHeld => current != null && current.time >= GripStartTime && current.time <= GripEndTime;
@@ -158,9 +159,9 @@ namespace ColaCola.Presentation
                     if (!current.revealed && current.time >= ResultCheckTime)
                     {
                         current.paused = current.waiting = true;
-                        float began = Time.unscaledTime;
+                        float began = ColaGameClock.Time;
                         float duration = ResultPauseSeconds(current.pressure);
-                        while (current != null && version == generation && Time.unscaledTime - began < duration) yield return null;
+                        while (current != null && version == generation && ColaGameClock.Time - began < duration) yield return null;
                         if (current == null || version != generation) yield break;
                         current.waiting = false;
                         current.revealed = true;
@@ -182,13 +183,15 @@ namespace ColaCola.Presentation
 
         private void Begin(bool boss, int strength, float pressure)
         {
+            // A procedural idle offset must never become the shake's persistent rest pose.
+            if (boss && IdleVariation) IdleVariation.RestorePose();
             var actor = boss ? bossAnimator : playerAnimator;
             if (actor.enabled && !actor.isInitialized) actor.Update(0);
             var idle = actor.runtimeAnimatorController ? actor.GetCurrentAnimatorStateInfo(0) : default;
             var p = new Performance
             {
                 actor = actor, boss = boss, strength = strength, pressure = Mathf.Clamp01(pressure),
-                animatorEnabled = actor.enabled, startedAt = Time.unscaledTime,
+                animatorEnabled = actor.enabled, startedAt = ColaGameClock.Time,
                 idleHash = idle.fullPathHash, idleNormalized = idle.normalizedTime,
                 idleRate = actor.speed * idle.speed * idle.speedMultiplier / Mathf.Max(.01f, idle.length),
                 actorRest = new Pose(actor.transform), actorParent = actor.transform.parent,
@@ -250,10 +253,10 @@ namespace ColaCola.Presentation
             if (!p.actor || !p.right.hand || !bottle) { CancelAndRestore(); return; }
             try
             {
-                if (p.waiting) p.holdElapsed += Time.unscaledDeltaTime;
+                if (p.waiting) p.holdElapsed += ColaGameClock.Delta;
                 if (!p.paused)
                 {
-                    float next = Mathf.Min(Duration, p.time + Time.unscaledDeltaTime);
+                    float next = Mathf.Min(Duration, p.time + ColaGameClock.Delta);
                     p.time = !p.revealed ? Mathf.Min(next, ResultCheckTime) : next;
                 }
                 Apply(p, p.time);
@@ -472,7 +475,7 @@ namespace ColaCola.Presentation
             p.actor.enabled = p.animatorEnabled;
             if (p.animatorEnabled && p.actor.runtimeAnimatorController && p.idleHash != 0)
             {
-                p.actor.Play(p.idleHash, 0, p.idleNormalized + (Time.unscaledTime - p.startedAt) * p.idleRate);
+                p.actor.Play(p.idleHash, 0, p.idleNormalized + (ColaGameClock.Time - p.startedAt) * p.idleRate);
                 p.actor.Update(0);
             }
             p.actorRest.Apply(p.actor.transform);
@@ -496,12 +499,12 @@ namespace ColaCola.Presentation
         }
         private IEnumerator RepeatPreview()
         {
-            yield return new WaitForSecondsRealtime(.75f);
+            yield return new ColaPauseDelay(.75f);
             while (previewPlayerOnPlay && isActiveAndEnabled)
             {
                 var interaction = FindAnyObjectByType<ShakeSelectionInteraction>();
                 if (!interaction || !interaction.IsBusy) yield return PlayShake(false, Mathf.Clamp(playPreviewStrength, 1, 3));
-                yield return new WaitForSecondsRealtime(1);
+                yield return new ColaPauseDelay(1);
             }
             previewLoop = null;
         }

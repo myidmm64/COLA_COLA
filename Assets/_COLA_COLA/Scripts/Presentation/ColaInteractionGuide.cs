@@ -209,7 +209,7 @@ namespace ColaCola.Presentation
             bool selected = interaction && interaction.Model != null && interaction.Model.SelectedStrength > 0;
             if (outlineMaterial)
             {
-                float breath = .5f + .5f * Mathf.Sin(Time.unscaledTime * 2.6f);
+                float breath = .5f + .5f * Mathf.Sin(ColaGameClock.Time * 2.6f);
                 outlineMaterial.SetFloat("_OutlinePixels", outlinePixels);
                 outlineMaterial.SetColor("_OutlineColor", new Color(.86f, .74f, .13f, Mathf.Lerp(.86f, .96f, breath)));
             }

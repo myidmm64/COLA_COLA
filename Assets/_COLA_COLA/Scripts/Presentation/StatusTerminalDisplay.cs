@@ -77,8 +77,8 @@ namespace ColaCola.Presentation
         public int PlayerTokens => player?.Tokens ?? 0;
         public bool IsPlayerTurn => playerTurn;
         public bool IsAnimating => Application.IsPlaying(gameObject) && isActiveAndEnabled
-            && (HasAnimation(boss, Time.unscaledTimeAsDouble)
-                || HasAnimation(player, Time.unscaledTimeAsDouble));
+            && (HasAnimation(boss, ColaGameClock.TimeAsDouble)
+                || HasAnimation(player, ColaGameClock.TimeAsDouble));
 
         public void SetBossState(int health, int maxHealth, int tokens, bool animate = true)
         {
@@ -105,7 +105,7 @@ namespace ColaCola.Presentation
         /// <summary>Updates edit-mode bindings after a model or scene factory fills them.</summary>
         public void RefreshDisplay()
         {
-            double now = Application.IsPlaying(gameObject) ? Time.unscaledTimeAsDouble : -1d;
+            double now = Application.IsPlaying(gameObject) ? ColaGameClock.TimeAsDouble : -1d;
             RenderPanel(boss, !playerTurn, now);
             RenderPanel(player, playerTurn, now);
             refreshRequested = false;
@@ -187,7 +187,7 @@ namespace ColaCola.Presentation
 
             if (animate && Application.IsPlaying(gameObject) && isActiveAndEnabled)
             {
-                double now = Time.unscaledTimeAsDouble;
+                double now = ColaGameClock.TimeAsDouble;
                 if (tookDamage)
                 {
                     panel.damageStartedAt = now;

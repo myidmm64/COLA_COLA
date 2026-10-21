@@ -1,14 +1,14 @@
 # Latest Play verification
 
 - Result: passed
-- Suite: shake
+- Suite: menu
 - Editor process: 33256
 - Batch mode: False
-- Started UTC: 2026-10-20T07:55:31.8283633Z
-- Live prop textures, item use and shake inspected in actual Play. Idle/mid-use Game-view captures saved for visual review; E debug state restored. Original scene setup restored; Editor left open.
+- Started UTC: 2026-10-21T04:18:10.3115836Z
+- Requested menu font examples captured from actual Play/Game view. Translation completeness and sample font glyphs checked; images require separate visual review. Original scene setup restored; Editor left open.
 
-- PASS: COLA_SHAKE_REVIEW_PASS
+- PASS: COLA_MENU_DESIGN_PASS
 
 Scope: actual Unity Play-mode automated state/input/audio checks. Game-view visual inspection and listening are separate.
 
-Visual review completed: opened actual idle/post-action and mid-item-use Game-view captures. Broad camouflage patches removed; original prop colors and readable markings retained. See prop-patina/Visual-review.md. This is still-image visual review plus automated action checks, not continuous animation viewing.
+Final menu screenshots visually inspected: menu-design/01-NotoSerifKR.png, 02-NotoSansKR.png, 03-GowunBatang.png. Default menu font: Noto Serif KR. 189 translation keys × 10 languages, no empty cells; sample glyphs present. Latest requested source compile passed. Temporary TSV, spreadsheet inspection dump and workbook previews deleted. User scene setup restored and Editor left open.

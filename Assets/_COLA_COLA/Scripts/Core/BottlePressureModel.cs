@@ -37,7 +37,7 @@ namespace ColaCola.Core
     public sealed class BottlePressureModel
     {
         public const int LowPressure = 2;
-        public const int MediumPressure = 5;
+        public const int MediumPressure = 4;
         public const int HighPressure = 8;
         public static int PressureIncreaseFor(int strength) => strength switch
         {
@@ -87,31 +87,33 @@ namespace ColaCola.Core
         public void AdjustPressure(int delta)
         {
             if (HasBurst) throw new InvalidOperationException("A burst bottle cannot be adjusted.");
-            Pressure = (int)Math.Max(0L, Math.Min(int.MaxValue - ((long)HighPressure + ColaItemBalance.SyrupBonus) * ColaItemBalance.SpicyMultiplier, (long)Pressure + delta));
+            Pressure = (int)Math.Max(0L, Math.Min(int.MaxValue - (long)HighPressure, (long)Pressure + delta));
         }
 
-        public ShakePrediction Predict(int strength, int increaseBonus = 0, double probabilityReduction = 0, int pressureMultiplier = 1)
-            => PredictAtPressure(Pressure, strength, increaseBonus, probabilityReduction, pressureMultiplier);
+        public ShakePrediction Predict(int strength, int increaseBonus = 0, double probabilityReduction = 0, int pressureMultiplier = 1, double probabilityIncrease = 0)
+            => PredictAtPressure(Pressure, strength, increaseBonus, probabilityReduction, pressureMultiplier, probabilityIncrease);
 
-        public ShakePrediction PredictAtPressure(int pressure, int strength, int increaseBonus = 0, double probabilityReduction = 0, int pressureMultiplier = 1)
+        public ShakePrediction PredictAtPressure(int pressure, int strength, int increaseBonus = 0, double probabilityReduction = 0, int pressureMultiplier = 1, double probabilityIncrease = 0)
         {
             if (strength < 1 || strength > 3) throw new ArgumentOutOfRangeException(nameof(strength));
             if (pressure < 0) throw new ArgumentOutOfRangeException(nameof(pressure));
             if (double.IsNaN(probabilityReduction) || double.IsInfinity(probabilityReduction))
                 throw new ArgumentOutOfRangeException(nameof(probabilityReduction));
-            int increase = (int)Math.Max(0L, Math.Min(int.MaxValue - (long)pressure, ((long)PressureIncreaseFor(strength) + increaseBonus) * Math.Max(1, pressureMultiplier)));
+            if (double.IsNaN(probabilityIncrease) || double.IsInfinity(probabilityIncrease))
+                throw new ArgumentOutOfRangeException(nameof(probabilityIncrease));
+            int increase = (int)Math.Min(int.MaxValue - (long)pressure, Math.Max(0L, ((long)PressureIncreaseFor(strength) + increaseBonus) * Math.Max(1, pressureMultiplier)));
             int after = checked(pressure + increase);
             double probability = ForceBurst || after >= Limit ? 1d : Math.Max(0d, Math.Min(1d,
-                Math.Pow((double)after / Limit, ProbabilityExponent) - Math.Max(0d, probabilityReduction)));
+                Math.Pow((double)after / Limit, ProbabilityExponent) - Math.Max(0d, probabilityReduction) + Math.Max(0d, probabilityIncrease)));
             return new ShakePrediction(pressure, strength, increase, Limit, probability);
         }
 
-        public bool TryCommit(Func<double> nextRandom, out ShakeResult result, int increaseBonus = 0, double probabilityReduction = 0, int pressureMultiplier = 1)
+        public bool TryCommit(Func<double> nextRandom, out ShakeResult result, int increaseBonus = 0, double probabilityReduction = 0, int pressureMultiplier = 1, double probabilityIncrease = 0)
         {
             result = default;
             if (SelectedStrength == 0 || HasBurst) return false;
             if (nextRandom == null) throw new ArgumentNullException(nameof(nextRandom));
-            var prediction = Predict(SelectedStrength, increaseBonus, probabilityReduction, pressureMultiplier);
+            var prediction = Predict(SelectedStrength, increaseBonus, probabilityReduction, pressureMultiplier, probabilityIncrease);
             double roll = nextRandom();
             if (double.IsNaN(roll) || roll < 0 || roll >= 1)
                 throw new ArgumentOutOfRangeException(nameof(nextRandom), "Random values must be in [0, 1).");

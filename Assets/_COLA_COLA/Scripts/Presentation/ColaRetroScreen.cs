@@ -18,12 +18,12 @@ namespace ColaCola.Presentation
         public int RenderedFrames { get; private set; }
         public int GlitchCount { get; private set; }
         public float Tension { get; private set; }
-        public float SignalTime => Time.unscaledTime;
+        public float SignalTime => ColaGameClock.Time;
         public float GlitchStrength
         {
             get
             {
-                float t = (Time.unscaledTime - pulseAt) / pulseDuration;
+                float t = (ColaGameClock.Time - pulseAt) / pulseDuration;
                 float envelope = t >= 0 && t <= 1 ? Mathf.Sin(t * Mathf.PI) : 0;
                 return amplitude * envelope * envelope;
             }
@@ -39,7 +39,7 @@ namespace ColaCola.Presentation
         }
         private void OnEnable()
         {
-            pulseAt = -10; nextNoise = Time.unscaledTime + 20;
+            pulseAt = -10; nextNoise = ColaGameClock.Time + 20;
             bursts = owner && owner.burstPresentation ? owner.burstPresentation.BurstCount : 0;
             Tension = 0;
         }
@@ -47,18 +47,18 @@ namespace ColaCola.Presentation
         {
             if (!owner) return;
             float target = owner.AwaitingShakeResult ? 1 : 0;
-            Tension = Mathf.Lerp(Tension, target, 1 - Mathf.Exp(-Mathf.Min(Time.unscaledDeltaTime, .05f) * 7));
+            Tension = Mathf.Lerp(Tension, target, 1 - Mathf.Exp(-Mathf.Min(ColaGameClock.Delta, .05f) * 7));
             var burst = owner.burstPresentation;
             if (burst && burst.BurstCount != bursts)
             {
                 bursts = burst.BurstCount;
                 Pulse(.30f, .12f);
             }
-            if (Time.unscaledTime >= nextNoise)
+            if (ColaGameClock.Time >= nextNoise)
             {
                 if (owner.IsBusy || burst && burst.Stage != ColaBurstPresentation.BurstStage.Idle)
-                { nextNoise = Time.unscaledTime + 3; return; }
-                nextNoise = Time.unscaledTime + 35 + (float)timing.NextDouble() * 20;
+                { nextNoise = ColaGameClock.Time + 3; return; }
+                nextNoise = ColaGameClock.Time + 35 + (float)timing.NextDouble() * 20;
                 Pulse(.10f, .09f);
             }
         }
@@ -66,7 +66,7 @@ namespace ColaCola.Presentation
         {
             if (!isActiveAndEnabled) return;
             amplitude = Mathf.Clamp(strength, 0, .30f); pulseDuration = Mathf.Clamp(seconds, .06f, .15f);
-            pulseAt = Time.unscaledTime; GlitchCount++;
+            pulseAt = ColaGameClock.Time; GlitchCount++;
         }
         public void MarkRendered() => RenderedFrames++;
         private void OnDisable() { Tension = 0; pulseAt = -10; }

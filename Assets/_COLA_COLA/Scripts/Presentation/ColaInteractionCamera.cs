@@ -52,7 +52,7 @@ namespace ColaCola.Presentation
 
         private void React(string cue, Vector3 point)
         {
-            float now = Time.unscaledTime;
+            float now = ColaGameClock.Time;
             if (cue == lastCue && now - lastCueAt < (cue == "Button" ? .065f : .18f)) return;
             Vector3 local = owner.playerCamera ? owner.playerCamera.transform.InverseTransformPoint(point) : Vector3.forward;
             float side = Mathf.Clamp(local.x / Mathf.Max(.3f, Mathf.Abs(local.z)), -1, 1);
@@ -127,7 +127,7 @@ namespace ColaCola.Presentation
             if (stage != CinemachineCore.Stage.Noise || !Application.IsPlaying(gameObject) || !owner) return;
             Vector3 position = Vector3.zero, euler = Vector3.zero;
             float shakeWeight = 0;
-            float now = Time.unscaledTime;
+            float now = ColaGameClock.Time;
             for (int i = 0; i < gestures.Length; i++)
             {
                 var gesture = gestures[i];
@@ -173,7 +173,7 @@ namespace ColaCola.Presentation
             // Cinemachine can evaluate more than once per frame; integrate this filter only once.
             if (filteredFrame != Time.frameCount)
             {
-                float dt = Mathf.Min(Time.unscaledDeltaTime, .05f);
+                float dt = Mathf.Min(ColaGameClock.Delta, .05f);
                 filteredPosition = Vector3.SmoothDamp(filteredPosition, targetPosition, ref positionVelocity, .055f, .10f, dt);
                 filteredEuler = Vector3.SmoothDamp(filteredEuler, targetEuler, ref eulerVelocity, .055f, 4f, dt);
                 filteredFrame = Time.frameCount;

@@ -1,4 +1,5 @@
 using UnityEngine;
+using ColaCola.Core;
 
 namespace ColaCola.Presentation
 {
@@ -14,21 +15,33 @@ namespace ColaCola.Presentation
         private Vector3 bodyPosition;
         private AudioSource audioSource;
         private AudioClip ding;
+        private ColaWaiterBellPress handPress;
         private float pressedAt = -10;
         public Transform ModelRoot => root ? root.transform : null;
         public Collider HitTarget { get; private set; }
-        public bool CanRing => isActiveAndEnabled && items && items.CanOrderWaiter();
+        public bool CanRing => isActiveAndEnabled && items && items.CanOrderWaiter() && (!handPress || !handPress.IsPlaying);
+        public Vector3 PressSurface
+        {
+            get
+            {
+                float elapsed = ColaGameClock.Time - pressedAt;
+                float depression = elapsed < .045f ? Mathf.Clamp01(elapsed / .045f) : Mathf.Exp(-(elapsed - .045f) * 22);
+                return root.transform.TransformPoint(new Vector3(0, .096f - .011f * depression, 0));
+            }
+        }
         public bool CanHover => isActiveAndEnabled && items && items.CanInspectWaiter;
         public string HoverDescription
         {
             get
             {
-                string description = $"웨이터벨 · {ColaItemController.WaiterCost}토큰으로 무작위 아이템 {ColaItemController.WaiterItemCount}개";
+                int cost = items ? items.WaiterCostFor() : ColaItemController.WaiterCost;
+                int count = items ? items.WaiterCountFor() : ColaItemController.WaiterItemCount;
+                string description = string.Format(ColaLocalization.Get("ui.bell_offer", "웨이터벨 · {0}토큰으로 무작위 아이템 {1}개"), cost, count);
                 if (!items) return description;
-                int free = ColaItemController.Capacity - items.InventoryCount;
-                string reason = free < ColaItemController.WaiterItemCount ? "빈 칸 부족 (" + free + "/" + ColaItemController.WaiterItemCount + ")" : "";
-                if (!items.match.CanAffordTokens(ColaItemController.WaiterCost))
-                    reason += (reason.Length > 0 ? " · " : "") + ColaItemController.WaiterCost + "토큰 필요";
+                int free = items.CapacityFor() - items.InventoryCount;
+                string reason = free < count ? string.Format(ColaLocalization.Get("ui.tray_full", "빈 칸 부족 ({0}/{1})"), free, count) : "";
+                if (!items.match.CanAffordTokens(cost))
+                    reason += (reason.Length > 0 ? " · " : "") + string.Format(ColaLocalization.Get("ui.tokens_required", "{0}토큰 필요"), cost);
                 return reason.Length > 0 ? description + "\n" + reason : description;
             }
         }
@@ -42,6 +55,7 @@ namespace ColaCola.Presentation
             }
             items = controller;
             if (!root) Build();
+            handPress = ColaWaiterBellPress.EnsureFor(items.match.interaction);
             items.WaiterOrdered += OnOrder;
             items.PresentationReset += RestoreBell;
             RestoreBell();
@@ -49,15 +63,17 @@ namespace ColaCola.Presentation
 
         public bool TryRing()
         {
-            if (CanRing) return items.TryOrderWaiter();
+            if (CanRing) return (handPress && handPress.Press(this)) || items.TryOrderWaiter();
             if (CanHover) ColaTabletopAudio.Cue(items.match.interaction, "Blocked", root.transform.position, .45f);
             return false;
         }
 
+        internal bool CompleteHandPress() => isActiveAndEnabled && items && items.TryOrderWaiter();
+
         private void OnOrder(int[] slots, bool boss)
         {
             if (boss || !isActiveAndEnabled) return;
-            pressedAt = Time.unscaledTime;
+            pressedAt = ColaGameClock.Time;
             ColaInteractionCamera.Cue(items.match.interaction, "Bell", root.transform.position);
             // Keep the existing bell timbre; repeated orders restart this source instead of stacking it.
             audioSource.Stop();
@@ -67,7 +83,7 @@ namespace ColaCola.Presentation
         private void Update()
         {
             if (!Application.IsPlaying(gameObject) || !plunger) return;
-            float elapsed = Time.unscaledTime - pressedAt;
+            float elapsed = ColaGameClock.Time - pressedAt;
             float press = elapsed < .045f ? Mathf.Clamp01(elapsed / .045f) : Mathf.Exp(-(elapsed - .045f) * 22);
             float ring = elapsed < .42f ? Mathf.Sin(elapsed * 92) * Mathf.Exp(-elapsed * 13) : 0;
             plunger.localPosition = Vector3.down * (.011f * press) + Vector3.up * (ring * .0006f);
@@ -80,6 +96,7 @@ namespace ColaCola.Presentation
 
         private void RestoreBell()
         {
+            if (handPress) handPress.Cancel();
             pressedAt = -10;
             if (plunger) plunger.localPosition = Vector3.zero;
             if (bellBody) { bellBody.localPosition = bodyPosition; bellBody.localRotation = bodyRotation; }
