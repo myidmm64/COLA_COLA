@@ -1,17 +1,17 @@
 {
-  "id": "menu-fizzeria-final-20261021",
-  "suite": "menu",
+  "id": "readability-visual-final-20261021",
+  "suite": "readability",
   "phase": "passed",
-  "message": "Requested menu font examples captured from actual Play/Game view. Translation completeness and sample font glyphs checked; images require separate visual review. Original scene setup restored; Editor left open.",
-  "startedUtc": "2026-10-21T04:18:10.3115836Z",
-  "heartbeatUtc": "2026-10-21T04:18:18.6558344Z",
+  "message": "Final contrast changes captured in native 1080p and 1440p Game views. Full gameplay results retained in fullscreen-ui/Report.md. Original scene setup restored; Editor left open.",
+  "startedUtc": "2026-10-21T05:29:46.2436738Z",
+  "heartbeatUtc": "2026-10-21T05:30:05.3041192Z",
   "editorProcessId": 33256,
   "batchMode": false,
   "success": true,
   "playMode": false,
   "frameCount": 0,
   "passed": [
-    "COLA_MENU_DESIGN_PASS"
+    "COLA_READABILITY_VISUAL_PASS"
   ],
   "scenes": [
     {
@@ -20,8 +20,14 @@
       "isActive": true
     }
   ],
-  "gameViewInspected": true,
-  "translationKeys": 189,
-  "languageCount": 10,
-  "inspectionScope": "Main menu font examples and sample language glyphs only; no full gameplay validation."
+  "corePlayAssertionsPassed": 76,
+  "gameViewVisuallyInspected": true,
+  "visualResolutions": [
+    "1920x1080",
+    "2560x1440"
+  ],
+  "smallResolutionFitChecked": "1366x768",
+  "releasePlayerScriptsCompiled": true,
+  "standaloneBuilt": false,
+  "temporaryCompilerOutputRemoved": true
 }

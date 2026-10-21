@@ -1,4 +1,7 @@
 Compilation/import inspection only. No Play transition, scene save, camera render or input.
 Loaded helper assembly: C:\Work\COLA_COLA\Library\ScriptAssemblies\Assembly-CSharp.dll
+Release player-script compilation: target=StandaloneWindows64, development=false, runtimeAssembly=True, success=True
+No executable, scene bundle or installer was generated. Temporary compiler output: C:\Work\COLA_COLA\Library\COLA_COLA\player-script-check
 COLA_COLA_PropPatina: supported=True, passes=4
 COLA_COLA_Staff: supported=True, passes=1
+Cleanup: temporary Library/COLA_COLA/player-script-check compiler output deleted after the successful check.

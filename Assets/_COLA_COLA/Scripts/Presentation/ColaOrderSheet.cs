@@ -227,7 +227,7 @@ namespace ColaCola.Presentation
             return false;
         }
 
-        private void ShowDescription(ColaItemId id)
+        public void ShowDescription(ColaItemId id)
         {
             var definition = ColaItemCatalog.Get(id);
             SetBoardDescription(definition.Name, items.EffectDescription(id));
@@ -236,7 +236,7 @@ namespace ColaCola.Presentation
         private void SetBoardDescription(string name, string description)
         {
             descriptionTitle.text = name ?? "";
-            descriptionText.text = Wrap(description ?? "", 23);
+            descriptionText.text = description ?? "";
             descriptionTitle.transform.localPosition = new Vector3(-.122f, -.091f, -.009f);
             descriptionText.transform.localPosition = new Vector3(-.122f, -.108f, -.009f);
             descriptionTitle.characterSize = .0028f;
@@ -349,6 +349,7 @@ namespace ColaCola.Presentation
 
         private void OnGUI()
         {
+            DrawReadablePrint();
             if (IsProgressionPage) { DrawProgressionOverlay(); return; }
             if (!Application.IsPlaying(gameObject) || !IsOpen || !IsSettled || !items || !CanOpen || !IsVisible) return;
             quantityStyle ??= new GUIStyle(GUI.skin.label) { font = font, alignment = TextAnchor.MiddleRight };
@@ -427,6 +428,7 @@ namespace ColaCola.Presentation
             result.fontSize = size;
             result.characterSize = characterSize;
             result.text = text;
+            printedLabels.Add(result);
             result.anchor = anchor;
             result.color = color;
             ColaWorldText.Bind(result);

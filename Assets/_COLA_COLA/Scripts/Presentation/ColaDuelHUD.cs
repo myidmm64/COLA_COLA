@@ -9,6 +9,7 @@ namespace ColaCola.Presentation
     public sealed class ColaDuelHUD : MonoBehaviour
     {
         public ColaDuelController match;
+        public bool ShowsTabHint => !ColaFrontEnd.BlocksGameplay && match && (!match.interaction || !match.interaction.IsPlayerShaking);
 
         private static readonly Color CreamColor = new Color(.84f, .82f, .67f, 1);
         private static readonly Color GreenColor = new Color(.57f, .70f, .49f, 1);
@@ -36,16 +37,16 @@ namespace ColaCola.Presentation
             if (!Application.IsPlaying(gameObject) || ColaFrontEnd.BlocksGameplay) return;
             if (!match) match = FindAnyObjectByType<ColaDuelController>();
             if (!match || Screen.width < 160 || Screen.height < 120) return;
-            float scale = Mathf.Clamp(Mathf.Min(Screen.width / 960f, Screen.height / 640f), .7f, 1.15f);
+            float scale = ColaUiLayout.Scale;
             EnsureStyles(scale);
             debugRect = journalButtonRect = default;
             var progression = match.Progression;
             if (progression == null) return;
-            if (!match.interaction || !match.interaction.IsPlayerShaking)
+            if (ShowsTabHint)
             {
                 var tabContent = new GUIContent(ColaLocalization.Get("ui.tab_hint", "TAB 능력 / 업적"));
                 float hintWidth = Mathf.Min(Screen.width - 32 * scale, Mathf.Max(240 * scale, journalHintStyle.CalcSize(tabContent).x));
-                var tabHint = new Rect(Mathf.Round(16 * scale), Mathf.Round(Screen.height - 32 * scale), hintWidth, 20 * scale);
+                var tabHint = new Rect(ColaUiLayout.Margin, Mathf.Round(Screen.height - 36 * scale - ColaUiLayout.BottomLift), hintWidth, 24 * scale);
                 int hintDepth = GUI.depth;
                 GUI.depth = -25;
                 GUI.Label(tabHint, tabContent, journalHintStyle);
@@ -60,7 +61,7 @@ namespace ColaCola.Presentation
             {
                 string notice = progression.CurrentNotice;
                 if (!string.IsNullOrEmpty(notice))
-                    GUI.Label(new Rect(16 * scale, Screen.height - 62 * scale, 430 * scale, 26 * scale), notice, debugStyle);
+                    GUI.Label(new Rect(16 * scale, Screen.height - 62 * scale - ColaUiLayout.BottomLift, 430 * scale, 26 * scale), notice, debugStyle);
             }
             if (match.State == ColaDuelController.DuelState.Playing) return;
             float padding = Mathf.Round(9 * scale);
@@ -150,12 +151,12 @@ namespace ColaCola.Presentation
 
         private void EnsureStyles(float scale)
         {
-            if (buttonStyle == null || styledSkin != GUI.skin)
+            if (buttonStyle == null || styledSkin != GUI.skin || runtimeFont != ColaGameFont.Load())
             {
                 styledSkin = GUI.skin;
-                if (!runtimeFont) runtimeFont = ColaGameFont.Load();
+                runtimeFont = ColaGameFont.Load();
                 debugStyle = FlatLabel(CreamColor, TextAnchor.MiddleLeft);
-                debugShadowStyle = FlatLabel(new Color(.015f, .02f, .015f, .95f), TextAnchor.MiddleLeft);
+                debugShadowStyle = FlatLabel(new Color(.12f, .14f, .12f, .55f), TextAnchor.MiddleLeft);
                 journalHintStyle = FlatLabel(new Color(.59f, .61f, .55f, .62f), TextAnchor.MiddleLeft);
                 receiptTitle = FlatLabel(PaperInk, TextAnchor.MiddleCenter);
                 receiptDetail = FlatLabel(PaperMuted, TextAnchor.MiddleCenter);
@@ -181,12 +182,12 @@ namespace ColaCola.Presentation
                 ConfigureButtonState(buttonStyle.onFocused, CreamColor);
             }
 
-            buttonStyle.fontSize = Mathf.RoundToInt(15 * scale);
+            buttonStyle.fontSize = Mathf.RoundToInt(16 * scale);
             debugStyle.fontSize = debugShadowStyle.fontSize = Mathf.RoundToInt(14 * scale);
             journalHintStyle.fontSize = Mathf.RoundToInt(12 * scale);
             receiptTitle.fontSize = Mathf.RoundToInt(27 * scale);
-            receiptDetail.fontSize = Mathf.RoundToInt(14 * scale);
-            receiptSmall.fontSize = Mathf.RoundToInt(11 * scale);
+            receiptDetail.fontSize = Mathf.RoundToInt(15 * scale);
+            receiptSmall.fontSize = Mathf.RoundToInt(12 * scale);
         }
 
         private static GUIStyle FlatLabel(Color color, TextAnchor alignment)

@@ -131,7 +131,7 @@ namespace ColaCola.Editor
                     var request = JsonUtility.FromJson<Request>(File.ReadAllText(RequestPath));
                     File.Delete(RequestPath);
                     if (request == null || string.IsNullOrWhiteSpace(request.id) ||
-                        !new[] { "compile", "music", "full", "burst", "orders", "items", "duel", "progression", "menu" }.Contains(request.suite))
+                        !new[] { "compile", "music", "full", "burst", "orders", "items", "duel", "progression", "menu", "readability" }.Contains(request.suite))
                         return;
                     run = new Run { id = request.id, suite = request.suite, phase = "preparing",
                         message = "Importing project changes in the open Editor.", startedUtc = DateTime.UtcNow.ToString("O"),
@@ -218,6 +218,7 @@ namespace ColaCola.Editor
                 case "fonts": ColaTurnLabelVerification.Begin(true); break;
                 case "progression": ColaProgressionPlayReview.Begin(); break;
                 case "menu": ColaMenuPlayReview.Begin(); break;
+                case "readability": ColaReadabilityPlayReview.Begin(run.id.Contains("visual")); break;
             }
         }
 
@@ -228,6 +229,30 @@ namespace ColaCola.Editor
             if (!success) report.AppendLine("ERROR: Current script compilation reported C# errors. See verification.log.");
             report.AppendLine("Compilation/import inspection only. No Play transition, scene save, camera render or input.");
             report.AppendLine("Loaded helper assembly: " + typeof(ColaCola.Presentation.ColaPropPatina).Assembly.Location);
+            if (success && run.id.StartsWith("compile-player-", StringComparison.Ordinal))
+            {
+                if (EditorApplication.isPlaying) { success = false; report.AppendLine("ERROR: Release script compilation requires Edit mode."); }
+                else
+                {
+                    string folder = Path.GetFullPath("Library/COLA_COLA/player-script-check");
+                    Directory.CreateDirectory(folder);
+                    var target = EditorUserBuildSettings.activeBuildTarget;
+                    var settings = new UnityEditor.Build.Player.ScriptCompilationSettings
+                    {
+                        target = target, group = BuildPipeline.GetBuildTargetGroup(target),
+                        options = UnityEditor.Build.Player.ScriptCompilationOptions.None
+                    };
+                    try
+                    {
+                        UnityEditor.Build.Player.PlayerBuildInterface.CompilePlayerScripts(settings, folder);
+                        bool compiled = File.Exists(Path.Combine(folder, "Assembly-CSharp.dll"));
+                        success = compiled && !SessionState.GetBool(SessionKey + ".compileErrors", false);
+                        report.AppendLine("Release player-script compilation: target=" + target + ", development=false, runtimeAssembly=" + compiled + ", success=" + success);
+                        report.AppendLine("No executable, scene bundle or installer was generated. Temporary compiler output: " + folder);
+                    }
+                    catch (Exception error) { success = false; report.AppendLine(error.ToString()); }
+                }
+            }
             foreach (string name in new[] { "COLA_COLA_PropPatina", "COLA_COLA_Staff" })
             {
                 var shader = Resources.Load<Shader>(name);
@@ -279,6 +304,10 @@ namespace ColaCola.Editor
             if (!first.StartsWith("COLA_") || !first.EndsWith("_PASS")) return;
             if (!run.passed.Contains(first)) run.passed.Add(first);
             run.message = first; Persist();
+            if (first == "COLA_READABILITY_PLAY_PASS" && run.suite == "readability")
+            { Stop(true, "Fullscreen UI and main game flows exercised in actual Play. Native Game-view captures saved for visual review; no standalone build generated."); return; }
+            if (first == "COLA_READABILITY_VISUAL_PASS" && run.suite == "readability")
+            { Stop(true, "Final contrast changes captured in native 1080p and 1440p Game views. Full gameplay results retained in fullscreen-ui/Report.md."); return; }
             if (first == "COLA_MENU_DESIGN_PASS" && run.suite == "menu")
             { Stop(true, "Requested menu font examples captured from actual Play/Game view. Translation completeness and sample font glyphs checked; images require separate visual review."); return; }
             if (first == "COLA_PROGRESSION_REVIEW_PASS" && run.suite == "progression")

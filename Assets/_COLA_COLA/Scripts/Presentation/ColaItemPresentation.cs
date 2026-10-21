@@ -55,7 +55,7 @@ namespace ColaCola.Presentation
             public bool sliding, landed;
         }
         private static readonly Color Ink = new(.81f, .82f, .68f);
-        private float Scale => Mathf.Clamp(Mathf.Min(Screen.width / 960f, Screen.height / 640f), .6f, 1.2f);
+        private float Scale => ColaUiLayout.Scale;
 
         public void Bind(ColaItemController controller)
         {
@@ -474,9 +474,10 @@ namespace ColaCola.Presentation
         {
             var mouse = Mouse.current;
             if (mouse == null || !mouse.rightButton.wasPressedThisFrame) return;
-            bool eligible = CanShowHints && !inspectedBoss && inspectedSlot >= 0 && items.CanReturnSlot(inspectedSlot);
-            if (eligible) items.TryReturnItem(inspectedSlot);
+            TryReturnInspectedItem();
         }
+
+        public bool TryReturnInspectedItem() => CanShowHints && !inspectedBoss && inspectedSlot >= 0 && items.TryReturnItem(inspectedSlot);
 
         private void UpdateHoverTarget()
         {
@@ -554,23 +555,23 @@ namespace ColaCola.Presentation
 
         private void EnsureStyles()
         {
-            if (label != null) return;
+            if (label != null && menuFont == ColaGameFont.Load()) return;
             menuFont = ColaGameFont.Load();
             label = new GUIStyle(GUI.skin.label) { font = menuFont, fontSize = 15, alignment = TextAnchor.MiddleCenter,
                 richText = false, fontStyle = FontStyle.Normal, fixedHeight = 0, contentOffset = Vector2.zero, padding = new RectOffset() };
-            SetFixedLabelColor(label, new Color(.74f, .75f, .71f));
+            SetFixedLabelColor(label, new Color(.87f, .86f, .80f));
             detail = new GUIStyle(label) { fontSize = 13, wordWrap = true, alignment = TextAnchor.MiddleLeft };
             SetFixedLabelColor(detail, Ink);
             hoverText = new GUIStyle(detail) { alignment = TextAnchor.MiddleCenter };
-            SetFixedLabelColor(hoverText, new Color(.72f, .73f, .69f));
+            SetFixedLabelColor(hoverText, new Color(.82f, .83f, .77f));
             hoverNameShadow = new GUIStyle(label);
             hoverTextShadow = new GUIStyle(hoverText);
-            SetFixedLabelColor(hoverNameShadow, new Color(0, 0, 0, .8f));
-            SetFixedLabelColor(hoverTextShadow, new Color(0, 0, 0, .8f));
+            SetFixedLabelColor(hoverNameShadow, new Color(.12f, .14f, .12f, .55f));
+            SetFixedLabelColor(hoverTextShadow, new Color(.12f, .14f, .12f, .55f));
             returnHintStyle = new GUIStyle(hoverText) { fontSize = 11 };
             SetFixedLabelColor(returnHintStyle, new Color(.51f, .53f, .49f, .9f));
             returnHintShadow = new GUIStyle(returnHintStyle);
-            SetFixedLabelColor(returnHintShadow, new Color(0, 0, 0, .5f));
+            SetFixedLabelColor(returnHintShadow, new Color(.14f, .16f, .13f, .28f));
         }
 
         private static void SetFixedLabelColor(GUIStyle style, Color color)
@@ -591,10 +592,10 @@ namespace ColaCola.Presentation
             Color previousTint = GUI.color, previousContent = GUI.contentColor;
             GUI.color = GUI.contentColor = Color.white;
             float scale = Scale;
-            label.fontSize = hoverNameShadow.fontSize = Mathf.RoundToInt(15 * scale);
-            detail.fontSize = hoverText.fontSize = hoverTextShadow.fontSize = Mathf.RoundToInt(14 * scale);
-            returnHintStyle.fontSize = returnHintShadow.fontSize = Mathf.Max(10, Mathf.RoundToInt(11 * scale));
-            float footerTop = Screen.height - Mathf.Round(18 * scale);
+            label.fontSize = hoverNameShadow.fontSize = Mathf.RoundToInt(18 * scale);
+            detail.fontSize = hoverText.fontSize = hoverTextShadow.fontSize = Mathf.RoundToInt(16 * scale);
+            returnHintStyle.fontSize = returnHintShadow.fontSize = Mathf.Max(10, Mathf.RoundToInt(12 * scale));
+            float footerTop = Screen.height - ColaUiLayout.Margin - ColaUiLayout.BottomLift;
             if (HasHoverDescription) DrawHoverDescription(scale, footerTop);
             GUI.color = previousTint;
             GUI.contentColor = previousContent;
@@ -602,7 +603,7 @@ namespace ColaCola.Presentation
 
         private void DrawHoverDescription(float scale, float footerTop)
         {
-            float maximumWidth = Mathf.Min(Mathf.Max(600 * scale, 460), Screen.width - 32 * scale);
+            float maximumWidth = Mathf.Min(620 * scale, Screen.width * .56f);
             float contentWidth = Mathf.Max(label.CalcSize(new GUIContent(hoverTitle ?? "")).x,
                 hoverText.CalcSize(new GUIContent(hoverDescription)).x);
             if (!string.IsNullOrEmpty(hoverReturnHint)) contentWidth = Mathf.Max(contentWidth, returnHintStyle.CalcSize(new GUIContent(hoverReturnHint)).x);
@@ -613,15 +614,16 @@ namespace ColaCola.Presentation
             float x = Mathf.Round((Screen.width - width) * .5f);
             float y = Mathf.Round(footerTop - 10 - bodyHeight - titleHeight - returnHeight);
             int depth = GUI.depth;
+            float shadowOffset = Mathf.Max(1, Mathf.Round(scale));
             bool wasEnabled = GUI.enabled;
             GUI.depth = -15; GUI.enabled = true;
             if (titleHeight > 0)
             {
-                GUI.Label(new Rect(x + 1, y + 1, width, titleHeight), hoverTitle, hoverNameShadow);
+                GUI.Label(new Rect(x + shadowOffset, y + shadowOffset, width, titleHeight), hoverTitle, hoverNameShadow);
                 GUI.Label(new Rect(x, y, width, titleHeight), hoverTitle, label);
             }
             var body = new Rect(x, y + titleHeight, width, bodyHeight);
-            GUI.Label(new Rect(body.x + 1, body.y + 1, body.width, body.height), hoverDescription, hoverTextShadow);
+            GUI.Label(new Rect(body.x + shadowOffset, body.y + shadowOffset, body.width, body.height), hoverDescription, hoverTextShadow);
             GUI.Label(body, hoverDescription, hoverText);
             if (returnHeight > 0)
             {

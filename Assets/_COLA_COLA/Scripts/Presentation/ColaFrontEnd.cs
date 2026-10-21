@@ -81,6 +81,27 @@ namespace ColaCola.Presentation
             SetPage(Page.Main);
         }
 
+        public void StartGame()
+        { SetPage(Page.Hidden); match.RestartRun(fadeIn: true); }
+
+        public void ShowSettings()
+        { settingsReturn = page; SetPage(Page.Settings); }
+
+        public void CloseSettings()
+        { if (page == Page.Settings) { Save(); SetPage(settingsReturn); } }
+
+        public void SetMasterVolume(float value)
+        { volume = Mathf.Clamp01(value); AudioListener.volume = volume; PlayerPrefs.SetFloat("COLA_COLA.MasterVolume", volume); }
+
+        public void SetFullscreen(bool value) { fullscreen = value; ApplyDisplay(); }
+
+        public void SetResolutionPreset(int width, int height)
+        {
+            int index = sizes.FindIndex(size => size.x == width && size.y == height);
+            if (index < 0) return;
+            resolution = index; ApplyDisplay();
+        }
+
         private void SetPage(Page next)
         {
             bool wasPaused = page != Page.Hidden;
@@ -102,9 +123,9 @@ namespace ColaCola.Presentation
             if (!Application.IsPlaying(gameObject) || Keyboard.current == null || !Keyboard.current.escapeKey.wasPressedThisFrame) return;
             escapeFrame = Time.frameCount;
             if (dropdown != Dropdown.None) { dropdown = Dropdown.None; return; }
-            if (page == Page.Settings) { Save(); SetPage(settingsReturn); }
+            if (page == Page.Settings) CloseSettings();
             else if (page == Page.Credits) SetPage(Page.Main);
-            else { settingsReturn = page; SetPage(Page.Settings); }
+            else ShowSettings();
         }
 
         private static string L(string key, string fallback) => ColaLocalization.Get("ui." + key, fallback);
@@ -114,7 +135,7 @@ namespace ColaCola.Presentation
             EnsureStyles();
             int depth = GUI.depth; GUI.depth = -20000;
             var previous = GUI.color; GUI.color = Color.white;
-            float scale = Mathf.Clamp(Mathf.Min(Screen.width / 1280f, Screen.height / 720f), .55f, 2);
+            float scale = ColaUiLayout.Scale;
             DrawMenuShade(page == Page.Main);
             float x = 100 * scale, w = Mathf.Min(480 * scale, Screen.width - x * 2);
             title.fontSize = Mathf.RoundToInt(76 * scale); text.fontSize = choice.fontSize = Mathf.RoundToInt(22 * scale);
@@ -129,11 +150,11 @@ namespace ColaCola.Presentation
                 GUI.Label(new Rect(x, y, w, 110 * scale), "FIZZERIA", title);
                 y += 155 * scale;
                 if (MainButton(new Rect(x + 25 * scale, y, w - 45 * scale, 53 * scale), L("start", "게임 시작"), 0, scale))
-                { SetPage(Page.Hidden); match.RestartRun(fadeIn: true); }
+                StartGame();
                 if (MainButton(new Rect(x + 25 * scale, y + 62 * scale, w - 45 * scale, 53 * scale), L("settings", "설정"), 1, scale))
-                { settingsReturn = Page.Main; SetPage(Page.Settings); }
+                ShowSettings();
                 if (MainButton(new Rect(x + 25 * scale, y + 124 * scale, w - 45 * scale, 53 * scale), L("quit", "게임 종료"), 2, scale)) Quit();
-                if (GUI.Button(new Rect(Screen.width - 150 * scale, Screen.height - 55 * scale, 120 * scale, 30 * scale), L("credits", "크레딧"), small)) SetPage(Page.Credits);
+                if (GUI.Button(new Rect(Screen.width - 150 * scale, Screen.height - 55 * scale - ColaUiLayout.BottomLift, 120 * scale, 30 * scale), L("credits", "크레딧"), small)) SetPage(Page.Credits);
             }
             else if (page == Page.Settings) DrawSettings(scale);
             else
@@ -142,12 +163,12 @@ namespace ColaCola.Presentation
                 GUI.Label(new Rect(x, y, w, 60 * scale), L("credits", "크레딧"), heading);
                 var credits = Resources.Load<TextAsset>("Localization/Credits");
                 string creditText = credits ? credits.text : "FIZZERIA\nMade with Unity";
-                var viewport = new Rect(x, y + 70 * scale, Screen.width - x * 2, Screen.height - y - 190 * scale);
+                var viewport = new Rect(x, y + 70 * scale, Screen.width - x * 2, Screen.height - y - 190 * scale - ColaUiLayout.BottomLift);
                 var content = new Rect(0, 0, viewport.width - 26 * scale, text.CalcHeight(new GUIContent(creditText), viewport.width - 26 * scale));
                 creditsScroll = GUI.BeginScrollView(viewport, creditsScroll, content);
                 GUI.Label(content, creditText, text);
                 GUI.EndScrollView();
-                if (Button(new Rect(x, Screen.height - 100 * scale, w, 45 * scale), L("back", "돌아가기"))) SetPage(Page.Main);
+                if (Button(new Rect(x, Screen.height - 100 * scale - ColaUiLayout.BottomLift, w, 45 * scale), L("back", "돌아가기"))) SetPage(Page.Main);
             }
             GUI.color = previous; GUI.depth = depth;
         }
@@ -160,7 +181,7 @@ namespace ColaCola.Presentation
             bool enabledBefore = GUI.enabled;
             GUI.enabled = enabledBefore && dropdown == Dropdown.None;
             GUI.Label(new Rect(x, y, w, 50 * scale), L("settings", "설정"), heading);
-            if (GUI.Button(new Rect(x + w - 36 * scale, y, 36 * scale, 36 * scale), "×", choice)) { Save(); SetPage(settingsReturn); }
+            if (GUI.Button(new Rect(x + w - 36 * scale, y, 36 * scale, 36 * scale), "×", choice)) CloseSettings();
             y += 80 * scale;
             GUI.Label(new Rect(x, y, w, 35 * scale), L("master_volume", "메인 볼륨"), text);
             DrawVolumeSlider(new Rect(x, y + 43 * scale, w - 85 * scale, 28 * scale), scale);
@@ -173,7 +194,7 @@ namespace ColaCola.Presentation
             GUI.enabled = enabledBefore && dropdown == Dropdown.None;
             y += 63 * scale;
             GUI.Label(new Rect(x, y, w * .6f, 38 * scale), L("fullscreen", "전체화면"), text);
-            if (GUI.Button(new Rect(x + w - 95 * scale, y, 95 * scale, 38 * scale), fullscreen ? "ON" : "OFF", valueStyle)) { fullscreen = !fullscreen; ApplyDisplay(); }
+            if (GUI.Button(new Rect(x + w - 95 * scale, y, 95 * scale, 38 * scale), fullscreen ? "ON" : "OFF", valueStyle)) SetFullscreen(!fullscreen);
             y += 63 * scale;
             GUI.Label(new Rect(x, y, w * .42f, 38 * scale), L("language", "언어"), text);
             GUI.enabled = enabledBefore;
@@ -220,7 +241,7 @@ namespace ColaCola.Presentation
                 }
             }
             next = Mathf.Clamp01(next);
-            if (!Mathf.Approximately(next, volume)) { volume = next; AudioListener.volume = volume; PlayerPrefs.SetFloat("COLA_COLA.MasterVolume", volume); }
+            if (!Mathf.Approximately(next, volume)) SetMasterVolume(next);
             Fill(new Rect(track.x - scale, track.y - scale, track.width + 2 * scale, track.height + 2 * scale), new Color(.30f, .34f, .27f));
             Fill(track, new Color(.055f, .075f, .06f));
             Fill(new Rect(track.x, track.y, track.width * volume, track.height), new Color(.32f, .47f, .37f));
@@ -266,7 +287,7 @@ namespace ColaCola.Presentation
                 if (GUI.Button(row, label, choice))
                 {
                     if (isLanguage) ColaLocalization.SetLanguage(code);
-                    else { resolution = i; ApplyDisplay(); }
+                    else SetResolutionPreset(sizes[i].x, sizes[i].y);
                     dropdown = Dropdown.None;
                 }
                 GUI.enabled = previous;

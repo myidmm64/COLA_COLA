@@ -21,16 +21,13 @@ namespace ColaCola.Presentation
         [Range(1, ColaItemBalance.StartingHealth)] public int playerMaxHealth = ColaItemBalance.StartingHealth;
         [Range(1, ColaItemBalance.StartingHealth)] public int bossBaseHealth = ColaItemBalance.StartingHealth;
 
-        [Header("Debug (Editor / Development Build)")]
-        [Tooltip("E로 전환합니다. 모든 아이템이 무료인 테스트 메뉴를 사용합니다.")]
+        [HideInInspector]
         public bool debugItemTestMenu;
-        [Tooltip("W로 전환합니다. 양쪽의 다음 흔들기 예고와 실제 폭발 확률을 100%로 고정합니다. 피해 보정은 유지됩니다.")]
+        [HideInInspector]
         public bool debugGuaranteedBurst;
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-        private const bool DebugFeaturesEnabled = true;
-#else
-        private const bool DebugFeaturesEnabled = false;
-#endif
+        // Locked in every target, including Editor and Development builds.
+        // Retain the API for existing tools, but reject all cheat commands at the shared gate.
+        private static readonly bool DebugFeaturesEnabled = false;
         public bool DebugToolsAvailable => DebugFeaturesEnabled;
         public bool ItemTestMenuEnabled => DebugFeaturesEnabled && debugItemTestMenu;
         public bool GuaranteedBurst => DebugFeaturesEnabled && debugGuaranteedBurst;
@@ -342,13 +339,6 @@ namespace ColaCola.Presentation
                 terminal.SetActiveParticipant(IsPlayerTurn);
             var keyboard = Keyboard.current;
             if (keyboard == null) return;
-            if (keyboard.qKey.wasPressedThisFrame) ApplyDebugCommand(DebugCommand.SetTokens999);
-            if (keyboard.wKey.wasPressedThisFrame) ApplyDebugCommand(DebugCommand.ToggleGuaranteedBurst);
-            if (keyboard.eKey.wasPressedThisFrame) ApplyDebugCommand(DebugCommand.ToggleFreeItemMenu);
-            if (keyboard.rKey.wasPressedThisFrame) ApplyDebugCommand(DebugCommand.ClearItems);
-            if (keyboard.tKey.wasPressedThisFrame) ApplyDebugCommand(DebugCommand.ToggleAchievementWindow);
-            if (keyboard.yKey.wasPressedThisFrame) ApplyDebugCommand(DebugCommand.ToggleAbilityWindow);
-            if (keyboard.vKey.wasPressedThisFrame) ApplyDebugCommand(DebugCommand.WinCurrentStage);
             if (keyboard.tabKey.wasPressedThisFrame && Items) Items.GetComponent<ColaOrderSheet>()?.ToggleRecords();
             if (State != DuelState.Playing && !interaction.IsBusy && !Progression.BlocksGameplay && keyboard.enterKey.wasPressedThisFrame)
             {
