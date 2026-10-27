@@ -1,0 +1,22 @@
+{
+  "completedUtc": "2026-10-21T09:25:18.653029+00:00",
+  "success": true,
+  "windows": {
+    "buildId": "windows-build-20261021-unityrng-supported-modes-r2",
+    "zip": "C:\\Work\\COLA_COLA\\Builds\\JUST_SHAKE_Windows_x64.zip",
+    "bytes": 127361380,
+    "executable": "C:\\Work\\COLA_COLA\\Builds\\Windows\\JUST SHAKE.exe"
+  },
+  "web": {
+    "buildId": "web-build-20261021-itchio-supported-modes",
+    "zip": "C:\\Work\\COLA_COLA\\Builds\\JUST_SHAKE_itchio.zip",
+    "bytes": 105258321,
+    "rootIndex": true,
+    "files": 5,
+    "largestFileBytes": 94759213
+  },
+  "editorTargetRestored": true,
+  "playTestPerformed": false,
+  "browserGameLaunched": false,
+  "itchPublished": false
+}

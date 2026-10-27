@@ -25,9 +25,12 @@ namespace ColaCola.Presentation
         public bool debugItemTestMenu;
         [HideInInspector]
         public bool debugGuaranteedBurst;
-        // Locked in every target, including Editor and Development builds.
-        // Retain the API for existing tools, but reject all cheat commands at the shared gate.
+#if UNITY_EDITOR
+        private static readonly bool DebugFeaturesEnabled = true;
+#else
+        // Includes Development builds: only the Unity Editor may execute debug commands.
         private static readonly bool DebugFeaturesEnabled = false;
+#endif
         public bool DebugToolsAvailable => DebugFeaturesEnabled;
         public bool ItemTestMenuEnabled => DebugFeaturesEnabled && debugItemTestMenu;
         public bool GuaranteedBurst => DebugFeaturesEnabled && debugGuaranteedBurst;
@@ -339,6 +342,15 @@ namespace ColaCola.Presentation
                 terminal.SetActiveParticipant(IsPlayerTurn);
             var keyboard = Keyboard.current;
             if (keyboard == null) return;
+#if UNITY_EDITOR
+            if (keyboard.qKey.wasPressedThisFrame) ApplyDebugCommand(DebugCommand.SetTokens999);
+            if (keyboard.wKey.wasPressedThisFrame) ApplyDebugCommand(DebugCommand.ToggleGuaranteedBurst);
+            if (keyboard.eKey.wasPressedThisFrame) ApplyDebugCommand(DebugCommand.ToggleFreeItemMenu);
+            if (keyboard.rKey.wasPressedThisFrame) ApplyDebugCommand(DebugCommand.ClearItems);
+            if (keyboard.tKey.wasPressedThisFrame) ApplyDebugCommand(DebugCommand.ToggleAchievementWindow);
+            if (keyboard.yKey.wasPressedThisFrame) ApplyDebugCommand(DebugCommand.ToggleAbilityWindow);
+            if (keyboard.vKey.wasPressedThisFrame) ApplyDebugCommand(DebugCommand.WinCurrentStage);
+#endif
             if (keyboard.tabKey.wasPressedThisFrame && Items) Items.GetComponent<ColaOrderSheet>()?.ToggleRecords();
             if (State != DuelState.Playing && !interaction.IsBusy && !Progression.BlocksGameplay && keyboard.enterKey.wasPressedThisFrame)
             {

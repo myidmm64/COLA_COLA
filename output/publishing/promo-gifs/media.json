@@ -1,0 +1,30 @@
+{
+  "source": "Actual Unity Play Game view, ScreenCapture.CaptureScreenshot, 1920x1080",
+  "note": "Editorial capture only; player explosion staged through the existing Editor W command; no gameplay code changes. GIFs have no audio.",
+  "clips": [
+    {
+      "file": "01-player-burst.gif",
+      "width": 960,
+      "height": 540,
+      "frames": 60,
+      "seconds": 8.0,
+      "bytes": 8086258
+    },
+    {
+      "file": "02-boss-shake.gif",
+      "width": 960,
+      "height": 540,
+      "frames": 56,
+      "seconds": 6.47,
+      "bytes": 8584824
+    },
+    {
+      "file": "03-item-use.gif",
+      "width": 960,
+      "height": 540,
+      "frames": 19,
+      "seconds": 2.14,
+      "bytes": 2900005
+    }
+  ]
+}

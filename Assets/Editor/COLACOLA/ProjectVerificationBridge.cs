@@ -23,6 +23,7 @@ namespace ColaCola.Editor
         {
             public string id, suite, phase, message, startedUtc, heartbeatUtc;
             public int editorProcessId;
+            public int originalBuildTarget;
             public bool batchMode, success;
             public bool playMode;
             public int frameCount;
@@ -149,7 +150,7 @@ namespace ColaCola.Editor
                     return;
                 }
                 if (!Active || EditorApplication.isCompiling || EditorApplication.isUpdating) return;
-                if (run.suite == "compile") { CheckCompilationOnly(); return; }
+                if (run.suite == "compile" && run.phase != "stopping") { CheckCompilationOnly(); return; }
                 if (EditorApplication.timeSinceStartup >= heartbeatAt)
                 { heartbeatAt = EditorApplication.timeSinceStartup + 2; Persist(); }
                 EditorApplication.QueuePlayerLoopUpdate();
@@ -224,6 +225,10 @@ namespace ColaCola.Editor
 
         private static void CheckCompilationOnly()
         {
+            if (run.id.StartsWith("windows-build-", StringComparison.Ordinal))
+            { BuildWindowsPlayer(); return; }
+            if (run.id.StartsWith("web-build-", StringComparison.Ordinal))
+            { BuildWebPlayer(); return; }
             var report = new System.Text.StringBuilder();
             bool success = !SessionState.GetBool(SessionKey + ".compileErrors", false);
             if (!success) report.AppendLine("ERROR: Current script compilation reported C# errors. See verification.log.");
@@ -288,6 +293,174 @@ namespace ColaCola.Editor
             WriteReport(Root + "/compilation/Compilation.txt", report.ToString());
             File.WriteAllText(Root + "/Summary.md", "# Latest compilation inspection\n\n" + run.message + "\n\n" + report);
             Persist();
+        }
+
+        private static void BuildWindowsPlayer()
+        {
+            if (EditorApplication.isPlayingOrWillChangePlaymode)
+            {
+                run.message = "Leaving Play mode to build Windows; no Play tests will run.";
+                EditorApplication.isPlaying = false;
+                Persist();
+                return;
+            }
+            if (PrefabStageUtility.GetCurrentPrefabStage() != null ||
+                Enumerable.Range(0, SceneManager.sceneCount).Any(i => SceneManager.GetSceneAt(i).isDirty))
+            {
+                run.phase = "waiting_for_saved_scenes";
+                run.message = "Save the current scene/prefab to build; unsaved work has not been changed.";
+                Persist();
+                return;
+            }
+            const string output = "Builds/Windows/JUST SHAKE.exe";
+            const string reportFolder = "output/build/latest";
+            Directory.CreateDirectory(Path.GetDirectoryName(output));
+            Directory.CreateDirectory(reportFolder);
+            run.phase = "running";
+            run.message = "Building Windows x64 release player: " + output;
+            Persist();
+            var description = new System.Text.StringBuilder("# Windows x64 release build\n\n");
+            try
+            {
+                const string iconPath = "Assets/_COLA_COLA/Branding/JustShakeIcon.png";
+                var icon = AssetDatabase.LoadAssetAtPath<Texture2D>(iconPath);
+                if (!icon) throw new InvalidOperationException("Game icon is missing: " + iconPath);
+                PlayerSettings.productName = "JUST SHAKE.";
+                foreach (var platform in new[] { UnityEditor.Build.NamedBuildTarget.Unknown, UnityEditor.Build.NamedBuildTarget.Standalone })
+                {
+                    int count = PlayerSettings.GetIconSizes(platform, IconKind.Any).Length;
+                    if (count == 0) continue;
+                    PlayerSettings.SetIcons(platform, Enumerable.Repeat(icon, count).ToArray(), IconKind.Any);
+                }
+                description.AppendLine("- Product: " + PlayerSettings.productName);
+                description.AppendLine("- Icon: " + iconPath);
+                var scenes = EditorBuildSettings.scenes.Where(s => s.enabled).Select(s => s.path).ToArray();
+                if (scenes.Length == 0) throw new InvalidOperationException("No enabled build scene.");
+                var result = BuildPipeline.BuildPlayer(new BuildPlayerOptions
+                {
+                    scenes = scenes,
+                    locationPathName = output,
+                    target = BuildTarget.StandaloneWindows64,
+                    options = BuildOptions.None
+                });
+                run.success = result.summary.result == UnityEditor.Build.Reporting.BuildResult.Succeeded && File.Exists(output);
+                description.AppendLine("- Result: " + result.summary.result);
+                description.AppendLine("- Executable: " + Path.GetFullPath(output));
+                description.AppendLine("- Development build: false");
+                description.AppendLine("- Scenes: " + string.Join(", ", scenes));
+                description.AppendLine("- Size: " + result.summary.totalSize + " bytes");
+                description.AppendLine("- Duration: " + result.summary.totalTime);
+                description.AppendLine("- Errors: " + result.summary.totalErrors);
+                description.AppendLine("- Warnings: " + result.summary.totalWarnings);
+                foreach (var step in result.steps)
+                    foreach (var message in step.messages)
+                        if (message.type == LogType.Error || message.type == LogType.Exception || message.type == LogType.Warning)
+                            description.AppendLine(message.type + ": " + message.content);
+                run.message = run.success ? "Windows x64 release build succeeded: " + Path.GetFullPath(output) : "Windows build failed; see output/build/latest/Windows.md.";
+            }
+            catch (Exception error)
+            {
+                run.success = false;
+                run.message = "Windows build failed: " + error.Message;
+                description.AppendLine(error.ToString());
+            }
+            run.phase = run.success ? "passed" : "failed";
+            description.AppendLine("\nBuild only: no Play suite or standalone launch was performed. Editor left open.");
+            File.WriteAllText(reportFolder + "/Windows.md", description.ToString());
+            Persist();
+            File.WriteAllText(reportFolder + "/windows-status.json", JsonUtility.ToJson(run, true));
+        }
+
+        private static void BuildWebPlayer()
+        {
+            const string reportFolder = "output/build/latest";
+            const string output = "Builds/WebGL";
+            Directory.CreateDirectory(reportFolder);
+            if (run.phase == "restoring_build_target")
+            {
+                if (EditorUserBuildSettings.activeBuildTarget != (BuildTarget)run.originalBuildTarget) return;
+                run.phase = run.success ? "passed" : "failed";
+                run.message += " Original build target restored; Editor left open.";
+                Persist();
+                File.WriteAllText(reportFolder + "/web-status.json", JsonUtility.ToJson(run, true));
+                return;
+            }
+            if (EditorApplication.isPlayingOrWillChangePlaymode)
+            {
+                run.message = "Leaving Play mode to build WebGL; no Play tests will run.";
+                EditorApplication.isPlaying = false; Persist(); return;
+            }
+            if (PrefabStageUtility.GetCurrentPrefabStage() != null ||
+                Enumerable.Range(0, SceneManager.sceneCount).Any(i => SceneManager.GetSceneAt(i).isDirty))
+            {
+                run.phase = "waiting_for_saved_scenes";
+                run.message = "Save current scene/prefab to build WebGL; unsaved work has not been changed.";
+                Persist(); return;
+            }
+            if (run.originalBuildTarget == 0) { run.originalBuildTarget = (int)EditorUserBuildSettings.activeBuildTarget; Persist(); }
+            if (EditorUserBuildSettings.activeBuildTarget != BuildTarget.WebGL)
+            {
+                if (run.phase == "switching_to_web") return;
+                run.phase = "switching_to_web";
+                run.message = "Switching the current Editor to WebGL and importing platform assets.";
+                Persist();
+                if (!EditorUserBuildSettings.SwitchActiveBuildTargetAsync(BuildTargetGroup.WebGL, BuildTarget.WebGL))
+                {
+                    run.phase = "failed"; run.success = false;
+                    run.message = "Unity could not switch to WebGL. Check WebGL Build Support installation.";
+                    Persist(); File.WriteAllText(reportFolder + "/web-status.json", JsonUtility.ToJson(run, true));
+                }
+                return;
+            }
+            run.phase = "running";
+            run.message = "Building WebGL release for itch.io: " + output;
+            Persist();
+            var description = new System.Text.StringBuilder("# WebGL release build for itch.io\n\n");
+            try
+            {
+                PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Gzip;
+                PlayerSettings.WebGL.decompressionFallback = true;
+                PlayerSettings.WebGL.threadsSupport = false;
+                PlayerSettings.WebGL.dataCaching = true;
+                PlayerSettings.WebGL.initialMemorySize = 256;
+                PlayerSettings.WebGL.maximumMemorySize = 2048;
+                PlayerSettings.WebGL.template = "PROJECT:JustShake";
+                var scenes = EditorBuildSettings.scenes.Where(s => s.enabled).Select(s => s.path).ToArray();
+                var result = BuildPipeline.BuildPlayer(new BuildPlayerOptions
+                {
+                    scenes = scenes, locationPathName = output, target = BuildTarget.WebGL, options = BuildOptions.None
+                });
+                run.success = result.summary.result == UnityEditor.Build.Reporting.BuildResult.Succeeded && File.Exists(output + "/index.html");
+                description.AppendLine("- Result: " + result.summary.result);
+                description.AppendLine("- Entry: " + Path.GetFullPath(output + "/index.html"));
+                description.AppendLine("- Development build: false");
+                description.AppendLine("- Compression: gzip with JavaScript decompression fallback");
+                description.AppendLine("- Threads: disabled (no SharedArrayBuffer requirement)");
+                description.AppendLine("- Memory: initial 256 MB, maximum 2048 MB, growth enabled");
+                description.AppendLine("- Size: " + result.summary.totalSize + " bytes");
+                description.AppendLine("- Duration: " + result.summary.totalTime);
+                description.AppendLine("- Errors: " + result.summary.totalErrors);
+                description.AppendLine("- Warnings: " + result.summary.totalWarnings);
+                foreach (var step in result.steps)
+                    foreach (var message in step.messages)
+                        if (message.type == LogType.Error || message.type == LogType.Exception || message.type == LogType.Warning)
+                            description.AppendLine(message.type + ": " + message.content);
+                run.message = run.success ? "WebGL release build succeeded: " + Path.GetFullPath(output) : "WebGL build failed; see output/build/latest/WebGL.md.";
+            }
+            catch (Exception error)
+            { run.success = false; run.message = "WebGL build failed: " + error.Message; description.AppendLine(error.ToString()); }
+            description.AppendLine("\nBuild only: no Play suite, standalone launch or browser game validation was performed.");
+            File.WriteAllText(reportFolder + "/WebGL.md", description.ToString());
+            run.phase = "restoring_build_target";
+            Persist();
+            if (EditorUserBuildSettings.activeBuildTarget != (BuildTarget)run.originalBuildTarget &&
+                !EditorUserBuildSettings.SwitchActiveBuildTargetAsync(BuildPipeline.GetBuildTargetGroup((BuildTarget)run.originalBuildTarget), (BuildTarget)run.originalBuildTarget))
+            {
+                run.phase = "failed";
+                run.message += " Failed to restore the original build target.";
+                run.success = false; Persist();
+                File.WriteAllText(reportFolder + "/web-status.json", JsonUtility.ToJson(run, true));
+            }
         }
 
         private static void OnLog(string message, string trace, LogType type)

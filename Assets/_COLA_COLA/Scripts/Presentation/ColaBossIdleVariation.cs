@@ -14,7 +14,6 @@ namespace ColaCola.Presentation
         private float started, duration, nextAt;
         private int gesture = -1, previous = -1;
         private float side;
-        private const int GestureCount = 12;
         private SupportedArm rightSupport, leftSupport;
         private bool menuIdle;
         private float menuTime;
@@ -22,6 +21,17 @@ namespace ColaCola.Presentation
         private AnimatorCullingMode previousCullingMode;
         private float IdleTime => menuIdle ? menuTime : ColaGameClock.Time;
         private static readonly int[] MenuGestures = { 0, 1, 2, 4, 5, 8, 9 };
+        private static readonly int[][] StageGestures = {
+            new[] { 0, 1, 2, 8 },     // relaxed glances and slow exhaling
+            new[] { 4, 5, 9, 0 },     // impatient finger movement
+            new[] { 6, 7, 1, 3 },     // checks the gauge and inventory
+            new[] { 10, 2, 6, 3 },    // deliberate, calculating attention
+            new[] { 11, 10, 9, 1 }   // tense hands and sustained attention to the bottle
+        };
+        private static readonly float[] StageTempo = { 1.15f, .82f, 1f, 1.06f, .94f };
+        private static readonly float[] StagePause = { 2.8f, 1.1f, 1.8f, 2.1f, 1.0f };
+        private static readonly float[] StageAmplitude = { .85f, 1f, .95f, .85f, 1.08f };
+        private int StageIndex => Mathf.Clamp(owner && owner.items && owner.items.match ? owner.items.match.Level - 1 : 0, 0, 4);
 
         private sealed class SupportedArm
         {
@@ -139,24 +149,27 @@ namespace ColaCola.Presentation
             {
                 if (now < nextAt) return;
                 // Context changes attention, never the hidden result or gameplay RNG.
-                int candidate = menuIdle ? MenuGestures[random.Next(MenuGestures.Length)] : random.Next(GestureCount);
+                var gestures = menuIdle ? MenuGestures : StageGestures[StageIndex];
+                int candidate = gestures[random.Next(gestures.Length)];
                 if (!menuIdle && owner.IsBossTurn && random.NextDouble() < .45) candidate = 10;
                 else if (!menuIdle && owner.Model != null && owner.Model.Pressure >= owner.Model.Limit * .65f && random.NextDouble() < .4) candidate = 11;
                 if (candidate == previous)
-                    candidate = menuIdle ? MenuGestures[(System.Array.IndexOf(MenuGestures, previous) + 1 + random.Next(MenuGestures.Length - 1)) % MenuGestures.Length] : (previous + 1 + random.Next(GestureCount - 1)) % GestureCount;
+                    candidate = gestures[(System.Array.IndexOf(gestures, previous) + 1 + random.Next(gestures.Length - 1)) % gestures.Length];
                 gesture = candidate;
                 previous = gesture;
                 side = random.Next(2) == 0 ? -1 : 1;
                 duration = (gesture == 9 ? 2.1f : 2.6f) + (float)random.NextDouble() * 1.5f;
+                if (!menuIdle) duration *= StageTempo[StageIndex];
                 started = now;
             }
             float t = (now - started) / duration;
-            if (t >= 1) { gesture = -1; nextAt = now + 1.8f + (float)random.NextDouble() * 2.7f; return; }
+            if (t >= 1) { gesture = -1; nextAt = now + (menuIdle ? 1.8f : StagePause[StageIndex]) + (float)random.NextDouble() * 2.2f; return; }
             for (int i = 0; i < nodes.Length; i++) if (nodes[i]) rotations[i] = nodes[i].localRotation;
             overridden = true;
             rightSupport?.Capture(); leftSupport?.Capture();
             bool movedBody = false;
             float envelope = Mathf.SmoothStep(0, 1, t / .24f) * (1 - Mathf.SmoothStep(0, 1, (t - .64f) / .36f));
+            if (!menuIdle) envelope *= StageAmplitude[StageIndex];
             switch (gesture)
             {
                 case 0: Turn(0, new Vector3(0, side * 9, side * 1.3f) * envelope); break; // glance sideways

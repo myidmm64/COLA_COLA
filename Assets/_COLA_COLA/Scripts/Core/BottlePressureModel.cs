@@ -103,8 +103,10 @@ namespace ColaCola.Core
                 throw new ArgumentOutOfRangeException(nameof(probabilityIncrease));
             int increase = (int)Math.Min(int.MaxValue - (long)pressure, Math.Max(0L, ((long)PressureIncreaseFor(strength) + increaseBonus) * Math.Max(1, pressureMultiplier)));
             int after = checked(pressure + increase);
+            // Restore the pressure-based per-shake curve. Preview and Commit share this path.
+            double baseProbability = Math.Pow((double)after / Limit, ProbabilityExponent);
             double probability = ForceBurst || after >= Limit ? 1d : Math.Max(0d, Math.Min(1d,
-                Math.Pow((double)after / Limit, ProbabilityExponent) - Math.Max(0d, probabilityReduction) + Math.Max(0d, probabilityIncrease)));
+                baseProbability - Math.Max(0d, probabilityReduction) + Math.Max(0d, probabilityIncrease)));
             return new ShakePrediction(pressure, strength, increase, Limit, probability);
         }
 

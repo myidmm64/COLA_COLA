@@ -4,6 +4,8 @@ Shader "COLA_COLA/Background Staff"
     {
         _BaseMap("Original character texture", 2D) = "white" {}
         _BaseColor("Uniform tint", Color) = (0.68,0.74,0.64,1)
+        _ShirtTint("Stage shirt color", Color) = (1,1,1,1)
+        _ShirtTintStrength("Stage shirt tint strength", Range(0,1)) = 0
         _Visibility("Visibility", Range(0,1)) = 1
         [Enum(UnityEngine.Rendering.CullMode)] _Cull("Culling", Float) = 2
         _PatinaStrength("Generated clothing wear", Range(0,1)) = 0
@@ -33,6 +35,8 @@ Shader "COLA_COLA/Background Staff"
             CBUFFER_START(UnityPerMaterial)
                 float4 _BaseMap_ST;
                 half4 _BaseColor;
+                half4 _ShirtTint;
+                float _ShirtTintStrength;
                 float _Visibility;
                 float _Cull;
                 float _PatinaStrength, _PatinaKind, _PatinaUV;
@@ -72,7 +76,21 @@ Shader "COLA_COLA/Background Staff"
                         illumination += roomLight.color * roomLight.distanceAttenuation * saturate(dot(normal, roomLight.direction));
                     LIGHT_LOOP_END
                 #endif
-                half3 baseColor = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.uv).rgb * _BaseColor.rgb;
+                half3 originalColor = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.uv).rgb;
+                // Explicit garment islands in the original 256x256 character atlas.
+                // Do not select cloth by brightness/chroma: that leaves dark print and
+                // individual fabric pixels in their original hue, producing colored speckles.
+                half leftIsland = 1 - step(176.0 / 256.0, input.uv.x);
+                half torso = leftIsland * step(1 - 106.0 / 256.0, input.uv.y);
+                half sleeve = (1 - leftIsland) * step(1 - 74.0 / 256.0, input.uv.y);
+                float2 neck = (input.uv - float2(56.0 / 256.0, 1 - 9.0 / 256.0))
+                    / float2(8.0 / 256.0, 10.0 / 256.0);
+                half cotton = max(torso, sleeve) * step(1.0, dot(neck, neck));
+                // Preserve every pixel's luminance (fabric grain, folds and print), while
+                // applying one stage hue to the whole garment. Skin and denim stay outside.
+                half clothValue = dot(originalColor, half3(.2126h, .7152h, .0722h));
+                half3 clothColor = clothValue * _ShirtTint.rgb;
+                half3 baseColor = lerp(originalColor, clothColor, cotton * _ShirtTintStrength) * _BaseColor.rgb;
                 if (_PatinaStrength > 0)
                 {
                     float2 coordinates = _PatinaUV > .5 ? input.uv : ColaPatinaSurfaceMeters(input.positionWS, normal);
@@ -83,5 +101,10 @@ Shader "COLA_COLA/Background Staff"
             }
             ENDHLSL
         }
+        // Stage clothes keep the original character's shadow/depth silhouette.
+        // Background workers explicitly disable shadow casting on their renderers.
+        UsePass "Universal Render Pipeline/Lit/ShadowCaster"
+        UsePass "Universal Render Pipeline/Lit/DepthOnly"
+        UsePass "Universal Render Pipeline/Lit/DepthNormals"
     }
 }

@@ -22,14 +22,14 @@ namespace ColaCola.Presentation
         private GUIStyle receiptTitle, receiptDetail, receiptSmall;
         private GUISkin styledSkin;
         private Font runtimeFont;
-        private Rect debugRect, journalButtonRect;
+        private Rect debugRect, journalButtonRect, webSettingsRect;
 
         public bool BlocksPointer(Vector2 screenPoint)
         {
             if (!match) return false;
             if (match.Progression?.BlocksGameplay ?? false) return true;
             Vector2 point = new(screenPoint.x, Screen.height - screenPoint.y);
-            return debugRect.Contains(point) || journalButtonRect.Contains(point);
+            return debugRect.Contains(point) || journalButtonRect.Contains(point) || webSettingsRect.Contains(point);
         }
 
         private void OnGUI()
@@ -39,7 +39,7 @@ namespace ColaCola.Presentation
             if (!match || Screen.width < 160 || Screen.height < 120) return;
             float scale = ColaUiLayout.Scale;
             EnsureStyles(scale);
-            debugRect = journalButtonRect = default;
+            debugRect = journalButtonRect = webSettingsRect = default;
             var progression = match.Progression;
             if (progression == null) return;
             if (ShowsTabHint)
@@ -49,7 +49,25 @@ namespace ColaCola.Presentation
                 var tabHint = new Rect(ColaUiLayout.Margin, Mathf.Round(Screen.height - 36 * scale - ColaUiLayout.BottomLift), hintWidth, 24 * scale);
                 int hintDepth = GUI.depth;
                 GUI.depth = -25;
+#if UNITY_WEBGL && !UNITY_EDITOR
+                // These are real controls in the browser, where Escape and Tab belong to the browser too.
+                var webBackground = GUI.backgroundColor;
+                GUI.backgroundColor = ButtonColor;
+                hintWidth = Mathf.Min(Screen.width - 32 * scale,
+                    Mathf.Max(hintWidth, buttonStyle.CalcSize(tabContent).x + 24 * scale));
+                journalButtonRect = new Rect(tabHint.x, tabHint.y - 5 * scale, hintWidth, 33 * scale);
+                Fill(journalButtonRect, ButtonColor);
+                if (GUI.Button(journalButtonRect, tabContent, buttonStyle))
+                    match.GetComponent<ColaOrderSheet>()?.ToggleRecords();
+                webSettingsRect = new Rect(Screen.width - 138 * scale - ColaUiLayout.Margin,
+                    ColaUiLayout.Margin + 10 * scale, 138 * scale, 34 * scale);
+                Fill(webSettingsRect, ButtonColor);
+                if (GUI.Button(webSettingsRect, ColaLocalization.Get("ui.settings", "Settings"), buttonStyle))
+                    ColaFrontEnd.EnsureFor(match).ShowSettings();
+                GUI.backgroundColor = webBackground;
+#else
                 GUI.Label(tabHint, tabContent, journalHintStyle);
+#endif
                 GUI.depth = hintDepth;
             }
             if (progression.ChoiceReady || progression.JournalOpen) return;
@@ -112,7 +130,7 @@ namespace ColaCola.Presentation
         private void DrawMatchEnd(bool won, bool completed, bool busy, float scale, float padding)
         {
             float width = Mathf.Min(440 * scale, Screen.width - 24 * scale);
-            float height = Mathf.Min(258 * scale, Screen.height - 32 * scale);
+            float height = Mathf.Min(190 * scale, Screen.height - 32 * scale);
             var panel = new Rect(Mathf.Round((Screen.width - width) * .5f),
                 Mathf.Round((Screen.height - height) * .5f), width, height);
             DrawReceiptPanel(panel, scale);
@@ -124,17 +142,13 @@ namespace ColaCola.Presentation
             GUI.Label(new Rect(panel.x + padding, panel.y + 41 * scale, panel.width - padding * 2, 38 * scale),
                 completed ? ColaLocalization.Get("ui.run_complete", "도전 완료") : won ? ColaLocalization.Get("ui.boss_defeated", "보스 격파") : ColaLocalization.Get("ui.run_over", "도전 종료"), receiptTitle);
             GUI.Label(new Rect(panel.x + padding, panel.y + 82 * scale, panel.width - padding * 2, 23 * scale),
-                match.Level.ToString("00") + " / 05  ·  " + match.BossName, receiptDetail);
-            for (float x = panel.x + 27 * scale; x < panel.xMax - 27 * scale; x += 9 * scale)
-                Fill(new Rect(x, panel.y + 118 * scale, 4 * scale, 1), PaperMuted);
-            GUI.Label(new Rect(panel.x + padding, panel.y + 131 * scale, panel.width - padding * 2, 23 * scale),
-                string.Format(ColaLocalization.Get("ui.run_resources", "체력 {0}/{1}    ·    토큰 {2}"), match.PlayerHealth, match.playerMaxHealth, match.PlayerTokens), receiptDetail);
+                match.Level.ToString("00") + " / 05", receiptDetail);
 
             bool previousEnabled = GUI.enabled;
             Color previousBackground = GUI.backgroundColor;
             GUI.enabled = previousEnabled && !busy;
             GUI.backgroundColor = ButtonColor;
-            var button = new Rect(panel.x + 28 * scale, panel.y + 173 * scale,
+            var button = new Rect(panel.x + 28 * scale, panel.y + 127 * scale,
                 panel.width - 56 * scale, 39 * scale);
             bool pressed = GUI.Button(button, won ? ColaLocalization.Get("ui.next_boss", "다음 보스") : ColaLocalization.Get("ui.new_run", "새 도전"), buttonStyle);
             GUI.backgroundColor = previousBackground;
@@ -145,8 +159,6 @@ namespace ColaCola.Presentation
                 else match.RestartRun(fadeIn: true);
             }
 
-            GUI.Label(new Rect(panel.x + padding, panel.yMax - 34 * scale, panel.width - padding * 2, 23 * scale),
-                won ? ColaLocalization.Get("ui.enter_next", "ENTER  다음 보스") : ColaLocalization.Get("ui.enter_new", "ENTER  새 도전"), receiptSmall);
         }
 
         private void EnsureStyles(float scale)

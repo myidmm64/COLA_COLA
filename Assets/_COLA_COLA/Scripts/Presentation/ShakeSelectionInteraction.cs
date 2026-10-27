@@ -24,7 +24,11 @@ namespace ColaCola.Presentation
         public bool InputEnabled { get; set; } = true;
         [Min(0)] public float bossThinkSeconds = .65f;
         private BottlePressureModel model;
-        private System.Random random;
+        private System.Random bottleLimitRandom;
+        private Func<double> nextBurstRoll;
+#if UNITY_EDITOR
+        private bool seededBurstReplay;
+#endif
         private System.Random bossChoiceRandom;
         private int sessionVersion;
         private readonly Vector3[] buttonRest = new Vector3[3];
@@ -93,7 +97,11 @@ namespace ColaCola.Presentation
             CancelPendingActions();
             if (!captured) CaptureRestPose();
             RestorePoses();
-            random = seed.HasValue ? new System.Random(seed.Value) : new System.Random();
+            bottleLimitRandom = seed.HasValue ? new System.Random(seed.Value) : new System.Random();
+            nextBurstRoll = ColaBurstRandom.CreateSource(seed);
+#if UNITY_EDITOR
+            seededBurstReplay = seed.HasValue;
+#endif
             bossChoiceRandom = seed.HasValue ? new System.Random(seed.Value ^ 0x43A1) : new System.Random();
             IsBossTurn = false;
             LastActionWasBoss = false;
@@ -144,7 +152,8 @@ namespace ColaCola.Presentation
 
         private void SetBottle(int limit, int pressure = 0)
         {
-            if (random == null) random = new System.Random();
+            if (bottleLimitRandom == null) bottleLimitRandom = new System.Random();
+            if (nextBurstRoll == null) nextBurstRoll = ColaBurstRandom.NextDouble;
             if (model == null) model = new BottlePressureModel(limit, settings ? settings.probabilityExponent : 2, pressure);
             else model.BeginBottle(limit, pressure);
             BottleNumber++;
@@ -159,7 +168,7 @@ namespace ColaCola.Presentation
         {
             int minimum = Mathf.Clamp(settings.minimumBottleLimit, 1, 999);
             int maximum = Mathf.Clamp(settings.maximumBottleLimit, minimum, 999);
-            int limit = random.Next(minimum, maximum + 1);
+            int limit = bottleLimitRandom.Next(minimum, maximum + 1);
             if (maximum > minimum && BottleNumber > 0 && limit == model.Limit)
                 limit = minimum + (limit - minimum + 1) % (maximum - minimum + 1);
             SetBottle(limit);
@@ -197,11 +206,18 @@ namespace ColaCola.Presentation
         {
             model.ForceBurst = ForceBurst;
             var modifiers = items ? items.PreviewAction(boss) : ItemActionModifiers.None;
-            if (!model.TryCommit(() => random.NextDouble(), out result, modifiers.PressureBonus, probabilityReduction: modifiers.ProbabilityReduction, pressureMultiplier: modifiers.PressureMultiplier, probabilityIncrease: modifiers.ProbabilityIncrease)) return false;
+            if (nextBurstRoll == null) nextBurstRoll = ColaBurstRandom.NextDouble;
+            if (!model.TryCommit(nextBurstRoll, out result, modifiers.PressureBonus, probabilityReduction: modifiers.ProbabilityReduction, pressureMultiplier: modifiers.PressureMultiplier, probabilityIncrease: modifiers.ProbabilityIncrease)) return false;
             LastItemModifiers = items ? items.CaptureAction(boss) : modifiers;
             CommittedActionCount++;
             LastResult = result;
             LastActionWasBoss = boss;
+#if UNITY_EDITOR
+            Debug.LogFormat(this,
+                "[BurstRoll] bottle={0} action={1} boss={2} probability={3:R} roll={4:R} burst={5} source={6} forced={7}",
+                BottleNumber, CommittedActionCount, boss, result.Prediction.BurstProbability, result.Roll,
+                result.Burst, seededBurstReplay ? "UnityEngine.Random (Editor seeded replay)" : "UnityEngine.Random", ForceBurst);
+#endif
             ReleaseButtons();
             gauge.Show(model.Pressure, model.Limit, null, result.Prediction.BurstProbability);
             return true;
@@ -265,12 +281,8 @@ namespace ColaCola.Presentation
                 var modifiers = items ? items.PreviewAction(false) : ItemActionModifiers.None;
                 var prediction = model.Predict(model.SelectedStrength, modifiers.PressureBonus, probabilityReduction: modifiers.ProbabilityReduction, pressureMultiplier: modifiers.PressureMultiplier, probabilityIncrease: modifiers.ProbabilityIncrease);
                 int basePressure = model.Predict(model.SelectedStrength, pressureMultiplier: modifiers.PressureMultiplier).PressureAfter;
-                int incoming = items ? items.IncomingPressureFor(false) : 0;
-                int cooling = items ? items.CoolingReductionFor(false) : 0;
-                int? increasedPressure = incoming > 0 ?
-                    model.Predict(model.SelectedStrength, incoming, pressureMultiplier: modifiers.PressureMultiplier).PressureAfter : (int?)null;
                 gauge.Show(model.Pressure, model.Limit, prediction.PressureAfter, prediction.BurstProbability, immediate,
-                    basePressure, increasedPressure, cooling > 0 ? prediction.PressureAfter : (int?)null);
+                    basePressure);
             }
             else gauge.Show(model.Pressure, model.Limit, null, null, immediate);
             var handPress = GetComponent<ColaPressureButtonPress>();

@@ -34,7 +34,7 @@ namespace ColaCola.Presentation
             }
             int oldDepth = GUI.depth; var oldColor = GUI.color;
             GUI.depth = -19; GUI.color = Color.white; PrintedTextFits = true;
-            DrawPrint(ControlRect(-.128f, .176f, -.015f, .157f), "FIZZERIA", printMuted, 12);
+            DrawPrint(ControlRect(-.128f, .176f, -.015f, .157f), "JUST SHAKE.", printMuted, 12);
             DrawPrint(ControlRect(-.128f, .157f, .113f, .130f), titleText.text, printInk, 24);
             if (Page != SheetPage.AbilityChoice)
                 DrawPrint(ControlRect(.120f, .177f, .142f, .155f), "×", printLight, 17, true);
@@ -67,11 +67,12 @@ namespace ColaCola.Presentation
                 }
                 else name = ColaItemCatalog.All[index].Name;
                 DrawPrint(ControlRect(-.130f, y + .011f, -.106f, y - .011f), (index + 1).ToString(), printLight, 14, true);
-                DrawPrint(ControlRect(-.098f, y + .013f, IsProgressionPage ? .073f : .028f, y - .013f), name, printInk, 18);
+                DrawPrint(ControlRect(-.098f, y + .013f, IsProgressionPage ? .064f : .028f, y - .013f), name, printInk, 18);
                 if (action)
                 {
                     string caption = Page == SheetPage.AbilityChoice ? ColaLocalization.Get("ui.select", "선택") : owned ? ColaLocalization.Get("ui.earned", "달성") : DebugPage ? ColaLocalization.Get("ui.add", "추가") : "—";
-                    DrawPrint(ControlRect(.079f, y + .012f, .132f, y - .012f), caption, printLight, 14, true);
+                    // Match the physical action key: centre .092, width .041 (including earned badges).
+                    DrawPrint(ControlRect(.0715f, y + .012f, .1125f, y - .012f), caption, printLight, 14, true);
                 }
             }
             if (!string.IsNullOrEmpty(descriptionText.text))

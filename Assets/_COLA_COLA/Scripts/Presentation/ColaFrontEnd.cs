@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using ColaCola.Core;
 using UnityEngine;
@@ -25,6 +26,7 @@ namespace ColaCola.Presentation
         private Rect dropdownButtonRect;
         private readonly List<string> languages = new();
         private readonly List<Vector2Int> sizes = new();
+        private readonly List<DisplayInfo> displayLayout = new();
         private float previousTimeScale = 1, volume = 1;
         private int resolution;
         private bool fullscreen;
@@ -33,10 +35,6 @@ namespace ColaCola.Presentation
         public static bool BlocksGameplay => instance && instance.page != Page.Hidden;
         public static bool AnimatesMenuBackground => instance && (instance.page == Page.Main || instance.page == Page.Credits ||
             instance.page == Page.Settings && instance.settingsReturn == Page.Main);
-        private static readonly Vector2Int[] ResolutionPresets = {
-            new(1280, 720), new(1366, 768), new(1600, 900), new(1920, 1080),
-            new(2560, 1080), new(2560, 1440), new(3440, 1440), new(3840, 2160)
-        };
 
         public static ColaFrontEnd EnsureFor(ColaDuelController owner)
         {
@@ -51,14 +49,23 @@ namespace ColaCola.Presentation
             instance = this;
             volume = Mathf.Clamp01(PlayerPrefs.GetFloat("COLA_COLA.MasterVolume", .8f));
             AudioListener.volume = volume;
-            fullscreen = PlayerPrefs.GetInt("COLA_COLA.Fullscreen", Screen.fullScreen ? 1 : 0) != 0;
-            // A compact authored list; never expose every refresh-rate/driver mode.
-            int desktopWidth = Mathf.Max(Screen.currentResolution.width, Screen.width);
-            int desktopHeight = Mathf.Max(Screen.currentResolution.height, Screen.height);
-            foreach (var size in ResolutionPresets)
-                if (size.x <= desktopWidth && size.y <= desktopHeight) sizes.Add(size);
-            if (sizes.Count == 0) sizes.Add(ResolutionPresets[0]);
-            var saved = new Vector2Int(PlayerPrefs.GetInt("COLA_COLA.Width", 1920), PlayerPrefs.GetInt("COLA_COLA.Height", 1080));
+#if !UNITY_WEBGL || UNITY_EDITOR
+            Screen.GetDisplayLayout(displayLayout);
+#endif
+            sizes.AddRange(ColaDisplayModes.Primary());
+            SortResolutions();
+            Vector2Int highestSupported = sizes[0];
+            // Apply this requested default set once, including upgrades from the former 1080p/Korean defaults.
+            // Later player choices remain saved instead of being overwritten on every launch.
+            bool newDefaults = PlayerPrefs.GetInt("COLA_COLA.DisplayDefaultsVersion", 0) < 1;
+            fullscreen = newDefaults || PlayerPrefs.GetInt("COLA_COLA.Fullscreen", 1) != 0;
+#if UNITY_WEBGL && !UNITY_EDITOR
+            // Browser fullscreen requires a user gesture; the settings button can request it later.
+            fullscreen = Screen.fullScreen;
+#endif
+            var saved = newDefaults ? highestSupported : new Vector2Int(
+                PlayerPrefs.GetInt("COLA_COLA.Width", highestSupported.x), PlayerPrefs.GetInt("COLA_COLA.Height", highestSupported.y));
+            // Clamp stale/unsupported saved settings against real modes; never insert them into the list.
             float nearest = float.PositiveInfinity;
             for (int i = 0; i < sizes.Count; i++)
             {
@@ -66,8 +73,40 @@ namespace ColaCola.Presentation
                 if (distance < nearest) { nearest = distance; resolution = i; }
             }
             ApplyDisplay();
+            if (newDefaults)
+            {
+                ColaLocalization.SetLanguage("en");
+                PlayerPrefs.SetInt("COLA_COLA.DisplayDefaultsVersion", 1);
+            }
+            PlayerPrefs.Save();
             languages.AddRange(ColaLocalization.Languages);
 
+        }
+
+        private IEnumerator Start()
+        {
+#if UNITY_STANDALONE_WIN && !UNITY_EDITOR
+            // Unity's layout puts the OS primary display first. Move only our standalone game window;
+            // do not reposition the Unity Editor or touch user input.
+            if (displayLayout.Count > 0)
+            {
+                var primary = displayLayout[0];
+                var moving = Screen.MoveMainWindowTo(primary, Vector2Int.zero);
+                if (moving != null) yield return moving;
+                ApplyDisplay();
+                PlayerPrefs.Save();
+            }
+#endif
+            yield break;
+        }
+
+        private void SortResolutions()
+        {
+            sizes.Sort((a, b) =>
+            {
+                int pixels = ((long)b.x * b.y).CompareTo((long)a.x * a.y);
+                return pixels != 0 ? pixels : b.x.CompareTo(a.x);
+            });
         }
 
         public void ShowMainMenu()
@@ -85,7 +124,16 @@ namespace ColaCola.Presentation
         { SetPage(Page.Hidden); match.RestartRun(fadeIn: true); }
 
         public void ShowSettings()
-        { settingsReturn = page; SetPage(Page.Settings); }
+        {
+            var selected = sizes[resolution];
+            sizes.Clear(); sizes.AddRange(ColaDisplayModes.Primary()); SortResolutions();
+            resolution = sizes.IndexOf(selected);
+            if (resolution < 0) { resolution = 0; ApplyDisplay(); }
+#if UNITY_WEBGL && !UNITY_EDITOR
+            fullscreen = Screen.fullScreen;
+#endif
+            settingsReturn = page; SetPage(Page.Settings);
+        }
 
         public void CloseSettings()
         { if (page == Page.Settings) { Save(); SetPage(settingsReturn); } }
@@ -147,13 +195,18 @@ namespace ColaCola.Presentation
                 x = Screen.width * .065f;
                 w = Mathf.Min(465 * scale, Screen.width * .46f);
                 float y = Screen.height * .23f;
-                GUI.Label(new Rect(x, y, w, 110 * scale), "FIZZERIA", title);
+                const string gameTitle = "JUST SHAKE.";
+                float titleWidth = title.CalcSize(new GUIContent(gameTitle)).x;
+                if (titleWidth > w) title.fontSize = Mathf.Max(1, Mathf.FloorToInt(title.fontSize * w / titleWidth));
+                GUI.Label(new Rect(x, y, w, 110 * scale), gameTitle, title);
                 y += 155 * scale;
                 if (MainButton(new Rect(x + 25 * scale, y, w - 45 * scale, 53 * scale), L("start", "게임 시작"), 0, scale))
                 StartGame();
                 if (MainButton(new Rect(x + 25 * scale, y + 62 * scale, w - 45 * scale, 53 * scale), L("settings", "설정"), 1, scale))
                 ShowSettings();
+#if !UNITY_WEBGL || UNITY_EDITOR
                 if (MainButton(new Rect(x + 25 * scale, y + 124 * scale, w - 45 * scale, 53 * scale), L("quit", "게임 종료"), 2, scale)) Quit();
+#endif
                 if (GUI.Button(new Rect(Screen.width - 150 * scale, Screen.height - 55 * scale - ColaUiLayout.BottomLift, 120 * scale, 30 * scale), L("credits", "크레딧"), small)) SetPage(Page.Credits);
             }
             else if (page == Page.Settings) DrawSettings(scale);
@@ -162,7 +215,7 @@ namespace ColaCola.Presentation
                 float y = Screen.height * .12f;
                 GUI.Label(new Rect(x, y, w, 60 * scale), L("credits", "크레딧"), heading);
                 var credits = Resources.Load<TextAsset>("Localization/Credits");
-                string creditText = credits ? credits.text : "FIZZERIA\nMade with Unity";
+                string creditText = credits ? credits.text : "JUST SHAKE.\nMade with Unity";
                 var viewport = new Rect(x, y + 70 * scale, Screen.width - x * 2, Screen.height - y - 190 * scale - ColaUiLayout.BottomLift);
                 var content = new Rect(0, 0, viewport.width - 26 * scale, text.CalcHeight(new GUIContent(creditText), viewport.width - 26 * scale));
                 creditsScroll = GUI.BeginScrollView(viewport, creditsScroll, content);

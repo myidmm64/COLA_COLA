@@ -1,0 +1,16 @@
+{
+    "id": "windows-build-20261021-user-cola-icon",
+    "suite": "compile",
+    "phase": "passed",
+    "message": "Windows x64 release build succeeded: C:\\Work\\COLA_COLA\\Builds\\Windows\\JUST SHAKE.exe",
+    "startedUtc": "2026-10-21T11:52:03.7069155Z",
+    "heartbeatUtc": "2026-10-21T11:59:06.8562077Z",
+    "editorProcessId": 33256,
+    "originalBuildTarget": 0,
+    "batchMode": false,
+    "success": true,
+    "playMode": false,
+    "frameCount": 0,
+    "passed": [],
+    "scenes": []
+}

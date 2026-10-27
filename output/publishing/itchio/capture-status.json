@@ -1,0 +1,10 @@
+{
+  "phase": "completed",
+  "message": "Requested main-menu image and actual Game-view shake GIF exported. Temporary capture frames deleted. No gameplay verification suite was run.",
+  "thumbnail": "main-menu.png",
+  "animation": "cola-shake.gif",
+  "gifFrames": 40,
+  "gifSeconds": 4,
+  "gifWidth": 640,
+  "gifHeight": 360
+}

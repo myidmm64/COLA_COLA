@@ -21,7 +21,17 @@ namespace ColaCola.Core
             "de" => "Deutsch", "es" => "Español", "pt-BR" => "Português (Brasil)", "ru" => "Русский",
             _ => code
         };
-        public static string Language => language ??= PlayerPrefs.GetString("COLA_COLA.Language", "ko");
+        public static string Language
+        {
+            get
+            {
+                if (language != null) return language;
+                language = PlayerPrefs.GetString("COLA_COLA.Language", "en");
+                if (!PlayerPrefs.HasKey("COLA_COLA.Language"))
+                { PlayerPrefs.SetString("COLA_COLA.Language", language); PlayerPrefs.Save(); }
+                return language;
+            }
+        }
         public static void SetLanguage(string language) { ColaLocalization.language = language; PlayerPrefs.SetString("COLA_COLA.Language", language); PlayerPrefs.Save(); }
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         public static void Reload() { rows = null; language = null; }

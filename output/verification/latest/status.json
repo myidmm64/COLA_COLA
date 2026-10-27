@@ -1,33 +1,24 @@
 {
-  "id": "readability-visual-final-20261021",
-  "suite": "readability",
-  "phase": "passed",
-  "message": "Final contrast changes captured in native 1080p and 1440p Game views. Full gameplay results retained in fullscreen-ui/Report.md. Original scene setup restored; Editor left open.",
-  "startedUtc": "2026-10-21T05:29:46.2436738Z",
-  "heartbeatUtc": "2026-10-21T05:30:05.3041192Z",
-  "editorProcessId": 33256,
-  "batchMode": false,
-  "success": true,
-  "playMode": false,
-  "frameCount": 0,
-  "passed": [
-    "COLA_READABILITY_VISUAL_PASS"
-  ],
-  "scenes": [
-    {
-      "path": "Assets/Scenes/MainScene.unity",
-      "isLoaded": true,
-      "isActive": true
-    }
-  ],
-  "corePlayAssertionsPassed": 76,
-  "gameViewVisuallyInspected": true,
-  "visualResolutions": [
-    "1920x1080",
-    "2560x1440"
-  ],
-  "smallResolutionFitChecked": "1366x768",
-  "releasePlayerScriptsCompiled": true,
-  "standaloneBuilt": false,
-  "temporaryCompilerOutputRemoved": true
+    "id": "promo-capture-20261024-take3",
+    "suite": "readability",
+    "phase": "passed",
+    "message": "Requested promotional GIF source footage captured from actual Play/Game view. No general test suite was run. Original scene setup restored; Editor left open.",
+    "startedUtc": "2026-10-24T09:09:39.8595327Z",
+    "heartbeatUtc": "2026-10-24T09:10:10.2483647Z",
+    "editorProcessId": 46152,
+    "originalBuildTarget": 0,
+    "batchMode": false,
+    "success": true,
+    "playMode": false,
+    "frameCount": 0,
+    "passed": [
+        "COLA_PROMO_MEDIA_PASS"
+    ],
+    "scenes": [
+        {
+            "path": "Assets/Scenes/MainScene.unity",
+            "isLoaded": true,
+            "isActive": true
+        }
+    ]
 }

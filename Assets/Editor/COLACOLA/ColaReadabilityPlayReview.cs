@@ -19,7 +19,7 @@ namespace ColaCola.Editor
         internal const string Folder = ProjectVerificationBridge.Root + "/fullscreen-ui";
         internal static bool VisualOnly => SessionState.GetBool(Key + ".Visual", false);
         private const BindingFlags Flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static;
-        private static readonly string[] IntPrefs = { "COLA_COLA.Width", "COLA_COLA.Height", "COLA_COLA.Fullscreen" };
+        private static readonly string[] IntPrefs = { "COLA_COLA.Width", "COLA_COLA.Height", "COLA_COLA.Fullscreen", "COLA_COLA.DisplayDefaultsVersion" };
         private static readonly string[] StringPrefs = { "COLA_COLA.Language", "COLA_COLA.Achievements.v1" };
         static ColaReadabilityPlayReview() { if (SessionState.GetBool(Key, false)) Hook(); }
         internal static void Begin(bool visualOnly = false)

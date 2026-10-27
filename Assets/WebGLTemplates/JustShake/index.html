@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>{{{ PRODUCT_NAME }}}</title>
+  <style>
+    *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0c100d;color:#cccbb8;font:15px system-ui,sans-serif}
+    #game{position:fixed;inset:0;background:#0c100d}canvas{display:block;width:100%;height:100%;outline:none}
+    #loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:20px;background:#0c100d}
+    h1{font-size:28px;font-weight:600;letter-spacing:.12em;margin:0}progress{width:220px;height:5px;accent-color:#8d9673}
+    #status{position:absolute;left:10%;right:10%;bottom:14%;font-size:13px;line-height:1.6;white-space:pre-wrap;color:#b89e8a}
+    #fullscreen{position:absolute;right:12px;bottom:10px;width:34px;height:30px;border:1px solid #59614b;background:#151c16c9;color:#b2b7a2;border-radius:2px;cursor:pointer;font-size:20px;opacity:.65}
+    #fullscreen:hover{opacity:1}button:focus-visible{outline:2px solid #9ba77e}
+  </style>
+</head>
+<body>
+  <main id="game">
+    <canvas id="unity-canvas" width="{{{ WIDTH }}}" height="{{{ HEIGHT }}}" tabindex="0" aria-label="JUST SHAKE. game"></canvas>
+    <div id="loading"><h1>JUST SHAKE.</h1><progress id="progress" max="1" value="0"></progress><div id="status"></div></div>
+    <button id="fullscreen" type="button" title="Fullscreen" aria-label="Fullscreen" hidden>⛶</button>
+  </main>
+  <script>
+    const canvas = document.getElementById('unity-canvas');
+    const status = document.getElementById('status');
+    canvas.addEventListener('contextmenu', event => event.preventDefault());
+    const config = {
+      arguments: [],
+#if PROGRESSIVE_ASSET_LOADING
+      primaryDataUrls: {{{ JSON.stringify(PRIMARY_DATA_FILES) }}},
+      secondaryDataUrls: {{{ JSON.stringify(SECONDARY_DATA_FILES) }}},
+#else
+      dataUrl: 'Build/{{{ DATA_FILENAME }}}',
+#endif
+      frameworkUrl: 'Build/{{{ FRAMEWORK_FILENAME }}}',
+      codeUrl: 'Build/{{{ CODE_FILENAME }}}',
+      streamingAssetsUrl: 'StreamingAssets',
+      fullscreenElementID: 'game',
+      companyName: {{{ JSON.stringify(COMPANY_NAME) }}},
+      productName: {{{ JSON.stringify(PRODUCT_NAME) }}},
+      productVersion: {{{ JSON.stringify(PRODUCT_VERSION) }}},
+      matchWebGLToCanvasSize: true,
+      devicePixelRatio: window.devicePixelRatio || 1,
+      autoSyncPersistentDataPath: true,
+      showBanner: (message, type) => { if(type === 'error') status.textContent = message; else console.warn(message); }
+    };
+    const script = document.createElement('script');
+    script.src = 'Build/{{{ LOADER_FILENAME }}}';
+    script.onerror = () => status.textContent = 'The game could not be downloaded. Reload the page to try again.';
+    script.onload = () => createUnityInstance(canvas, config, value => document.getElementById('progress').value = value)
+      .then(instance => {
+        document.getElementById('loading').style.display = 'none';
+        const fullscreen = document.getElementById('fullscreen');
+        fullscreen.hidden = false;
+        fullscreen.onclick = () => { instance.SetFullscreen(1); canvas.focus(); };
+        canvas.focus();
+      })
+      .catch(error => { console.error(error); status.textContent = 'The game could not start. Please use a current desktop browser.\n' + error; });
+    document.body.appendChild(script);
+  </script>
+</body>
+</html>

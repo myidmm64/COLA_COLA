@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="630" height="500" viewBox="0 0 630 500">
+  <defs>
+    <pattern id="check" width="28" height="28" patternUnits="userSpaceOnUse"><path fill="#bcb49a" d="M0 0h14v14H0zm14 14h14v14H14z"/></pattern>
+  </defs>
+  <rect width="630" height="500" fill="#0d120f"/>
+  <path d="M0 0h630v15H0z" fill="#19201a"/>
+  <path d="M39 47h75" stroke="#9d4137" stroke-width="5"/>
+  <text x="40" y="76" fill="#b9b59f" font-family="Arial, sans-serif" font-size="12" font-weight="700" letter-spacing="3.2">A SODA ROULETTE DUEL</text>
+  <g transform="translate(491 37) rotate(12 35 65)" stroke="#beb99d" stroke-width="2.2" stroke-linejoin="round">
+    <path fill="#19201a" d="M22 13h26v25c0 12 17 18 18 39l3 51c0 8-6 13-14 13H15c-8 0-14-5-14-13l3-51c1-21 18-27 18-39z"/>
+    <path fill="#9d4137" stroke="#9d4137" d="M19 4h32v15H19z"/>
+    <path d="M4 83h62l2 30H2z" fill="#9d4137" stroke="#9d4137"/>
+    <text x="14" y="102" fill="#e9dfc6" stroke="none" font-family="Arial, sans-serif" font-weight="900" font-size="13" letter-spacing="1">COLA</text>
+  </g>
+  <text x="34" y="225" fill="#e9dfc6" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="159" letter-spacing="-9">JUST</text>
+  <text x="34" y="354" fill="#e9dfc6" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="129" letter-spacing="-7">SHAKE.</text>
+  <path d="M41 387h548" stroke="#333c2e" stroke-width="1"/>
+  <text x="42" y="422" fill="#c1bda4" font-family="Arial, sans-serif" font-weight="700" font-size="15" letter-spacing="3.3">ONE BOTTLE. TWO SIDES.</text>
+  <g transform="translate(543 418)">
+    <circle r="21" fill="none" stroke="#59604a" stroke-width="1.5"/>
+    <path d="M-14-10l3 3M0-17v5M14-10l-3 3M17 3h-4M-17 3h4" fill="none" stroke="#999e7a" stroke-width="1.5"/>
+    <path d="M-8 8 11-10" stroke="#9d4137" stroke-width="2.5"/>
+    <circle r="2.6" fill="#c1bda4"/>
+  </g>
+  <rect x="0" y="465" width="630" height="14" fill="url(#check)" opacity=".32"/>
+  <rect x="0" y="479" width="630" height="21" fill="#19201a"/>
+</svg>

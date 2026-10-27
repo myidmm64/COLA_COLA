@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="260" viewBox="0 0 960 260">
+  <defs>
+    <pattern id="check" width="24" height="24" patternUnits="userSpaceOnUse"><path fill="#bcb49a" d="M0 0h12v12H0zm12 12h12v12H12z"/></pattern>
+  </defs>
+  <rect width="960" height="260" fill="#0d120f"/>
+  <path d="M38 38h73" stroke="#9d4137" stroke-width="4"/>
+  <text x="33" y="160" fill="#e9dfc6" font-family="Arial Black, Arial, sans-serif" font-size="108" font-weight="900" letter-spacing="-6">JUST SHAKE.</text>
+  <text x="40" y="205" fill="#c1bda4" font-family="Arial, sans-serif" font-size="13" font-weight="700" letter-spacing="3.5">ONE BOTTLE. TWO SIDES.</text>
+  <g transform="translate(842 44) rotate(10 31 68)" stroke="#beb99d" stroke-width="2" stroke-linejoin="round">
+    <path fill="#19201a" d="M20 14h24v27c0 12 15 18 17 38l3 49c0 8-5 13-13 13H12c-8 0-13-5-13-13l3-49c2-20 18-26 18-38z"/>
+    <path fill="#9d4137" stroke="#9d4137" d="M17 5h30v14H17z"/>
+    <path fill="#9d4137" stroke="#9d4137" d="M2 83h59l2 29H0z"/>
+    <text x="11" y="101" fill="#e9dfc6" stroke="none" font-family="Arial, sans-serif" font-weight="900" font-size="13" letter-spacing="1">COLA</text>
+  </g>
+  <path d="M798 57v146" stroke="#333c2e" stroke-width="1"/>
+  <rect y="240" width="960" height="12" fill="url(#check)" opacity=".3"/>
+  <rect y="252" width="960" height="8" fill="#19201a"/>
+</svg>

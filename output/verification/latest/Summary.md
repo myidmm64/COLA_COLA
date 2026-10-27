@@ -1,24 +1,8 @@
-# FIZZERIA 전체화면 가독성 · 최종 확인
+# Promotional GIF capture
 
-2026-10-21 / 원본 Unity Editor 6000.6.4f1 / Windows 64비트
-
-## 변경과 분석
-
-- 화면마다 달랐던 글자 확대 상한 때문에 고해상도에서 글자가 상대적으로 작아졌다. 공통 화면 비율과 여백을 적용해 메인 메뉴, 설정, 결과, TAB 안내와 아이템 설명의 크기를 맞췄다.
-- FHD 아이템 이름은 27px, 효과 설명은 24px, 반납 안내는 18px이다. 이름과 효과를 먼저 읽도록 배치하고, 반납 안내와 TAB 안내는 작고 은은하게 유지했다.
-- 3D 메뉴판 모델은 유지했다. 들고 있을 때 종이 위치에 맞춰 글자를 선명하게 표시하며, 설명은 종이 아래의 전용 영역에서 줄바꿈한다. 언어별 폰트 교체도 즉시 반영한다.
-- 밝은 테이블 위에서 설명이 묻히던 문제는 글자 대비와 얇은 그림자로 보완했다. 설명 상자는 추가하지 않았다.
-- 빌드 씬은 MainScene 하나만 활성화했다. SampleScene은 삭제하지 않고 빌드에서 제외했다.
-
-## 확인 결과
-
-- **실제 Unity Play 동작 검사 76개 통과.** 시작·설정·주문·즉시 반납·실제 토큰 벨 결제·양쪽 턴·폭발 후 전환·능력 선택·단계별 체력·도전 완료·재시작을 확인했다.
-- FHD 1920×1080과 QHD 2560×1440의 실제 Game 뷰 캡처를 직접 열어 메뉴, 설명, 기록부, 능력 선택과 결과 화면을 확인했다. 1366×768에서는 기록부의 글자 영역 넘침을 Play 코드로 검사했다.
-- 10개 언어의 긴 능력 설명이 메뉴판 영역에 맞는지 Play에서 검사했다. 모든 번역 문장의 자연스러움을 새로 감수한 검사는 아니다.
-- 일반 흔들기는 W를 끄고 검사했다. 3회 폭발 보상은 W, 단계별 상태와 최종 승리는 디버그 공용 경로로 준비했다. 자연 진행으로 전체 캠페인을 완주하거나 밸런스를 재측정한 결과는 아니다.
-- **Windows 64비트 릴리스 플레이어 스크립트 컴파일 성공.** 이번 확인에서 컴파일 오류는 없었다. 실행 파일과 씬·리소스 패키징 빌드는 아직 실행하지 않았다.
-- 검사 전 토큰·디버그·설정·언어·업적·씬·Game 뷰 구성을 복원했고 에디터는 열어 두었다. 임시 컴파일 산출물과 진행 파일은 삭제했다.
-
-실행 파일 빌드만 남겼다. 빌드된 실행 파일 자체의 동작 확인은 아직 하지 않았다.
-
-[Play 상세 결과](fullscreen-ui/Report.md) · [최종 화면 확인](fullscreen-ui/Visual.md) · [릴리스 컴파일 결과](compilation/Compilation.txt)
+- Requested three promotional clips captured from the original Unity project in actual Play/Game view at 1920x1080.
+- Exported to output/publishing/promo-gifs/ at 960x540, looping, with original captured timing and no audio.
+- Player shake and burst staged with ColaDuelController.ApplyDebugCommand(ToggleGuaranteedBurst); boss shake through PassPlayerTurn; IceCup supplied through ToggleFreeItemMenu/TryPurchase and used through TryUseSlot.
+- Editor debug switches, tokens, AI/HUD state and persistent language/achievement preferences restored. Original scene and Game-view configuration restored; Editor remains open in Edit mode.
+- Temporary PNG sequences and capture-only script/bridge hooks removed. No gameplay implementation changes, standalone build or general verification suite.
+- Representative original Game-view frames inspected for the player's held bottle, burst effects/blackout, boss holding/shaking, and lifted ice cup.

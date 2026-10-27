@@ -3,7 +3,7 @@ namespace ColaCola.Core
     /// <summary>One-effect consumables. Hot sauce lasts for one bottle; other pending effects last one shake.</summary>
     public static class ColaItemBalance
     {
-        public const int Revision = 8;
+        public const int Revision = 10;
         public const int LowSafeReward = 1;
         public const int MediumSafeReward = 3;
         public const int HighSafeReward = 4;

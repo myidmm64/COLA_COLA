@@ -1,0 +1,16 @@
+{
+    "id": "web-build-20261021-browser-buttons-final",
+    "suite": "compile",
+    "phase": "passed",
+    "message": "WebGL release build succeeded: C:\\Work\\COLA_COLA\\Builds\\WebGL Original build target restored; Editor left open.",
+    "startedUtc": "2026-10-21T11:34:15.1692096Z",
+    "heartbeatUtc": "2026-10-21T11:37:52.6635816Z",
+    "editorProcessId": 33256,
+    "originalBuildTarget": 19,
+    "batchMode": false,
+    "success": true,
+    "playMode": false,
+    "frameCount": 0,
+    "passed": [],
+    "scenes": []
+}
